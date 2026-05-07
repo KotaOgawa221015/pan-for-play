@@ -9,3 +9,7 @@ node_modules
 Dockerfile*
 docker-compose*
 .dockerignore
+*.db
+*.db-journal
+*.db-shm
+*.db-wal

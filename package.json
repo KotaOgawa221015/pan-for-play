@@ -13,11 +13,14 @@
     "lint:fix": "biome lint --write .",
     "format": "biome format --write .",
     "format:check": "biome check --formatter-enabled=true --linter-enabled=false --assist-enabled=false .",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "prisma generate && tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@prisma/client": "^7.8.0",
+    "@prisma/adapter-better-sqlite3": "^7.8.0",
+    "better-sqlite3": "^12.1.1",
     "next": "16.2.5",
     "react": "19.2.4",
     "react-dom": "19.2.4"
@@ -29,7 +32,9 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.1.5",
+    "prisma": "^7.8.0",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5",
     "vitest": "^4.1.5"
   }

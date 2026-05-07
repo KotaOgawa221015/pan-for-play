@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Pancolle
 
-## Getting Started
+Pancolle is a simple inventory status board for frozen bread and soup. Each item has three status levels: plentiful, few left, and sold out. Users can update status with a single tap and the change is shared immediately.
 
-First, run the development server:
+## Requirements
+
+- Node.js 24.x
+- SQLite (via Prisma driver adapter)
+
+## Setup
+
+1. Install dependencies.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Create a local environment file.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cp .env.example .env
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+3. Create the database and seed data.
 
-## Learn More
+```bash
+just db-setup
+```
 
-To learn more about Next.js, take a look at the following resources:
+4. Start the development server.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+just dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Open http://localhost:3000.
 
-## Deploy on Vercel
+## Common commands
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- just dev
+- just fix
+- just check
+- just test
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Prisma and database
+
+The project uses Prisma 7 with the better-sqlite3 driver adapter. The local database file is created at ./dev.db.
+
+- just db-generate
+- just db-migrate name=init
+- just db-seed
+- just db-reset
+- just db-studio
+
+## Docker
+
+The compose setup initializes the database and seeds data before starting the dev server.
+
+```bash
+docker compose up
+```
