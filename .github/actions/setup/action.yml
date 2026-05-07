@@ -1,0 +1,36 @@
+name: Setup Environment
+description: Install Node.js, setup mise for other tools, and install npm dependencies
+
+inputs:
+  node-version-file:
+    description: Node.js version file path
+    required: false
+    default: .nvmrc
+  install-mise:
+    description: 'Install mise and tools'
+    required: false
+    default: 'true'
+  mise-version:
+    description: 'mise version to install'
+    required: false
+    default: '2026.2.19'
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version-file: ${{ inputs.node-version-file }}
+        cache: npm
+
+    - name: Setup mise
+      if: inputs.install-mise == 'true'
+      uses: jdx/mise-action@v3
+      with:
+        version: ${{ inputs.mise-version }}
+        install_args: --locked
+
+    - name: Run just setup
+      run: mise exec -- just setup
+      shell: bash
