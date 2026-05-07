@@ -31,6 +31,28 @@ check:
     npm run lint
     npm run typecheck
 
+# Prisma / DB operations
+db-generate:
+    npx prisma generate
+
+db-migrate name="init":
+    npx prisma migrate dev --name {{ name }}
+
+db-deploy:
+    npx prisma migrate deploy
+
+db-push:
+    npx prisma db push
+
+db-seed:
+    npx prisma db seed
+
+db-studio:
+    npx prisma studio
+
+db-reset:
+    npx prisma migrate reset --force
+
 # Run test suite
 test:
     npm run test
