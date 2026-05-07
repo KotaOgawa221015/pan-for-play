@@ -7,7 +7,7 @@
       "!dist",
       "!package-lock.json",
       "!references",
-      "!types"
+      "!src/types"
     ]
   },
   "formatter": {
