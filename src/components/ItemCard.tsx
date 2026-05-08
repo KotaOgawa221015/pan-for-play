@@ -54,8 +54,8 @@ export function ItemCard({ item }: Props) {
     startTransition(async () => {
       try {
         await updateItemStatus(item.id, nextStatus);
-      } catch {
-        setOptimisticStatus(item.status);
+      } catch (error) {
+        console.error('Failed to update status:', error);
       }
     });
   };

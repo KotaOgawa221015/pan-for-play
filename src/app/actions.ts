@@ -1,6 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import {
   isItemCategory,
@@ -46,5 +48,27 @@ export async function updateItemStatus(itemId: string, status: ItemStatus) {
     data: { status },
   });
 
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
+}
+
+const SESSION_COOKIE_NAME = 'pancolle_session';
+
+export async function loginAction() {
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE_NAME, 'dummy-session-id', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+  });
+  redirect('/');
+}
+
+export async function signupAction() {
+  await loginAction();
+}
+
+export async function logoutAction() {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE_NAME);
+  redirect('/login');
 }
