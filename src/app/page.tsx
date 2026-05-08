@@ -1,5 +1,6 @@
 import { ItemCard } from '@/components/ItemCard';
 import { getInventoryItems } from '@/app/actions';
+import Link from 'next/link';
 import {
   CATEGORY_LABELS,
   ITEM_CATEGORIES,
@@ -21,6 +22,12 @@ export default async function Page() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
       <header className="p-6 text-center border-b bg-white dark:bg-black dark:border-zinc-800">
+        <Link 
+          href="/admin" 
+          className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-zinc-400 border border-zinc-200 rounded-md px-2 py-1 hover:bg-zinc-50 transition"
+        >
+          管理者
+        </Link>
         <h1 className="font-bold text-lg">冷凍庫在庫</h1>
         <p className="text-xs text-zinc-400 mt-2">
           3段階の在庫状態をタップで更新
