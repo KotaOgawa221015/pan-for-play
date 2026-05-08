@@ -25,7 +25,10 @@ export default async function Page() {
       <header className="relative p-6 border-b bg-white dark:bg-black dark:border-zinc-800">
         <div className="max-w-4xl mx-auto flex items-center justify-between relative">
           <form action={logoutAction}>
-            <button className="text-xs text-zinc-400 hover:text-zinc-600 underline">
+            <button
+              type="submit"
+              className="text-xs text-zinc-400 hover:text-zinc-600 underline"
+            >
               ログアウト
             </button>
           </form>
@@ -33,7 +36,9 @@ export default async function Page() {
           <h1 className="font-bold text-lg">冷凍庫在庫</h1>
 
           <div className="flex gap-2">
-            <Link href="/admin" className="...">管理者用</Link>
+            <Link href="/admin" className="...">
+              管理者用
+            </Link>
           </div>
         </div>
       </header>

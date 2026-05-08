@@ -13,21 +13,47 @@ export default function SignupPage() {
 
         <form action={signupAction} className="space-y-4">
           <div className="space-y-1">
-            <label className="text-xs font-bold text-zinc-400 uppercase">Email</label>
-            <input type="email" required className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg" />
+            <label
+              htmlFor="email"
+              className="text-xs font-bold text-zinc-400 uppercase"
+            >
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              required
+              className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
+            />
           </div>
           <div className="space-y-1">
-            <label className="text-xs font-bold text-zinc-400 uppercase">Password</label>
-            <input type="password" required className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg" />
+            <label
+              htmlFor="password"
+              className="text-xs font-bold text-zinc-400 uppercase"
+            >
+              Password
+            </label>
+            <input
+              id="password"
+              type="password"
+              required
+              className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
+            />
           </div>
-          <button type="submit" className="w-full py-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold hover:opacity-90 transition">
+          <button
+            type="submit"
+            className="w-full py-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold hover:opacity-90 transition"
+          >
             アカウント作成
           </button>
         </form>
 
         <p className="text-sm text-center text-zinc-500">
           既にアカウントをお持ちですか？{' '}
-          <Link href="/login" className="text-zinc-900 dark:text-zinc-100 font-bold hover:underline">
+          <Link
+            href="/login"
+            className="text-zinc-900 dark:text-zinc-100 font-bold hover:underline"
+          >
             ログイン
           </Link>
         </p>

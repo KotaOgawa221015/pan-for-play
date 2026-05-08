@@ -1,8 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { cookies } from 'next/headers'; 
-import { redirect } from 'next/navigation'; 
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import {
   isItemCategory,
@@ -60,7 +60,7 @@ export async function loginAction() {
     secure: process.env.NODE_ENV === 'production',
     path: '/',
   });
-  redirect('/'); 
+  redirect('/');
 }
 
 export async function signupAction() {
