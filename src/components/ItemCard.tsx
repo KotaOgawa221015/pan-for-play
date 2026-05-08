@@ -50,12 +50,12 @@ export function ItemCard({ item }: Props) {
   const handleStatusChange = (nextStatus: ItemStatus) => {
     if (nextStatus === optimisticStatus) return;
 
+    setOptimisticStatus(nextStatus);
     startTransition(async () => {
-      setOptimisticStatus(nextStatus);
       try {
         await updateItemStatus(item.id, nextStatus);
-      } catch {
-        setOptimisticStatus(item.status);
+      } catch (error) {
+        console.error('Failed to update status:', error);
       }
     });
   };
@@ -68,9 +68,8 @@ export function ItemCard({ item }: Props) {
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2 text-[10px]">
           <span
-            className={`px-2 py-0.5 rounded-full font-semibold ${
-              STATUS_STYLES[optimisticStatus].badge
-            }`}
+            className={`px-2 py-0.5 rounded-full font-semibold ${STATUS_STYLES[optimisticStatus].badge
+              }`}
           >
             {STATUS_LABELS[optimisticStatus]}
           </span>
@@ -92,9 +91,8 @@ export function ItemCard({ item }: Props) {
               onClick={() => handleStatusChange(status)}
               disabled={isPending}
               aria-pressed={isActive}
-              className={`flex-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition ${
-                isActive ? styles.active : styles.inactive
-              } ${isPending ? 'opacity-70' : ''}`}
+              className={`flex-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition ${isActive ? styles.active : styles.inactive
+                } ${isPending ? 'opacity-70' : ''}`}
             >
               {STATUS_LABELS[status]}
             </button>
