@@ -50,8 +50,8 @@ export function ItemCard({ item }: Props) {
   const handleStatusChange = (nextStatus: ItemStatus) => {
     if (nextStatus === optimisticStatus) return;
 
-    setOptimisticStatus(nextStatus);
     startTransition(async () => {
+      setOptimisticStatus(nextStatus);
       try {
         await updateItemStatus(item.id, nextStatus);
       } catch {

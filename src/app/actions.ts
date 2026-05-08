@@ -48,7 +48,7 @@ export async function updateItemStatus(itemId: string, status: ItemStatus) {
     data: { status },
   });
 
-  revalidatePath('/');
+  revalidatePath('/', 'layout');
 }
 
 const SESSION_COOKIE_NAME = 'pancolle_session';
