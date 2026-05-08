@@ -7,6 +7,7 @@ DEV_PORT := env("PANCOLLE_PORT", "3000")
 
 default: help
 
+# List available recipes
 help:
     @echo "Usage: just [recipe]"
     @echo ""
@@ -46,12 +47,15 @@ db-setup:
     npx prisma migrate dev --name init --skip-seed
     npx prisma db seed
 
-db-migrate name="init":
-    npx prisma migrate dev --name {{ name }}
+# Run Prisma migrate dev with optional arguments
+db-migrate *args:
+    npx prisma migrate dev {{ args }}
 
+# Reset the database (caution: deletes all data)
 db-reset:
     npx prisma migrate reset --force
 
+# Open Prisma Studio to browse/edit data
 db-studio:
     npx prisma studio
 
