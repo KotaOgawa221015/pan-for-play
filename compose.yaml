@@ -26,6 +26,9 @@ services:
       DATABASE_URL: ${PANCOLLE_DATABASE_URL:-file:/data/prod.db}
     volumes:
       - sqlite-data:/data
+      - .:/app
+      - /app/node_modules
+      - /app/.next
     depends_on:
       db-init:
         condition: service_completed_successfully
