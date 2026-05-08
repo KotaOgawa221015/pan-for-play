@@ -1,4 +1,9 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+set dotenv-load
+
+APP_NAME := env("PANCOLLE_PROJECT_NAME", "pancolle")
+HOST_IP := env("PANCOLLE_BIND_IP", "127.0.0.1")
+DEV_PORT := env("PANCOLLE_PORT", "3000")
 
 default: help
 
@@ -16,9 +21,9 @@ dev:
 build:
     npm run build
 
-# Install repository dependencies from the lockfile
-setup:
-    npm ci
+# ==============================================================================
+# Code Quality
+# ==============================================================================
 
 # Apply formatter and safe lint fixes
 fix:
@@ -31,27 +36,28 @@ check:
     npm run lint
     npm run typecheck
 
+# ==============================================================================
+# Prisma / Database
+# ==============================================================================
+
 # Prisma / DB operations
-db-generate:
+db-setup:
     npx prisma generate
+    npx prisma migrate dev --name init --skip-seed
+    npx prisma db seed
 
 db-migrate name="init":
     npx prisma migrate dev --name {{ name }}
 
-db-deploy:
-    npx prisma migrate deploy
-
-db-push:
-    npx prisma db push
-
-db-seed:
-    npx prisma db seed
+db-reset:
+    npx prisma migrate reset --force
 
 db-studio:
     npx prisma studio
 
-db-reset:
-    npx prisma migrate reset --force
+# ==============================================================================
+# Testing
+# ==============================================================================
 
 # Run test suite
 test:
@@ -61,6 +67,10 @@ test:
 coverage:
     rm -rf coverage
     npm run test:coverage
+
+# ==============================================================================
+# Cleanup
+# ==============================================================================
 
 # Remove repository-local generated artifacts
 clean:
