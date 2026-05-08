@@ -8,12 +8,12 @@ export function UploadForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsProcessing(true);
-    
+
     // OCR処理のシミュレーション
-    console.log("OCR処理がここに実装されます");
-    
+    console.log('OCR処理がここに実装されます');
+
     setTimeout(() => {
-      alert("画像を送信しました（OCR処理は現在準備中です）");
+      alert('画像を送信しました（OCR処理は現在準備中です）');
       setIsProcessing(false);
     }, 1500);
   }
