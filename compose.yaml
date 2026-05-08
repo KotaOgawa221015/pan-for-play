@@ -1,16 +1,38 @@
 services:
-  web:
-    build: .
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    ports:
-      - "3000:3000"
+  db-init:
+    build:
+      context: .
+      target: dev
     environment:
-      DATABASE_URL: file:./dev.db
-    command: ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npx prisma db seed && npm run dev"]
-    working_dir: /app
-    tty: true
+      DATABASE_URL: ${PANCOLLE_DATABASE_URL:-file:/data/prod.db}
+    volumes:
+      - sqlite-data:/data
+    command:
+      - sh
+      - -c
+      - |
+          set -eu
+          npx prisma migrate deploy
+          npx prisma db seed
+    restart: "no"
+
+  web:
+    build:
+      context: .
+      target: ${PANCOLLE_BUILD_TARGET:-prod}
+    ports:
+      - "${PANCOLLE_BIND_IP:-127.0.0.1}:${PANCOLLE_PORT:-3000}:3000"
+    environment:
+      DATABASE_URL: ${PANCOLLE_DATABASE_URL:-file:/data/prod.db}
+    volumes:
+      - sqlite-data:/data
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    restart: unless-stopped
 
 volumes:
-  node_modules:
+  sqlite-data:
+    driver: local
+    name: ${COMPOSE_PROJECT_NAME:-pancolle}-sqlite-data
+    external: false
