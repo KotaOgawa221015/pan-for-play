@@ -2,11 +2,9 @@ services:
   db-init:
     build:
       context: .
-      target: tooling
+      target: dev
     environment:
       DATABASE_URL: ${PANCOLLE_DATABASE_URL:-file:/data/prod.db}
-      PANCOLLE_BUILD_TARGET: ${PANCOLLE_BUILD_TARGET:-prod}
-      PANCOLLE_MIGRATION_NAME: ${PANCOLLE_MIGRATION_NAME:-init}
     volumes:
       - sqlite-data:/data
     command:
@@ -14,12 +12,7 @@ services:
       - -c
       - |
           set -eu
-          npx prisma generate
-          if [ "$$PANCOLLE_BUILD_TARGET" = "dev" ]; then
-            npx prisma migrate dev --name "$$PANCOLLE_MIGRATION_NAME" --skip-seed --skip-generate
-          else
-            npx prisma migrate deploy
-          fi
+          npx prisma migrate deploy
           npx prisma db seed
     restart: "no"
 
@@ -41,5 +34,5 @@ services:
 volumes:
   sqlite-data:
     driver: local
-    name: ${PANCOLLE_PROJECT_NAME:-pancolle}-sqlite-data
+    name: ${COMPOSE_PROJECT_NAME:-pancolle}-sqlite-data
     external: false

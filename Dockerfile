@@ -1,8 +1,8 @@
-# syntax=docker/dockerfile:1.7-labs
+# syntax=docker/dockerfile:1
 # ==============================================================================
 # Stage 1: Base runtime
 # ==============================================================================
-FROM node:24.14-slim AS base
+FROM node:24.14.1-slim AS base
 
 WORKDIR /app
 
@@ -43,19 +43,7 @@ RUN npx prisma generate
 
 
 # ==============================================================================
-# Stage 3: Tooling image (for migrate/seed via compose)
-# ==============================================================================
-FROM dev-deps AS tooling
-
-COPY . .
-
-RUN mkdir -p /data && chown -R appuser:appgroup /app /data
-
-USER appuser
-
-
-# ==============================================================================
-# Stage 4: Development runtime (hot reload)
+# Stage 3: Development runtime / tooling (hot reload; compose overrides CMD for db-init)
 # ==============================================================================
 FROM dev-deps AS dev
 
@@ -71,7 +59,7 @@ CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
 
 
 # ==============================================================================
-# Stage 5: Builder (creates production Next.js build)
+# Stage 4: Builder (creates production Next.js build, then prunes dev deps)
 # ==============================================================================
 FROM dev-deps AS builder
 
@@ -84,21 +72,12 @@ ENV DATABASE_URL=${BUILD_DATABASE_URL}
 
 RUN npx prisma migrate deploy && \
     npx prisma db seed && \
-    npm run build
+    npm run build && \
+    npm prune --omit=dev
 
 
 # ==============================================================================
-# Stage 6: Production dependencies (pruned node_modules)
-# ==============================================================================
-FROM dev-deps AS prod-deps
-
-ENV NODE_ENV=production
-
-RUN npm prune --omit=dev
-
-
-# ==============================================================================
-# Stage 7: Production runtime
+# Stage 5: Production runtime
 # ==============================================================================
 FROM base AS prod
 
@@ -106,7 +85,7 @@ ENV NODE_ENV=production
 
 RUN mkdir -p /data && chown appuser:appgroup /app /data
 
-COPY --from=prod-deps --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=builder --chown=appuser:appgroup /app/package.json ./package.json
 COPY --from=builder --chown=appuser:appgroup /app/next.config.ts ./next.config.ts
 COPY --from=builder --chown=appuser:appgroup /app/public ./public

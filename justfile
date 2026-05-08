@@ -1,7 +1,7 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 set dotenv-load
 
-APP_NAME := env("PANCOLLE_PROJECT_NAME", "pancolle")
+APP_NAME := env("COMPOSE_PROJECT_NAME", "pancolle")
 HOST_IP := env("PANCOLLE_BIND_IP", "127.0.0.1")
 DEV_PORT := env("PANCOLLE_PORT", "3000")
 
@@ -36,6 +36,62 @@ check:
     npm run format:check
     npm run lint
     npm run typecheck
+# ==============================================================================
+# Docker Environment Commands
+# ==============================================================================
+
+# Start development stack
+up *args:
+    @echo "Starting development stack..."
+    @COMPOSE_PROJECT_NAME={{ APP_NAME }}-dev \
+        PANCOLLE_BUILD_TARGET=dev \
+        PANCOLLE_DATABASE_URL=${PANCOLLE_DATABASE_URL:-file:/data/dev.db} \
+        docker compose up {{ args }}
+
+# Stop development stack
+down:
+    @echo "Stopping development stack..."
+    @COMPOSE_PROJECT_NAME={{ APP_NAME }}-dev \
+        docker compose down --remove-orphans
+
+# Rebuild and restart development stack
+rebuild:
+    @echo "Rebuilding development stack..."
+    @just down
+    @just build-dev
+    @just up
+
+# Start production stack
+up-prod *args:
+    @echo "Starting production stack..."
+    @COMPOSE_PROJECT_NAME={{ APP_NAME }}-prod \
+        PANCOLLE_BUILD_TARGET=prod \
+        docker compose up {{ args }}
+
+# Stop production stack
+down-prod:
+    @echo "Stopping production stack..."
+    @COMPOSE_PROJECT_NAME={{ APP_NAME }}-prod \
+        docker compose down --remove-orphans
+
+# Rebuild and restart production stack
+rebuild-prod:
+    @echo "Rebuilding production stack..."
+    @just down-prod
+    @just build-prod
+    @just up-prod
+
+# Build development images
+build-dev:
+    @COMPOSE_PROJECT_NAME={{ APP_NAME }}-dev \
+        PANCOLLE_BUILD_TARGET=dev \
+        docker compose build --no-cache
+
+# Build production images
+build-prod:
+    @COMPOSE_PROJECT_NAME={{ APP_NAME }}-prod \
+        PANCOLLE_BUILD_TARGET=prod \
+        docker compose build --no-cache
 
 # ==============================================================================
 # Prisma / Database
@@ -44,7 +100,7 @@ check:
 # Prisma / DB operations
 db-setup:
     npx prisma generate
-    npx prisma migrate dev --name init --skip-seed
+    npx prisma migrate dev --name init
     npx prisma db seed
 
 # Run Prisma migrate dev with optional arguments
