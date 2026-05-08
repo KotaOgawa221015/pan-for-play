@@ -49,7 +49,7 @@ FROM dev-deps AS dev
 
 COPY . .
 
-RUN mkdir -p /data && chown -R appuser:appgroup /app /data
+RUN mkdir -p /data /app/.next && chown -R appuser:appgroup /app /data
 
 USER appuser
 
@@ -83,7 +83,7 @@ FROM base AS prod
 
 ENV NODE_ENV=production
 
-RUN mkdir -p /data && chown appuser:appgroup /app /data
+RUN mkdir -p /data /app/.next && chown -R appuser:appgroup /app /data
 
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=builder --chown=appuser:appgroup /app/package.json ./package.json
