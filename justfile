@@ -22,6 +22,14 @@ dev:
 build:
     npm run build
 
+# Setup development environment
+setup:
+    @if [ ! -f .env ]; then \
+        cp .env.example .env; \
+        echo "Created .env from .env.example"; \
+    fi
+    npm ci
+
 # ==============================================================================
 # Code Quality
 # ==============================================================================
