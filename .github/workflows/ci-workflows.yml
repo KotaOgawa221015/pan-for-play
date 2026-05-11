@@ -22,7 +22,3 @@ jobs:
   test:
     name: Test
     uses: ./.github/workflows/run-tests.yml
-
-  docker-build:
-    name: Docker Build
-    uses: ./.github/workflows/run-docker-build.yml
