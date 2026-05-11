@@ -14,17 +14,17 @@ const prisma = new PrismaClient({
 });
 
 const seedItems = [
-  { name: 'ふわふわコーヒーメロンパン', category: 'BREAD' },
-  { name: 'ふわとろチーズパン', category: 'BREAD' },
-  { name: '天然酵母ガーリックフランス', category: 'BREAD' },
-  { name: '3種のチーズパン', category: 'BREAD' },
-  { name: 'ふんわりツナマヨパン', category: 'BREAD' },
-  { name: 'ゲランドの塩パン', category: 'BREAD' },
-  { name: '枝豆チーズフランス', category: 'BREAD' },
-  { name: 'ペッパーマヨとベーコンのエピ', category: 'BREAD' },
-  { name: 'クラムチャウダー', category: 'SOUP' },
-  { name: 'オニオングラタンスープ', category: 'SOUP' },
-  { name: 'ミネストローネ', category: 'SOUP' },
+  { name: 'ふわふわコーヒーメロンパン' },
+  { name: 'ふわとろチーズパン' },
+  { name: '天然酵母ガーリックフランス' },
+  { name: '3種のチーズパン' },
+  { name: 'ふんわりツナマヨパン' },
+  { name: 'ゲランドの塩パン' },
+  { name: '枝豆チーズフランス' },
+  { name: 'ペッパーマヨとベーコンのエピ' },
+  { name: 'クラムチャウダー' },
+  { name: 'オニオングラタンスープ' },
+  { name: 'ミネストローネ' },
 ];
 
 async function main() {
@@ -39,8 +39,8 @@ async function main() {
   for (const item of seedItems) {
     await prisma.item.upsert({
       where: { name: item.name },
-      update: { category: item.category },
-      create: { name: item.name, category: item.category },
+      update: {},
+      create: { name: item.name },
     });
   }
 }

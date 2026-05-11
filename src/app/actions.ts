@@ -5,7 +5,6 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import {
-  isItemCategory,
   isItemStatus,
   type InventoryItem,
   type ItemStatus,
@@ -13,16 +12,11 @@ import {
 
 export async function getInventoryItems(): Promise<InventoryItem[]> {
   const items = await prisma.item.findMany({
-    orderBy: [{ category: 'asc' }, { name: 'asc' }],
+    orderBy: { name: 'asc' },
   });
 
   return items.map((item) => {
-    const category = item.category;
     const status = item.status;
-
-    if (!isItemCategory(category)) {
-      throw new Error(`Invalid category: ${category}`);
-    }
 
     if (!isItemStatus(status)) {
       throw new Error(`Invalid status: ${status}`);
@@ -31,7 +25,6 @@ export async function getInventoryItems(): Promise<InventoryItem[]> {
     return {
       id: item.id,
       name: item.name,
-      category,
       status,
       updatedAt: item.updatedAt.toISOString(),
     };

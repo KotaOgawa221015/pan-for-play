@@ -1,20 +1,11 @@
-export const ITEM_CATEGORIES = ["BREAD", "SOUP"] as const;
-export type ItemCategory = (typeof ITEM_CATEGORIES)[number];
-
 export const ITEM_STATUSES = ["PLENTIFUL", "FEW_LEFT", "SOLD_OUT"] as const;
 export type ItemStatus = (typeof ITEM_STATUSES)[number];
 
 export type InventoryItem = {
   id: string;
   name: string;
-  category: ItemCategory;
   status: ItemStatus;
   updatedAt: string;
-};
-
-export const CATEGORY_LABELS: Record<ItemCategory, string> = {
-  BREAD: "パン",
-  SOUP: "スープ",
 };
 
 export const STATUS_LABELS: Record<ItemStatus, string> = {
@@ -43,10 +34,6 @@ export const STATUS_STYLES: Record<
     badge: "bg-rose-50 text-rose-700",
   },
 };
-
-export function isItemCategory(value: string): value is ItemCategory {
-  return ITEM_CATEGORIES.includes(value as ItemCategory);
-}
 
 export function isItemStatus(value: string): value is ItemStatus {
   return ITEM_STATUSES.includes(value as ItemStatus);
