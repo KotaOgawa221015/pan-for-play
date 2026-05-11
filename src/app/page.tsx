@@ -2,12 +2,36 @@ import { ItemCard } from '@/components/ItemCard';
 import { getInventoryItems } from '@/app/actions';
 import { logoutAction } from '@/app/actions';
 import Link from 'next/link';
+import {
+  CATEGORY_LABELS,
+  ITEM_CATEGORIES,
+  type InventoryItem,
+  type ItemCategory,
+} from '@/types/inventory';
 
-export default async function Page() {
+export default async function Page({
+  searchParams,
+}: {
+  searchParams: Promise<{ msg?: string }>;
+}) {
+  const { msg } = await searchParams;
   const items = await getInventoryItems();
+  const itemsByCategory: Record<ItemCategory, InventoryItem[]> = {
+    BREAD: [],
+    SOUP: [],
+  };
+
+  for (const item of items) {
+    itemsByCategory[item.category].push(item);
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
+      {(msg === 'login_success' || msg === 'signup_success') && (
+        <div className="bg-emerald-50 border-b border-emerald-100 text-emerald-700 text-center py-1.5 text-xs font-medium dark:bg-emerald-950/20 dark:border-emerald-900/50 dark:text-emerald-400">
+          {msg === 'login_success' ? 'ログインしました' : 'アカウントを作成しました'}
+        </div>
+      )}
       <header className="relative p-6 border-b bg-white dark:bg-black dark:border-zinc-800">
         <div className="max-w-4xl mx-auto flex items-center justify-between relative">
           <form action={logoutAction}>
