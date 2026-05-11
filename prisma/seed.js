@@ -36,7 +36,7 @@ const seedUsers = [
   {
     email: 'user@example.com',
     password: 'password456',
-  }
+  },
 ];
 
 async function main() {

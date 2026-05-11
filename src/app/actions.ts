@@ -48,7 +48,7 @@ export async function updateItemStatus(itemId: string, status: ItemStatus) {
   revalidatePath('/', 'layout');
 }
 
-export async function loginAction(prevState: any, formData: FormData) {
+export async function loginAction(_prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
@@ -78,12 +78,11 @@ export async function loginAction(prevState: any, formData: FormData) {
   redirect('/?msg=login_success');
 }
 
-
-export async function signupAction(prevState: any, formData: FormData) {
+export async function signupAction(_prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
-  if (!email || !email.includes('@')) {
+  if (!email?.includes('@')) {
     return { error: '有効なメールアドレスを入力してください' };
   }
   if (!password || password.length < 6) {
@@ -111,7 +110,6 @@ export async function signupAction(prevState: any, formData: FormData) {
 
   redirect('/?msg=signup_success');
 }
-
 
 export async function logoutAction() {
   const cookieStore = await cookies();
