@@ -1,4 +1,5 @@
 require('dotenv/config');
+const bcrypt = require('bcryptjs');
 
 const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
 const { PrismaClient } = require('@prisma/client');
@@ -27,6 +28,17 @@ const seedItems = [
   { name: 'ミネストローネ' },
 ];
 
+const seedUsers = [
+  {
+    email: 'admin@example.com',
+    password: 'password123',
+  },
+  {
+    email: 'user@example.com',
+    password: 'password456',
+  }
+];
+
 async function main() {
   const seedNames = seedItems.map((item) => item.name);
 
@@ -41,6 +53,20 @@ async function main() {
       where: { name: item.name },
       update: {},
       create: { name: item.name },
+    });
+  }
+  for (const user of seedUsers) {
+    const passwordHash = await bcrypt.hash(user.password, 10);
+
+    await prisma.user.upsert({
+      where: { email: user.email },
+      update: {
+        passwordHash: passwordHash,
+      },
+      create: {
+        email: user.email,
+        passwordHash: passwordHash,
+      },
     });
   }
 }
