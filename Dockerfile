@@ -43,13 +43,13 @@ RUN npx prisma generate
 
 
 # ==============================================================================
-# Stage 3: Development runtime / tooling (hot reload; compose overrides CMD for db-init)
+# Stage 3: Development runtime / tooling
 # ==============================================================================
 FROM dev-deps AS dev
 
 COPY . .
 
-RUN mkdir -p /data /app/.next && chown -R appuser:appgroup /app /data
+RUN mkdir -p /app/data /app/.next && chown -R appuser:appgroup /app
 
 USER appuser
 
@@ -83,7 +83,7 @@ FROM base AS prod
 
 ENV NODE_ENV=production
 
-RUN mkdir -p /data /app/.next && chown -R appuser:appgroup /app /data
+RUN mkdir -p /app/data /app/.next && chown -R appuser:appgroup /app
 
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --from=builder --chown=appuser:appgroup /app/package.json ./package.json
