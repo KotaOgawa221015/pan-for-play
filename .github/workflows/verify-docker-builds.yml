@@ -1,0 +1,48 @@
+name: Run Docker Build Check
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'compose.yaml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'prisma/**'
+      - 'src/**'
+      - '.github/workflows/verify-docker-builds.yml'
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'Dockerfile'
+      - '.dockerignore'
+      - 'compose.yaml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'prisma/**'
+      - 'src/**'
+      - '.github/workflows/verify-docker-builds.yml'
+  workflow_dispatch:
+
+jobs:
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [dev, prod]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup
+
+      - name: Docker Build Check (${{ matrix.target }})
+        run: |
+          if [ "${{ matrix.target }}" = "dev" ]; then
+            mise exec -- just build-dev
+          else
+            mise exec -- just build-prod
+          fi
