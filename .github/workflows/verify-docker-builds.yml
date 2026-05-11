@@ -5,11 +5,23 @@ on:
     branches: ["main"]
     paths:
       - 'Dockerfile'
+      - '.dockerignore'
+      - 'compose.yaml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'prisma/**'
+      - 'src/**'
       - '.github/workflows/verify-docker-builds.yml'
   pull_request:
     branches: ["main"]
     paths:
       - 'Dockerfile'
+      - '.dockerignore'
+      - 'compose.yaml'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'prisma/**'
+      - 'src/**'
       - '.github/workflows/verify-docker-builds.yml'
   workflow_dispatch:
 
