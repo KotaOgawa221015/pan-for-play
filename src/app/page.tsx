@@ -3,10 +3,7 @@ import { getInventoryItems } from '@/app/actions';
 import { logoutAction } from '@/app/actions';
 import Link from 'next/link';
 import {
-  CATEGORY_LABELS,
-  ITEM_CATEGORIES,
   type InventoryItem,
-  type ItemCategory,
 } from '@/types/inventory';
 
 export default async function Page({
@@ -16,14 +13,6 @@ export default async function Page({
 }) {
   const { msg } = await searchParams;
   const items = await getInventoryItems();
-  const itemsByCategory: Record<ItemCategory, InventoryItem[]> = {
-    BREAD: [],
-    SOUP: [],
-  };
-
-  for (const item of items) {
-    itemsByCategory[item.category].push(item);
-  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
