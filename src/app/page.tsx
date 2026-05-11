@@ -2,9 +2,6 @@ import { ItemCard } from '@/components/ItemCard';
 import { getInventoryItems } from '@/app/actions';
 import { logoutAction } from '@/app/actions';
 import Link from 'next/link';
-import {
-  type InventoryItem,
-} from '@/types/inventory';
 
 export default async function Page() {
   const items = await getInventoryItems();
@@ -25,7 +22,10 @@ export default async function Page() {
           <h1 className="font-bold text-lg">冷凍庫在庫</h1>
 
           <div className="flex gap-2">
-            <Link href="/admin" className="text-xs text-zinc-400 hover:text-zinc-600 underline">
+            <Link
+              href="/admin"
+              className="text-xs text-zinc-400 hover:text-zinc-600 underline"
+            >
               管理者用
             </Link>
           </div>
