@@ -1,21 +1,4 @@
 services:
-  db-init:
-    build:
-      context: .
-      target: dev
-    environment:
-      DATABASE_URL: ${PANCOLLE_DATABASE_URL:-file:/data/prod.db}
-    volumes:
-      - sqlite-data:/data
-    command:
-      - sh
-      - -c
-      - |
-          set -eu
-          npx prisma migrate deploy
-          npx prisma db seed
-    restart: "no"
-
   web:
     build:
       context: .
@@ -23,19 +6,10 @@ services:
     ports:
       - "${PANCOLLE_BIND_IP:-127.0.0.1}:${PANCOLLE_PORT:-3000}:3000"
     environment:
-      DATABASE_URL: ${PANCOLLE_DATABASE_URL:-file:/data/prod.db}
+      DATABASE_URL: ${DATABASE_URL:-file:./data/prod.db}
     volumes:
-      - sqlite-data:/data
       - .:/app
+      - ./data:/app/data
       - /app/node_modules
       - /app/.next
-    depends_on:
-      db-init:
-        condition: service_completed_successfully
     restart: unless-stopped
-
-volumes:
-  sqlite-data:
-    driver: local
-    name: ${COMPOSE_PROJECT_NAME:-pancolle}-sqlite-data
-    external: false

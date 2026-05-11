@@ -2,8 +2,6 @@ set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
 set dotenv-load
 
 APP_NAME := env("COMPOSE_PROJECT_NAME", "pancolle")
-HOST_IP := env("PANCOLLE_BIND_IP", "127.0.0.1")
-DEV_PORT := env("PANCOLLE_PORT", "3000")
 
 default: help
 
@@ -22,13 +20,15 @@ dev:
 build:
     npm run build
 
-# Setup development environment
+# Install dependencies and apply database migrations
 setup:
     @if [ ! -f .env ]; then \
         cp .env.example .env; \
         echo "Created .env from .env.example"; \
     fi
     npm ci
+    mkdir -p data
+    npm run db:setup
 
 # ==============================================================================
 # Code Quality
@@ -44,6 +44,7 @@ check:
     npm run format:check
     npm run lint
     npm run typecheck
+
 # ==============================================================================
 # Docker Environment Commands
 # ==============================================================================
@@ -53,7 +54,6 @@ up *args:
     @echo "Starting development stack..."
     @COMPOSE_PROJECT_NAME={{ APP_NAME }}-dev \
         PANCOLLE_BUILD_TARGET=dev \
-        PANCOLLE_DATABASE_URL=${PANCOLLE_DATABASE_URL:-file:/data/dev.db} \
         docker compose up {{ args }}
 
 # Stop development stack
@@ -105,22 +105,23 @@ build-prod:
 # Prisma / Database
 # ==============================================================================
 
-# Prisma / DB operations
-db-setup:
-    npx prisma generate
-    npx prisma migrate dev --name init
-    npx prisma db seed
-
 # Run Prisma migrate dev with optional arguments
 db-migrate *args:
-    npx prisma migrate dev {{ args }}
+    mkdir -p data
+    npm run db:migrate {{ args }}
+
+db-seed:
+    mkdir -p data
+    npm run db:seed
 
 # Reset the database (caution: deletes all data)
 db-reset:
-    npx prisma migrate reset --force
+    mkdir -p data
+    npm run db:reset
 
 # Open Prisma Studio to browse/edit data
 db-studio:
+    mkdir -p data
     npx prisma studio
 
 # ==============================================================================

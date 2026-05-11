@@ -9,79 +9,66 @@ Pancolle is a simple inventory status board for frozen bread and soup. Each item
 
 ## Setup
 
-1. Install dependencies.
+1. Install dependencies and apply database migrations.
 
 ```bash
-npm install
+just setup
 ```
 
-2. Create a local environment file.
+2. Start the development stack.
 
 ```bash
-cp .env.example .env
-```
-
-This project uses DATABASE_URL on the server side (Prisma). In production, set DATABASE_URL via your hosting platform or Docker environment variables instead of committing a .env file.
-
-3. Create the database and seed data.
-
-```bash
-just db-setup
-```
-
-4. Start the development server.
-
-```bash
-just dev
+just up
 ```
 
 Open http://localhost:3000.
 
 ## Common commands
 
-- just dev
+- just setup
+- just up
 - just fix
 - just check
 - just test
 
 ## Prisma and database
 
-The project uses Prisma 7 with the better-sqlite3 driver adapter. The local database file is created at ./dev.db.
+The project uses Prisma 7 with the better-sqlite3 driver adapter. SQLite databases are stored under `./data` and selected by `DATABASE_URL`.
+The default development value lives in `.env`, and production-like operation updates `DATABASE_URL` there or overrides it from CI/CD.
 
-- just db-setup
+- just setup
+- just db-seed
 - just db-migrate name=init
 - just db-reset
 - just db-studio
 
 ## Docker
 
-The compose setup runs a one-shot db-init service (Prisma generate, migrate, seed) and then starts the Next.js server.
+Database initialization is explicit. Apply migrations with `just setup`, then start the development stack.
 
 ```bash
-PANCOLLE_BUILD_TARGET=prod docker compose up --build
-```
-
-For development, use the development build target and dev migration mode.
-
-```bash
+just setup
 just up
 ```
 
-For a production-like stack with prod.db defaults:
+For a production-like stack, set `DATABASE_URL` to the production database, then run setup and startup.
 
 ```bash
+DATABASE_URL="file:./data/prod.db" just setup
 just up-prod
 ```
 
-The SQLite database is stored in a named Docker volume at /data/prod.db inside the containers.
-You can override the database location by setting PANCOLLE_DATABASE_URL.
+The same `DATABASE_URL` selects the database for Prisma commands and Docker Compose.
+In CI/CD, the process environment variable `DATABASE_URL` is the source of truth and overrides values from local `.env` files.
 
 ```bash
-PANCOLLE_BUILD_TARGET=prod PANCOLLE_DATABASE_URL="file:/data/prod.db" docker compose up --build
+DATABASE_URL="file:./data/prod.db" just db-seed
+DATABASE_URL="file:./data/prod.db" just up-prod
 ```
 
 To run a separate staging instance side-by-side, change the project name and database path.
 
 ```bash
-PANCOLLE_BUILD_TARGET=prod PANCOLLE_PROJECT_NAME=pancolle-staging PANCOLLE_DATABASE_URL="file:/data/staging.db" docker compose up --build
+DATABASE_URL="file:./data/staging.db" just setup
+COMPOSE_PROJECT_NAME=pancolle-staging DATABASE_URL="file:./data/staging.db" just up-prod
 ```
