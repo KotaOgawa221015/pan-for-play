@@ -1,8 +1,12 @@
-// src/app/signup/page.tsx (新規作成)
+'use client';
+
+import { useActionState } from 'react';
 import { signupAction } from '@/app/actions';
 import Link from 'next/link';
 
 export default function SignupPage() {
+  const [state, formAction, isPending] = useActionState(signupAction, null);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm space-y-6">
@@ -11,7 +15,13 @@ export default function SignupPage() {
           <p className="text-sm text-zinc-500">新しくアカウントを作成します</p>
         </header>
 
-        <form action={signupAction} className="space-y-4">
+        <form action={formAction} className="space-y-4">
+          {state?.error && (
+            <div className="p-3 bg-rose-50 border border-rose-200 text-rose-600 text-sm rounded-lg text-center font-medium dark:bg-rose-900/20 dark:border-rose-800">
+              {state.error}
+            </div>
+          )}
+
           <div className="space-y-1">
             <label
               htmlFor="email"
@@ -21,6 +31,7 @@ export default function SignupPage() {
             </label>
             <input
               id="email"
+              name="email"
               type="email"
               required
               className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
@@ -35,6 +46,7 @@ export default function SignupPage() {
             </label>
             <input
               id="password"
+              name="password"
               type="password"
               required
               className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
@@ -42,9 +54,10 @@ export default function SignupPage() {
           </div>
           <button
             type="submit"
-            className="w-full py-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold hover:opacity-90 transition"
+            disabled={isPending}
+            className="w-full py-4 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 rounded-xl font-bold hover:opacity-90 transition disabled:opacity-50"
           >
-            アカウント作成
+            {isPending ? 'アカウント作成中...' : 'アカウント作成'}
           </button>
         </form>
 
