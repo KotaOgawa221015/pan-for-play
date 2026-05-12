@@ -2,18 +2,17 @@
 
 import { useState } from 'react';
 import { logoutAction } from '@/app/actions';
+import Link from 'next/link'; // 追加
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="relative">
-      {/* ユーザーアイコンボタン */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="bg-white p-2 border border-zinc-300 text-zinc-500 hover:text-zinc-800 hover:border-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 rounded-full hover:bg-blue-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
-        aria-label="ユーザーメニュー"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -32,10 +31,20 @@ export function UserMenu() {
         </svg>
       </button>
 
-      {/* ドロップダウンメニュー */}
       {isOpen && (
-        <div className="absolute right-0 pt-2 w-32 z-50">
+        <div className="absolute right-0 pt-2 w-40 z-50">
+          {' '}
+          {/* 幅を少し広げました */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-lg py-1">
+            {/* 追加：マイページへのリンク */}
+            <Link
+              href="/profile"
+              onClick={() => setIsOpen(false)}
+              className="block px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-100 dark:border-zinc-800"
+            >
+              マイページ
+            </Link>
+
             <form action={logoutAction}>
               <button
                 type="submit"
