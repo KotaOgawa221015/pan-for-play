@@ -46,10 +46,12 @@ jobs:
       - name: Docker Run Check (${{ matrix.target }})
         run: |
           docker run -d --name "pancolle-ci-${{ matrix.target }}" -p 127.0.0.1:3000:3000 -e DATABASE_URL=file:./data/prod.db "pancolle-ci:${{ matrix.target }}"
-          curl --retry 30 --retry-delay 2 --retry-connrefused --fail http://127.0.0.1:3000/
+          curl --retry 30 --retry-delay 2 --retry-connrefused --retry-all-errors --fail http://127.0.0.1:3000/login
 
       - name: Docker Failure Logs (${{ matrix.target }})
         if: failure()
         run: |
+          sleep 2
           docker ps -a
+          docker inspect --format='status={{.State.Status}} exit={{.State.ExitCode}} error={{.State.Error}}' "pancolle-ci-${{ matrix.target }}" || true
           docker logs "pancolle-ci-${{ matrix.target }}" || true
