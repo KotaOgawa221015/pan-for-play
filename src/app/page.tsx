@@ -1,5 +1,4 @@
 import { ProductCard } from '@/components/ProductCard';
-import { getCurrentUser } from '@/features/auth/account-access';
 import { getInventoryProducts } from '@/features/inventory/product-inventory';
 import Link from 'next/link';
 import { UserMenu } from '@/components/UserMenu';
@@ -15,8 +14,7 @@ export default async function Page({
 }: {
   searchParams: Promise<{ msg?: string }>;
 }) {
-  const [user, { msg }, products] = await Promise.all([
-    getCurrentUser(),
+  const [{ msg }, products] = await Promise.all([
     searchParams,
     getInventoryProducts(),
   ]);
