@@ -33,6 +33,7 @@ const seedUsers = [
     displayName: 'admin',
     email: 'admin@example.com',
     password: 'password123',
+    role: 'ADMIN',
   },
   {
     displayName: 'user',

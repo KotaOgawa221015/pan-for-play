@@ -135,6 +135,7 @@ export async function getCurrentUser() {
       id: true,
       email: true,
       displayName: true,
+      role: true,
     },
   });
 }
@@ -161,3 +162,5 @@ export async function updateProfileAction(
     return { error: '更新に失敗しました' };
   }
 }
+
+
