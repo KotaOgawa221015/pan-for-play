@@ -135,6 +135,7 @@ export async function getCurrentUser() {
       id: true,
       email: true,
       displayName: true,
+      role: true,
     },
   });
 }
