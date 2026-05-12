@@ -30,6 +30,7 @@ jobs:
     name: Build Check
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         target: [dev, prod]
     steps:
@@ -46,3 +47,9 @@ jobs:
         run: |
           docker run -d --name "pancolle-ci-${{ matrix.target }}" -p 127.0.0.1:3000:3000 -e DATABASE_URL=file:./data/prod.db "pancolle-ci:${{ matrix.target }}"
           curl --retry 30 --retry-delay 2 --retry-connrefused --fail http://127.0.0.1:3000/
+
+      - name: Docker Failure Logs (${{ matrix.target }})
+        if: failure()
+        run: |
+          docker ps -a
+          docker logs "pancolle-ci-${{ matrix.target }}" || true
