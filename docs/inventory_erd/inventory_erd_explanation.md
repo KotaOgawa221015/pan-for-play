@@ -27,14 +27,16 @@
 
 `User` は、サインイン、在庫の更新、または請求書のアップロードを行う人物を表します。
 
-データモデルを変更することなく、後から在庫ボード上に更新者の `displayName`（表示名）を表示することが可能です。
+このモデルでは、表示名を `displayName` ではなくAuth.js標準の `name` で扱います。CredentialsプロバイダーとJWTセッションの構成では、認証はこの `User` テーブルだけで成立します。
 
 **カラム:**
 
 * `id`: ユーザーの固定内部識別子。
+* `name`: 在庫更新やアップロード記録に表示される人間が読める名前。Auth.jsの標準ユーザー名にも対応します。
 * `email`: サインイン用メールアドレス（ユニーク）。
+* `emailVerified`: メール確認が完了した日時。Credentialsのみの構成では空を許容します。
+* `image`: OAuthプロバイダーなどから取得されるプロフィール画像URL。Credentialsのみの構成では空を許容します。
 * `passwordHash`: 認証に使用されるハッシュ化されたパスワード。
-* `displayName`: 在庫更新やアップロード記録に表示される人間が読める名前。
 * `role`: ユーザーの権限レベル。`ADMIN` は在庫管理とアップロードを行い、`MEMBER` は通常のボードを使用します。
 * `createdAt`: ユーザーレコードが作成された日時。
 * `updatedAt`: ユーザーレコードが最後に変更された日時。
@@ -43,6 +45,16 @@
 
 * 1人の `User` は、複数の `InventoryCheck` レコードを作成できます。
 * 1人の `User` は、複数の `UploadBatch` レコードを作成できます。
+
+### Auth.js拡張テーブル
+
+Auth.jsのOAuth、データベースセッション、メール認証の構成では、Auth.jsのPrisma Adapterに合わせて以下のテーブルを使用します。CredentialsプロバイダーとJWTセッションの構成では、認証は `User` テーブルだけで成立します。
+
+`Account` は、GoogleログインなどのOAuthプロバイダーアカウントと `User` を紐付けます。1人の `User` は複数の `Account` を持てます。
+
+`Session` は、セッションの実体をデータベースに置く構成で使用します。1人の `User` は複数の `Session` を持てます。
+
+`VerificationToken` は、メール認証、マジックリンク、その他の一時トークンを保存します。Auth.js標準のトークン検証に使う独立テーブルであり、`User` への外部キーは持ちません。
 
 ---
 
@@ -148,9 +160,12 @@
 * `Product` 1 対 多 `InventoryCheck`
 * `User` 1 対 多 `InventoryCheck`
 * `User` 1 対 多 `UploadBatch`
+* `User` 1 対 多 `Account`
+* `User` 1 対 多 `Session`
 * `UploadBatch` 1 対 多 `UploadBatchLine`
 * `UploadBatch` 0 または 1 対 多 `InventoryCheck`
 * `Product` 0 または 1 対 多 `UploadBatchLine`
+* `VerificationToken` は独立テーブル
 
 ---
 
