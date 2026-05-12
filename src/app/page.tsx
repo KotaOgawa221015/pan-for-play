@@ -14,8 +14,8 @@ export default async function Page({
 }: {
   searchParams: Promise<{ msg?: string }>;
 }) {
-  const user = await getCurrentUser();
-  const [{ msg }, products] = await Promise.all([
+  const [user, { msg }, products] = await Promise.all([
+    getCurrentUser(),
     searchParams,
     getInventoryProducts(),
   ]);
