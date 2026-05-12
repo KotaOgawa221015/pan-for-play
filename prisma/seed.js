@@ -68,10 +68,14 @@ async function main() {
         where: { email: user.email },
         update: {
           passwordHash,
+          role: user.role,
+          displayName: user.displayName,
         },
         create: {
           email: user.email,
           passwordHash,
+          role: user.role,
+          displayName: user.displayName,
         },
       });
     }),
