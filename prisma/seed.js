@@ -30,10 +30,12 @@ const seedProducts = [
 
 const seedUsers = [
   {
+    displayName: 'admin',
     email: 'admin@example.com',
     password: 'password123',
   },
   {
+    displayName: 'user',
     email: 'user@example.com',
     password: 'password456',
   },
