@@ -7,7 +7,9 @@
       "!dist",
       "!package-lock.json",
       "!references",
-      "!src/types"
+      "!src/types/cache-life.d.ts",
+      "!src/types/routes.d.ts",
+      "!src/types/validator.ts"
     ]
   },
   "formatter": {

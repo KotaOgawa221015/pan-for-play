@@ -31,6 +31,16 @@ Open http://localhost:3000.
 - just check
 - just test
 
+## Testing
+
+Unit tests live next to the module that owns the behavior, using
+`.test.ts` or `.test.tsx`. Cross-boundary tests live under `tests/`, grouped
+by scope such as `tests/integration/`.
+
+Unit tests cover focused contracts owned by a single module. Integration tests
+cover observable behavior across application boundaries, with external systems
+such as Next.js runtime APIs or Prisma mocked explicitly.
+
 ## Prisma and database
 
 The project uses Prisma 7 with the better-sqlite3 driver adapter. SQLite databases are stored under `./data` and selected by `DATABASE_URL`.
