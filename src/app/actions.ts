@@ -137,7 +137,12 @@ export async function getCurrentUser() {
   });
 }
 
-export async function updateProfileAction(_prevState: any, formData: FormData) {
+
+export async function updateProfileAction(
+  _prevState: unknown,
+  formData: FormData,
+) {
+
   const cookieStore = await cookies();
   const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!userId) return { error: '認証が必要です' };
@@ -152,12 +157,19 @@ export async function updateProfileAction(_prevState: any, formData: FormData) {
     });
     revalidatePath('/profile');
     return { success: 'プロフィールを更新しました' };
-  } catch (e) {
+
+  } catch {
+
     return { error: '更新に失敗しました' };
   }
 }
 
-export async function updatePasswordAction(_prevState: any, formData: FormData) {
+
+export async function updatePasswordAction(
+  _prevState: unknown,
+  formData: FormData,
+) {
+
   const cookieStore = await cookies();
   const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!userId) return { error: '認証が必要です' };
@@ -174,4 +186,6 @@ export async function updatePasswordAction(_prevState: any, formData: FormData) 
   });
 
   return { success: 'パスワードを変更しました' };
+
 }
+
