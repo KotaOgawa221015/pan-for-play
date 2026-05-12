@@ -22,3 +22,7 @@ jobs:
   test:
     name: Test
     uses: ./.github/workflows/run-tests.yml
+
+  react-doctor:
+    name: React Doctor
+    uses: ./.github/workflows/run-react-doctor.yml
