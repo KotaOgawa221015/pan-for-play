@@ -1,5 +1,8 @@
 {
+  "$schema": "https://biomejs.dev/schemas/2.4.14/schema.json",
   "files": {
+    "ignoreUnknown": false,
+    "maxSize": 1048576,
     "includes": [
       "**",
       "!.next",
@@ -19,30 +22,73 @@
     "indentWidth": 2,
     "lineEnding": "lf",
     "lineWidth": 80,
-    "attributePosition": "auto"
+    "attributePosition": "auto",
+    "bracketSameLine": false,
+    "bracketSpacing": true,
+    "expand": "auto",
+    "trailingNewline": true
   },
   "javascript": {
     "formatter": {
       "quoteStyle": "single",
-      "semicolons": "always"
+      "jsxQuoteStyle": "double",
+      "semicolons": "always",
+      "arrowParentheses": "always",
+      "bracketSameLine": false,
+      "bracketSpacing": true,
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "all"
     }
   },
   "json": {
+    "parser": {
+      "allowComments": false,
+      "allowTrailingCommas": false
+    },
     "formatter": {
-      "indentStyle": "space"
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineEnding": "lf",
+      "lineWidth": 80,
+      "trailingCommas": "none",
+      "bracketSpacing": true
     }
   },
   "css": {
     "parser": {
       "tailwindDirectives": true
+    },
+    "formatter": {
+      "enabled": true,
+      "indentStyle": "space",
+      "indentWidth": 2,
+      "lineEnding": "lf",
+      "lineWidth": 80,
+      "quoteStyle": "double"
+    },
+    "linter": {
+      "enabled": true
     }
   },
   "linter": {
-    "enabled": true
+    "enabled": true,
+    "rules": {
+      "recommended": true
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        "organizeImports": "on"
+      }
+    }
   },
   "vcs": {
     "clientKind": "git",
     "enabled": true,
-    "useIgnoreFile": true
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
   }
 }
