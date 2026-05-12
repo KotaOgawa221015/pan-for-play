@@ -1,7 +1,13 @@
 import { getCurrentUser } from '@/app/actions';
 import { redirect } from 'next/navigation';
 import { ProfileForm } from './profile-form';
-import Link from 'next/link'; // 追加
+import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'マイページ | パンコレ',
+  description: 'プロフィール情報を管理します。',
+};
 
 export default async function ProfilePage() {
   const user = await getCurrentUser();
@@ -36,7 +42,7 @@ export default async function ProfilePage() {
         </Link>
 
         <header className="space-y-1">
-          <h1 className="text-2xl font-bold">マイページ</h1>
+          <h1 className="text-2xl font-semibold">マイページ</h1>
           <p className="text-zinc-500">アカウント情報の管理</p>
         </header>
 

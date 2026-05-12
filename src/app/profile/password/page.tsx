@@ -1,13 +1,12 @@
-'use client';
-
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'パスワード変更 | パンコレ',
+  description: 'パスワードを変更します。',
+};
 
 export default function PasswordChangePage() {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert('パスワード変更画面');
-  };
-
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
       <div className="max-w-xl mx-auto space-y-6">
@@ -34,12 +33,12 @@ export default function PasswordChangePage() {
         </Link>
 
         <header className="space-y-1">
-          <h1 className="text-2xl font-bold">パスワードの変更</h1>
+          <h1 className="text-2xl font-semibold">パスワードの変更</h1>
           <p className="text-zinc-500">安全なパスワードを設定してください</p>
         </header>
 
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form className="space-y-6">
             <div className="space-y-4">
               <div className="space-y-1">
                 <label

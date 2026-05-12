@@ -98,12 +98,14 @@ export async function signupAction(_prevState: unknown, formData: FormData) {
     return { error: 'このメールアドレスは既に登録されています' };
   }
 
-  const passwordHash = await bcrypt.hash(password, 10);
+  const [passwordHash, cookieStore] = await Promise.all([
+    bcrypt.hash(password, 10),
+    cookies(),
+  ]);
   const user = await prisma.user.create({
     data: { email, passwordHash, displayName },
   });
 
-  const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE_NAME, user.id, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -127,7 +129,7 @@ export async function getCurrentUser() {
 
   if (!userId) return null;
 
-  return await prisma.user.findUnique({
+  return prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -158,26 +160,4 @@ export async function updateProfileAction(
   } catch {
     return { error: '更新に失敗しました' };
   }
-}
-
-export async function updatePasswordAction(
-  _prevState: unknown,
-  formData: FormData,
-) {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-  if (!userId) return { error: '認証が必要です' };
-
-  const newPassword = formData.get('newPassword') as string;
-  if (!newPassword || newPassword.length < 6) {
-    return { error: 'パスワードは6文字以上で入力してください' };
-  }
-
-  const passwordHash = await bcrypt.hash(newPassword, 10);
-  await prisma.user.update({
-    where: { id: userId },
-    data: { passwordHash },
-  });
-
-  return { success: 'パスワードを変更しました' };
 }

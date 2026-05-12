@@ -16,7 +16,7 @@ export function ProfileForm({
     <div className="space-y-6">
       {/* 基本情報 */}
       <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="font-bold text-lg mb-6">基本情報</h2>
+        <h2 className="font-semibold text-lg mb-6">基本情報</h2>
 
         <form action={pAction} className="flex flex-col gap-6">
           <input type="hidden" name="email" value={user.email} />
@@ -80,7 +80,7 @@ export function ProfileForm({
 
       {/* セキュリティ */}
       <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-        <h2 className="font-bold text-lg mb-6">セキュリティ</h2>
+        <h2 className="font-semibold text-lg mb-6">セキュリティ</h2>
 
         <div className="flex flex-col gap-6">
           <div className="space-y-1">

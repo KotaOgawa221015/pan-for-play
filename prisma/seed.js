@@ -50,27 +50,31 @@ async function main() {
     },
   });
 
-  for (const product of seedProducts) {
-    await prisma.product.upsert({
-      where: { name: product.name },
-      update: {},
-      create: { name: product.name },
-    });
-  }
-  for (const user of seedUsers) {
-    const passwordHash = await bcrypt.hash(user.password, 10);
+  await Promise.all(
+    seedProducts.map((product) =>
+      prisma.product.upsert({
+        where: { name: product.name },
+        update: {},
+        create: { name: product.name },
+      }),
+    ),
+  );
 
-    await prisma.user.upsert({
-      where: { email: user.email },
-      update: {
-        passwordHash: passwordHash,
-      },
-      create: {
-        email: user.email,
-        passwordHash: passwordHash,
-      },
-    });
-  }
+  await Promise.all(
+    seedUsers.map(async (user) => {
+      const passwordHash = await bcrypt.hash(user.password, 10);
+      return prisma.user.upsert({
+        where: { email: user.email },
+        update: {
+          passwordHash,
+        },
+        create: {
+          email: user.email,
+          passwordHash,
+        },
+      });
+    }),
+  );
 }
 
 main()

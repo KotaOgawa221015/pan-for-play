@@ -36,6 +36,7 @@ yarn-error.log*
 !.env.example
 
 .tmp
+references/
 
 # vercel
 .vercel
