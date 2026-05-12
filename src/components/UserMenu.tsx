@@ -14,14 +14,27 @@ export function UserMenu() {
         onClick={() => setIsOpen(!isOpen)}
         className="bg-white p-2 border border-zinc-300 text-zinc-500 hover:text-zinc-800 hover:border-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 rounded-full hover:bg-blue-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <title>ユーザーメニュー</title>
           <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
           <circle cx="12" cy="7" r="4"></circle>
         </svg>
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 pt-2 w-40 z-50"> {/* 幅を少し広げました */}
+        <div className="absolute right-0 pt-2 w-40 z-50">
+          {' '}
+          {/* 幅を少し広げました */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-lg py-1">
             {/* 追加：マイページへのリンク */}
             <Link
