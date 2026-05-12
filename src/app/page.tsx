@@ -1,5 +1,6 @@
 import { ProductCard } from '@/components/ProductCard';
-import { getInventoryProducts, getCurrentUser } from '@/app/actions';
+import { getCurrentUser } from '@/features/auth/account-access';
+import { getInventoryProducts } from '@/features/inventory/product-inventory';
 import Link from 'next/link';
 import { UserMenu } from '@/components/UserMenu';
 import type { Metadata } from 'next';

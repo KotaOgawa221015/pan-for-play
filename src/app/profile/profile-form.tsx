@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react';
 
-import { updateProfileAction } from '@/app/actions';
+import { updateProfileAction } from '@/features/profile/profile-settings';
 import Link from 'next/link';
 
 export function ProfileForm({

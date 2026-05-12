@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { signupAction } from '@/app/actions';
+import { signupAction } from '@/features/auth/account-access';
 import Link from 'next/link';
 
 export function SignupPageClient() {
