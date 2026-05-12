@@ -46,7 +46,7 @@ export default async function Page({
           <UserMenu />
 
           <Link
-            href="/admin"
+            href="/admin/upload"
             className="bg-white text-xs font-medium px-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 hover:border-zinc-900 hover:text-zinc-900 dark:hover:bg-zinc-800 transition-colors whitespace-nowrap shadow-sm"
           >
             管理者用
