@@ -7,41 +7,44 @@ import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import {
-  isItemStatus,
-  type InventoryItem,
-  type ItemStatus,
+  isProductStatus,
+  type Product,
+  type ProductStatus,
 } from '@/types/inventory';
 
 const SESSION_COOKIE_NAME = 'pancolle_session';
 
-export async function getInventoryItems(): Promise<InventoryItem[]> {
-  const items = await prisma.item.findMany({
+export async function getInventoryProducts(): Promise<Product[]> {
+  const products = await prisma.product.findMany({
     orderBy: { name: 'asc' },
   });
 
-  return items.map((item) => {
-    const status = item.status;
+  return products.map((product) => {
+    const status = product.status;
 
-    if (!isItemStatus(status)) {
+    if (!isProductStatus(status)) {
       throw new Error(`Invalid status: ${status}`);
     }
 
     return {
-      id: item.id,
-      name: item.name,
+      id: product.id,
+      name: product.name,
       status,
-      updatedAt: item.updatedAt.toISOString(),
+      updatedAt: product.updatedAt.toISOString(),
     };
   });
 }
 
-export async function updateItemStatus(itemId: string, status: ItemStatus) {
-  if (!isItemStatus(status)) {
+export async function updateProductStatus(
+  productId: string,
+  status: ProductStatus,
+) {
+  if (!isProductStatus(status)) {
     throw new Error(`Invalid status: ${status}`);
   }
 
-  await prisma.item.update({
-    where: { id: itemId },
+  await prisma.product.update({
+    where: { id: productId },
     data: { status },
   });
 

@@ -1,17 +1,17 @@
 'use client';
 
 import { useOptimistic, useTransition } from 'react';
-import { updateItemStatus } from '@/app/actions';
+import { updateProductStatus } from '@/app/actions';
 import {
-  ITEM_STATUSES,
+  PRODUCT_STATUSES,
   STATUS_LABELS,
   STATUS_STYLES,
-  type InventoryItem,
-  type ItemStatus,
+  type Product,
+  type ProductStatus,
 } from '@/types/inventory';
 
 type Props = {
-  item: InventoryItem;
+  product: Product;
 };
 
 function formatRelativeTime(value: string): string {
@@ -39,21 +39,21 @@ function formatRelativeTime(value: string): string {
   return `${years}年前`;
 }
 
-export function ItemCard({ item }: Props) {
+export function ProductCard({ product }: Props) {
   const [optimisticStatus, setOptimisticStatus] = useOptimistic(
-    item.status,
-    (_current, next: ItemStatus) => next,
+    product.status,
+    (_current, next: ProductStatus) => next,
   );
   const [isPending, startTransition] = useTransition();
-  const updatedLabel = formatRelativeTime(item.updatedAt);
+  const updatedLabel = formatRelativeTime(product.updatedAt);
 
-  const handleStatusChange = (nextStatus: ItemStatus) => {
+  const handleStatusChange = (nextStatus: ProductStatus) => {
     if (nextStatus === optimisticStatus) return;
 
     setOptimisticStatus(nextStatus);
     startTransition(async () => {
       try {
-        await updateItemStatus(item.id, nextStatus);
+        await updateProductStatus(product.id, nextStatus);
       } catch (error) {
         console.error('Failed to update status:', error);
       }
@@ -64,7 +64,7 @@ export function ItemCard({ item }: Props) {
     <div className="flex flex-col justify-between p-4 bg-white rounded-2xl border border-zinc-100 shadow-sm dark:bg-zinc-800 dark:border-zinc-700 aspect-square">
       <div className="space-y-2">
         <div className="text-center font-medium text-zinc-900 dark:text-zinc-100">
-          {item.name}
+          {product.name}
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2 text-[10px]">
           <span
@@ -81,7 +81,7 @@ export function ItemCard({ item }: Props) {
       </div>
 
       <div className="mt-4 flex gap-2">
-        {ITEM_STATUSES.map((status) => {
+        {PRODUCT_STATUSES.map((status) => {
           const isActive = optimisticStatus === status;
           const styles = STATUS_STYLES[status];
 
