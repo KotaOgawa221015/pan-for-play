@@ -40,9 +40,9 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Docker Build Check (${{ matrix.target }})
+        run: docker build --target "${{ matrix.target }}" -t "pancolle-ci:${{ matrix.target }}" .
+
+      - name: Docker Run Check (${{ matrix.target }})
         run: |
-          if [ "${{ matrix.target }}" = "dev" ]; then
-            mise exec -- just build-dev
-          else
-            mise exec -- just build-prod
-          fi
+          docker run -d --name "pancolle-ci-${{ matrix.target }}" -p 127.0.0.1:3000:3000 -e DATABASE_URL=file:./data/prod.db "pancolle-ci:${{ matrix.target }}"
+          curl --retry 30 --retry-delay 2 --retry-connrefused --fail http://127.0.0.1:3000/
