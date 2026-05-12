@@ -6,7 +6,7 @@ export default function UploadPage() {
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-6">
       <div className="max-w-xl mx-auto space-y-6">
         <header className="flex items-center justify-between">
-          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
             納品書読み込み
           </h1>
           <Link href="/admin" className="text-sm text-zinc-500 hover:underline">

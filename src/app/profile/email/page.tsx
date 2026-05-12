@@ -1,13 +1,12 @@
-'use client';
-
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+  title: 'メールアドレス変更 | パンコレ',
+  description: 'メールアドレスを変更します。',
+};
 
 export default function EmailChangePage() {
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert('見た目だけです！');
-  };
-
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
       <div className="max-w-xl mx-auto space-y-6">
@@ -34,14 +33,14 @@ export default function EmailChangePage() {
         </Link>
 
         <header className="space-y-1">
-          <h1 className="text-2xl font-bold">メールアドレスの変更</h1>
+          <h1 className="text-2xl font-semibold">メールアドレスの変更</h1>
           <p className="text-zinc-500">
             新しいメールアドレスを入力してください
           </p>
         </header>
 
         <div className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form className="space-y-6">
             <div className="space-y-1">
               <label
                 htmlFor="new-email"

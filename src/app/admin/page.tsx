@@ -5,7 +5,7 @@ export default function AdminPage() {
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-6">
       <div className="max-w-4xl mx-auto space-y-6">
         <header className="flex items-center justify-between border-b pb-4 dark:border-zinc-800">
-          <h1 className="text-xl font-bold">管理者ページ</h1>
+          <h1 className="text-xl font-semibold">管理者ページ</h1>
           <Link href="/" className="text-sm text-zinc-500 hover:underline">
             ボードへ戻る
           </Link>

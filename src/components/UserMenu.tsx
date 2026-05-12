@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { logoutAction } from '@/app/actions';
-import Link from 'next/link'; // 追加
+import Link from 'next/link';
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +12,7 @@ export function UserMenu() {
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="bg-white p-2 border border-zinc-300 text-zinc-500 hover:text-zinc-800 hover:border-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 rounded-full hover:bg-blue-50 dark:hover:bg-zinc-800 transition-colors shadow-sm"
+        className="bg-white p-2 border border-zinc-300 text-zinc-500 hover:text-zinc-800 hover:border-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shadow-sm"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -33,9 +33,7 @@ export function UserMenu() {
 
       {isOpen && (
         <div className="absolute right-0 pt-2 w-40 z-50">
-          {' '}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-lg py-1">
-            {/* 追加：マイページへのリンク */}
             <Link
               href="/profile"
               onClick={() => setIsOpen(false)}
