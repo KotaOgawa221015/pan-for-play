@@ -14,7 +14,7 @@ const prisma = new PrismaClient({
   adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
 });
 
-const seedItems = [
+const seedProducts = [
   { name: 'ふわふわコーヒーメロンパン' },
   { name: 'ふわとろチーズパン' },
   { name: '天然酵母ガーリックフランス' },
@@ -40,19 +40,19 @@ const seedUsers = [
 ];
 
 async function main() {
-  const seedNames = seedItems.map((item) => item.name);
+  const seedNames = seedProducts.map((product) => product.name);
 
-  await prisma.item.deleteMany({
+  await prisma.product.deleteMany({
     where: {
       name: { notIn: seedNames },
     },
   });
 
-  for (const item of seedItems) {
-    await prisma.item.upsert({
-      where: { name: item.name },
+  for (const product of seedProducts) {
+    await prisma.product.upsert({
+      where: { name: product.name },
       update: {},
-      create: { name: item.name },
+      create: { name: product.name },
     });
   }
   for (const user of seedUsers) {

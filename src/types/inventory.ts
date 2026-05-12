@@ -1,21 +1,21 @@
-export const ITEM_STATUSES = ["PLENTIFUL", "FEW_LEFT", "SOLD_OUT"] as const;
-export type ItemStatus = (typeof ITEM_STATUSES)[number];
+export const PRODUCT_STATUSES = ["PLENTIFUL", "FEW_LEFT", "SOLD_OUT"] as const;
+export type ProductStatus = (typeof PRODUCT_STATUSES)[number];
 
-export type InventoryItem = {
+export type Product = {
   id: string;
   name: string;
-  status: ItemStatus;
+  status: ProductStatus;
   updatedAt: string;
 };
 
-export const STATUS_LABELS: Record<ItemStatus, string> = {
+export const STATUS_LABELS: Record<ProductStatus, string> = {
   PLENTIFUL: "十分",
   FEW_LEFT: "残りわずか",
   SOLD_OUT: "売り切れ",
 };
 
 export const STATUS_STYLES: Record<
-  ItemStatus,
+  ProductStatus,
   { active: string; inactive: string; badge: string }
 > = {
   PLENTIFUL: {
@@ -35,6 +35,6 @@ export const STATUS_STYLES: Record<
   },
 };
 
-export function isItemStatus(value: string): value is ItemStatus {
-  return ITEM_STATUSES.includes(value as ItemStatus);
+export function isProductStatus(value: string): value is ProductStatus {
+  return PRODUCT_STATUSES.includes(value as ProductStatus);
 }

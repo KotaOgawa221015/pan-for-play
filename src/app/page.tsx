@@ -1,5 +1,5 @@
-import { ItemCard } from '@/components/ItemCard';
-import { getInventoryItems } from '@/app/actions';
+import { ProductCard } from '@/components/ProductCard';
+import { getInventoryProducts } from '@/app/actions';
 import Link from 'next/link';
 import { UserMenu } from '@/components/UserMenu';
 
@@ -9,7 +9,7 @@ export default async function Page({
   searchParams: Promise<{ msg?: string }>;
 }) {
   const { msg } = await searchParams;
-  const items = await getInventoryItems();
+  const products = await getInventoryProducts();
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
@@ -48,12 +48,12 @@ export default async function Page({
 
       <main className="max-w-4xl mx-auto p-4 space-y-10">
         <section>
-          {items.length === 0 ? (
-            <p className="text-sm text-zinc-400">アイテムがありません</p>
+          {products.length === 0 ? (
+            <p className="text-sm text-zinc-400">商品がありません</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {items.map((item) => (
-                <ItemCard key={item.id} item={item} />
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
               ))}
             </div>
           )}
