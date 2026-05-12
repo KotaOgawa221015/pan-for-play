@@ -34,7 +34,6 @@ export function UserMenu() {
       {isOpen && (
         <div className="absolute right-0 pt-2 w-40 z-50">
           {' '}
-          {/* 幅を少し広げました */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-md shadow-lg py-1">
             {/* 追加：マイページへのリンク */}
             <Link
