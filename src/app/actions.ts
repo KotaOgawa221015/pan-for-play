@@ -35,7 +35,10 @@ export async function getInventoryProducts(): Promise<Product[]> {
   });
 }
 
-export async function updateProductStatus(productId: string, status: ProductStatus) {
+export async function updateProductStatus(
+  productId: string,
+  status: ProductStatus,
+) {
   if (!isProductStatus(status)) {
     throw new Error(`Invalid status: ${status}`);
   }
