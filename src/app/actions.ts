@@ -120,3 +120,58 @@ export async function logoutAction() {
   cookieStore.delete(SESSION_COOKIE_NAME);
   redirect('/login');
 }
+
+export async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+
+  if (!userId) return null;
+
+  return await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      displayName: true,
+    },
+  });
+}
+
+export async function updateProfileAction(_prevState: any, formData: FormData) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  if (!userId) return { error: '認証が必要です' };
+
+  const displayName = formData.get('displayName') as string;
+  const email = formData.get('email') as string;
+
+  try {
+    await prisma.user.update({
+      where: { id: userId },
+      data: { displayName, email },
+    });
+    revalidatePath('/profile');
+    return { success: 'プロフィールを更新しました' };
+  } catch (e) {
+    return { error: '更新に失敗しました' };
+  }
+}
+
+export async function updatePasswordAction(_prevState: any, formData: FormData) {
+  const cookieStore = await cookies();
+  const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  if (!userId) return { error: '認証が必要です' };
+
+  const newPassword = formData.get('newPassword') as string;
+  if (!newPassword || newPassword.length < 6) {
+    return { error: 'パスワードは6文字以上で入力してください' };
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { passwordHash },
+  });
+
+  return { success: 'パスワードを変更しました' };
+}
