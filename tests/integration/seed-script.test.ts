@@ -1,6 +1,6 @@
-import { existsSync, mkdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { mkdirSync, mkdtempSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
-import { createRequire } from 'node:module';
 import path from 'node:path';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '@prisma/client';
@@ -8,34 +8,50 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const rootDir = path.resolve(__dirname, '..', '..');
 const tmpDir = path.join(rootDir, '.tmp');
-const dbPath = path.join(tmpDir, 'seed-test.db');
-const databaseUrl = `file:${dbPath}`;
 const prismaBinary =
   process.platform === 'win32'
     ? path.join(rootDir, 'node_modules', '.bin', 'prisma.cmd')
     : path.join(rootDir, 'node_modules', '.bin', 'prisma');
 
+let databaseUrl: string;
+
+function commandEnv() {
+  if (!databaseUrl) {
+    throw new Error(
+      'Test database URL must be initialized before command run.',
+    );
+  }
+
+  return { ...process.env, DATABASE_URL: databaseUrl };
+}
+
 function runPrisma(args: string[]) {
-  const { execFileSync } = require('node:child_process');
   execFileSync(prismaBinary, args, {
     cwd: rootDir,
-    env: { ...process.env, DATABASE_URL: databaseUrl },
+    env: commandEnv(),
+    stdio: 'pipe',
+  });
+}
+
+function runNode(args: string[]) {
+  execFileSync(process.execPath, args, {
+    cwd: rootDir,
+    env: commandEnv(),
     stdio: 'pipe',
   });
 }
 
 describe('seed script', () => {
   let prisma: PrismaClient;
+  let testDir: string;
 
   beforeAll(async () => {
     mkdirSync(tmpDir, { recursive: true });
-    await rm(dbPath, { force: true });
+    testDir = mkdtempSync(path.join(tmpDir, 'seed-script-'));
+    databaseUrl = `file:${path.join(testDir, 'seed.db')}`;
 
     runPrisma(['migrate', 'deploy']);
-    process.env.DATABASE_URL = databaseUrl;
-    const require = createRequire(import.meta.url);
-    const { seed } = require('../../prisma/seed.js');
-    await seed();
+    runNode(['prisma/seed.js']);
 
     prisma = new PrismaClient({
       adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
@@ -47,8 +63,8 @@ describe('seed script', () => {
       await prisma.$disconnect();
     }
 
-    if (existsSync(dbPath)) {
-      await rm(dbPath, { force: true });
+    if (testDir) {
+      await rm(testDir, { force: true, recursive: true });
     }
   });
 
