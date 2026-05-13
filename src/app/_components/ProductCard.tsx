@@ -72,7 +72,7 @@ export function ProductCard({ product }: Props) {
 
   return (
     <div
-      className={`flex flex-col h-full p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 transition-all hover:-translate-y-1 hover:shadow-lg ${
+      className={`flex flex-col h-full p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 ${
         isSoldOut ? 'opacity-50 grayscale' : ''
       }`}
     >
