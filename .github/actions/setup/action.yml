@@ -7,23 +7,26 @@ inputs:
     required: false
     default: .nvmrc
   install-mise:
-    description: 'Install mise and tools'
+    description: Install mise and tools
     required: false
     default: 'true'
   mise-version:
-    description: 'mise version to install'
+    description: mise version to install
     required: false
     default: '2026.4.27'
 
 runs:
   using: composite
   steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v6
+
     - name: Setup Node.js
-      run: corepack enable
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6
       with:
         node-version-file: ${{ inputs.node-version-file }}
         cache: pnpm
+        cache-dependency-path: pnpm-lock.yaml
 
     - name: Setup mise
       if: inputs.install-mise == 'true'
@@ -31,6 +34,10 @@ runs:
       with:
         version: ${{ inputs.mise-version }}
         install_args: --locked
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      shell: bash
 
     - name: Run just setup
       run: mise exec -- just setup
