@@ -1,5 +1,5 @@
 name: Setup Environment
-description: Install Node.js, setup mise for other tools, and install npm dependencies
+description: Install Node.js, setup mise for other tools, and install pnpm dependencies
 
 inputs:
   node-version-file:
@@ -18,11 +18,16 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10.33.2
+
     - name: Setup Node.js
       uses: actions/setup-node@v5
       with:
         node-version-file: ${{ inputs.node-version-file }}
-        cache: npm
+        cache: pnpm
 
     - name: Setup mise
       if: inputs.install-mise == 'true'
