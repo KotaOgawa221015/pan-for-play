@@ -24,16 +24,17 @@ export function SignupPageClient() {
 
           <div className="space-y-1">
             <label
-              htmlFor="displayName"
+              htmlFor="name"
               className="text-xs font-bold text-zinc-400 uppercase"
             >
               Display Name
             </label>
             <input
-              id="displayName"
-              name="displayName"
+              id="name"
+              name="name"
               type="text"
               placeholder="お名前（表示名）"
+              required
               className="w-full p-3 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
             />
           </div>

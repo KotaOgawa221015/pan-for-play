@@ -1,6 +1,6 @@
-import type { ProductStatus as PrismaProductStatus } from '@prisma/client';
+import type { InventoryStatus as PrismaInventoryStatus } from '@prisma/client';
 
-export type ProductStatus = PrismaProductStatus;
+export type ProductStatus = PrismaInventoryStatus;
 
 export type Product = {
   id: string;

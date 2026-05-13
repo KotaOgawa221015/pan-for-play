@@ -44,8 +44,11 @@ export async function loginAction(_prevState: unknown, formData: FormData) {
 export async function signupAction(_prevState: unknown, formData: FormData) {
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
-  const displayName = formData.get('displayName') as string;
+  const name = formData.get('name') as string;
 
+  if (!name?.trim()) {
+    return { error: '表示名を入力してください' };
+  }
   if (!email?.includes('@')) {
     return { error: '有効なメールアドレスを入力してください' };
   }
@@ -60,7 +63,7 @@ export async function signupAction(_prevState: unknown, formData: FormData) {
 
   const passwordHash = await bcrypt.hash(password, 10);
   const user = await prisma.user.create({
-    data: { email, passwordHash, displayName },
+    data: { email, passwordHash, name: name.trim() },
   });
 
   await setSessionCookie(user.id);
@@ -85,7 +88,7 @@ export async function getCurrentUser() {
     select: {
       id: true,
       email: true,
-      displayName: true,
+      name: true,
       role: true,
     },
   });

@@ -6,26 +6,153 @@ datasource db {
   provider = "sqlite"
 }
 
-enum ProductStatus {
+enum InventoryStatus {
   PLENTIFUL
   FEW_LEFT
   SOLD_OUT
 }
 
+enum InventorySourceType {
+  MANUAL
+  UPLOAD
+}
+
+enum UploadBatchProcessingStatus {
+  PENDING
+  PROCESSED
+  FAILED
+  APPLIED
+}
+
+enum UploadBatchLineMatchStatus {
+  MATCHED
+  UNMATCHED
+  IGNORED
+  NEEDS_REVIEW
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
+
 model Product {
   id        String   @id @default(cuid())
   name      String   @unique
-  status    ProductStatus @default(PLENTIFUL)
-  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  inventoryChecks  InventoryCheck[]
+  uploadBatchLines UploadBatchLine[]
 }
 
 model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified DateTime?
+  image         String?
+  passwordHash  String
+  role          UserRole @default(MEMBER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  inventoryChecks InventoryCheck[]
+  uploadBatches   UploadBatch[]
+  accounts        Account[]
+  sessions        Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refreshToken      String?
+  accessToken       String?
+  expiresAt         Int?
+  tokenType         String?
+  scope             String?
+  idToken           String?
+  sessionState      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
   id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  displayName  String?
-  role         String   @default("MEMBER")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+}
+
+model InventoryCheck {
+  id              String             @id @default(cuid())
+  productId       String
+  checkedByUserId String
+  uploadBatchId   String?
+  status          InventoryStatus
+  sourceType      InventorySourceType
+  checkedAt       DateTime
+  note            String?
+  createdAt       DateTime           @default(now())
+
+  product       Product     @relation(fields: [productId], references: [id])
+  checkedByUser User        @relation(fields: [checkedByUserId], references: [id])
+  uploadBatch   UploadBatch? @relation(fields: [uploadBatchId], references: [id])
+
+  @@index([productId, checkedAt])
+  @@index([checkedByUserId])
+  @@index([uploadBatchId])
+}
+
+model UploadBatch {
+  id               String                     @id @default(cuid())
+  uploadedByUserId String
+  originalFileName String
+  storagePath      String
+  processingStatus UploadBatchProcessingStatus @default(PENDING)
+  processedAt      DateTime?
+  createdAt        DateTime                   @default(now())
+  updatedAt        DateTime                   @updatedAt
+
+  uploadedByUser  User             @relation(fields: [uploadedByUserId], references: [id])
+  lines           UploadBatchLine[]
+  inventoryChecks InventoryCheck[]
+
+  @@index([uploadedByUserId])
+}
+
+model UploadBatchLine {
+  id               String                    @id @default(cuid())
+  uploadBatchId    String
+  lineNumber       Int
+  rawText          String
+  matchedProductId String?
+  matchStatus      UploadBatchLineMatchStatus
+  appliedStatus    InventoryStatus
+  createdAt        DateTime                  @default(now())
+
+  uploadBatch    UploadBatch @relation(fields: [uploadBatchId], references: [id])
+  matchedProduct Product?    @relation(fields: [matchedProductId], references: [id])
+
+  @@index([uploadBatchId, lineNumber])
+  @@index([matchedProductId])
 }

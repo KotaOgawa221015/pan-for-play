@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getCurrentUserId } from '@/features/auth/account-access';
 import { prisma } from '@/lib/prisma';
 import {
   isProductStatus,
@@ -11,10 +12,22 @@ import {
 export async function getInventoryProducts(): Promise<Product[]> {
   const products = await prisma.product.findMany({
     orderBy: { name: 'asc' },
+    include: {
+      inventoryChecks: {
+        orderBy: { checkedAt: 'desc' },
+        take: 1,
+      },
+    },
   });
 
   return products.map((product) => {
-    const status = product.status;
+    const latestCheck = product.inventoryChecks[0];
+
+    if (!latestCheck) {
+      throw new Error(`Missing inventory check for product: ${product.id}`);
+    }
+
+    const status = latestCheck.status;
 
     if (!isProductStatus(status)) {
       throw new Error(`Invalid status: ${status}`);
@@ -24,7 +37,7 @@ export async function getInventoryProducts(): Promise<Product[]> {
       id: product.id,
       name: product.name,
       status,
-      updatedAt: product.updatedAt.toISOString(),
+      updatedAt: latestCheck.checkedAt.toISOString(),
     };
   });
 }
@@ -37,9 +50,20 @@ export async function updateProductStatus(
     throw new Error(`Invalid status: ${status}`);
   }
 
-  await prisma.product.update({
-    where: { id: productId },
-    data: { status },
+  const userId = await getCurrentUserId();
+
+  if (!userId) {
+    throw new Error('Authentication required.');
+  }
+
+  await prisma.inventoryCheck.create({
+    data: {
+      productId,
+      checkedByUserId: userId,
+      status,
+      sourceType: 'MANUAL',
+      checkedAt: new Date(),
+    },
   });
 
   revalidatePath('/', 'layout');
