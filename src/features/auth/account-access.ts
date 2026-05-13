@@ -1,14 +1,14 @@
 'use server';
 
-import { signIn, signOut, auth } from "./auth";
+import { signIn, signOut, auth } from './auth';
 import { prisma } from '@/lib/prisma';
 
 export async function loginWithGoogleAction() {
-  await signIn("google", { redirectTo: "/" });
+  await signIn('google', { redirectTo: '/' });
 }
 
 export async function logoutAction() {
-  await signOut({ redirectTo: "/login" });
+  await signOut({ redirectTo: '/login' });
 }
 
 export async function getCurrentUser() {

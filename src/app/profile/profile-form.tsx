@@ -1,16 +1,19 @@
 'use client';
 
 import { useActionState } from 'react';
-import { updateProfileAction, deleteAccountAction } from '@/features/profile/profile-settings';
-
-
+import {
+  updateProfileAction,
+  deleteAccountAction,
+} from '@/features/profile/profile-settings';
 
 export function ProfileForm({ user }: { user: { name: string | null } }) {
-
-  const [pState, pAction, pPending] = useActionState(updateProfileAction, null);
+  const [_pState, pAction, pPending] = useActionState(
+    updateProfileAction,
+    null,
+  );
 
   const handleDeleteAccount = async () => {
-    if (confirm("本当に退会しますか？この操作は取り消せません。")) {
+    if (confirm('本当に退会しますか？この操作は取り消せません。')) {
       await deleteAccountAction();
     }
   };
@@ -21,13 +24,16 @@ export function ProfileForm({ user }: { user: { name: string | null } }) {
         <h2 className="font-semibold text-lg mb-6">基本情報</h2>
         <form action={pAction} className="flex flex-col gap-6">
           <div className="space-y-1">
-
-            <label htmlFor="name" className="text-xs font-bold text-zinc-400 uppercase">表示名</label>
+            <label
+              htmlFor="name"
+              className="text-xs font-bold text-zinc-400 uppercase"
+            >
+              表示名
+            </label>
             <input
               id="name"
               name="name"
               defaultValue={user.name || ''}
-
               className="w-full p-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
             />
           </div>
@@ -41,6 +47,7 @@ export function ProfileForm({ user }: { user: { name: string | null } }) {
         </form>
       </div>
       <button
+        type="button"
         onClick={handleDeleteAccount}
         className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-rose-700 transition"
       >

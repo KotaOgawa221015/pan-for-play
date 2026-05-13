@@ -3,9 +3,12 @@
 import { revalidatePath } from 'next/cache';
 import { getCurrentUserId } from '@/features/auth/account-access';
 import { prisma } from '@/lib/prisma';
-import { signOut } from "@/features/auth/auth";
+import { signOut } from '@/features/auth/auth';
 
-export async function updateProfileAction(_prevState: unknown, formData: FormData) {
+export async function updateProfileAction(
+  _prevState: unknown,
+  formData: FormData,
+) {
   const userId = await getCurrentUserId();
   if (!userId) return { error: '認証が必要です' };
 
@@ -20,7 +23,6 @@ export async function updateProfileAction(_prevState: unknown, formData: FormDat
       where: { id: userId },
 
       data: { name },
-
     });
     revalidatePath('/profile');
     return { success: 'プロフィールを更新しました' };
@@ -34,11 +36,35 @@ export async function deleteAccountAction() {
   if (!userId) return { error: '認証が必要です' };
 
   try {
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { accounts: true }, // Account情報を取得
+    });
     if (!user) return { error: 'ユーザーが見つかりません' };
 
+    // --- Google側の承認を解除する処理を追加 ---
+    const googleAccount = user.accounts.find(
+      (acc) => acc.provider === 'google',
+    );
+    // access_token または refresh_token を使用
+    const token = googleAccount?.access_token || googleAccount?.refresh_token;
+
+    if (token) {
+      try {
+        // GoogleのRevoke APIを呼び出す
+        await fetch(`https://oauth2.googleapis.com/revoke?token=${token}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+      } catch (err) {
+        console.error('Google token revocation failed:', err);
+        // 失敗してもDB削除は進める（アプリ側の退会を優先）
+      }
+    }
+    // ----------------------------------------
+
     await prisma.$transaction([
-      // 1. Userのemailを書き換えてユニーク制約を逃がし、deletedAtを刻む
+      // 既存の削除ロジック
       prisma.user.update({
         where: { id: userId },
         data: {
@@ -46,20 +72,13 @@ export async function deleteAccountAction() {
           email: `${user.email}_deleted_${Date.now()}`,
         },
       }),
-      // 2. 外部認証連携を解除（これをしないと次回ログイン時に古いUserに紐付く）
-      prisma.account.deleteMany({
-        where: { userId: userId },
-      }),
-      // 3. セッションをDBから削除
-      prisma.session.deleteMany({
-        where: { userId: userId },
-      }),
+      prisma.account.deleteMany({ where: { userId: userId } }),
+      prisma.session.deleteMany({ where: { userId: userId } }),
     ]);
   } catch (error) {
     console.error('Delete account error:', error);
     return { error: '退会処理に失敗しました' };
   }
 
-  // 重要：signOutはtry-catchの外で呼び出す
-  await signOut({ redirectTo: "/login?msg=logout_success" });
+  await signOut({ redirectTo: '/login?msg=logout_success' });
 }
