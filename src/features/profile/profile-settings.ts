@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { getCurrentUserId } from '@/features/auth/account-access';
 import { prisma } from '@/lib/prisma';
-import { signOut } from "@/auth";
+import { signOut } from "@/features/auth/auth";
 
 export async function updateProfileAction(_prevState: unknown, formData: FormData) {
   const userId = await getCurrentUserId();

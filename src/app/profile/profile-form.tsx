@@ -31,7 +31,13 @@ export function ProfileForm({ user }: { user: { name: string | null } }) {
               className="w-full p-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
             />
           </div>
-          <button type="submit" disabled={pPending} className="...">保存する</button>
+          <button
+            type="submit"
+            disabled={pPending}
+            className="bg-zinc-900 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-zinc-800 transition disabled:opacity-50"
+          >
+            保存する
+          </button>
         </form>
       </div>
 
