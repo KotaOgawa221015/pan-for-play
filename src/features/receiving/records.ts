@@ -21,30 +21,32 @@ export async function createReviewBatch(input: {
       },
     });
 
-    const products: ReviewLine[] = [];
+    const createdLines = await Promise.all(
+      input.lines.map((line, index) =>
+        tx.uploadBatchLine.create({
+          data: {
+            uploadBatchId: batch.id,
+            lineNumber: index + 1,
+            rawText: line.name,
+            count: line.count,
+            matchedProductId: line.selectedProductId,
+            matchStatus: line.matchStatus,
+            appliedStatus: line.appliedStatus,
+          },
+        }),
+      ),
+    );
 
-    for (const [index, line] of input.lines.entries()) {
-      const createdLine = await tx.uploadBatchLine.create({
-        data: {
-          uploadBatchId: batch.id,
-          lineNumber: index + 1,
-          rawText: line.name,
-          count: line.count,
-          matchedProductId: line.selectedProductId,
-          matchStatus: line.matchStatus,
-          appliedStatus: line.appliedStatus,
-        },
-      });
-
-      products.push({
+    const products: ReviewLine[] = createdLines
+      .toSorted((left, right) => left.lineNumber - right.lineNumber)
+      .map((createdLine) => ({
         lineId: createdLine.id,
         name: createdLine.rawText,
         count: createdLine.count,
         selectedProductId: createdLine.matchedProductId,
         matchStatus: createdLine.matchStatus,
         appliedStatus: createdLine.appliedStatus,
-      });
-    }
+      }));
 
     await tx.uploadBatch.update({
       where: { id: batch.id },

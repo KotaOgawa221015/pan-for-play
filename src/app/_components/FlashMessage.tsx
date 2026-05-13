@@ -1,36 +1,35 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 export function FlashMessage({ msg }: { msg?: string }) {
-  const [isVisible, setIsVisible] = useState(!!msg);
   const [isExiting, setIsExiting] = useState(false);
-  const router = useRouter();
   const pathname = usePathname();
+  const validMessages = ['login_success', 'signup_success', 'logout_success'];
+  const isVisible = Boolean(msg && validMessages.includes(msg));
 
   useEffect(() => {
-    const validMessages = ['login_success', 'signup_success', 'logout_success'];
-
-    if (msg && validMessages.includes(msg)) {
-      setIsVisible(true);
+    if (!isVisible) {
       setIsExiting(false);
-
-      const exitTimer = setTimeout(() => {
-        setIsExiting(true);
-      }, 2400);
-
-      const removeTimer = setTimeout(() => {
-        setIsVisible(false);
-        router.replace(pathname, { scroll: false });
-      }, 2900);
-
-      return () => {
-        clearTimeout(exitTimer);
-        clearTimeout(removeTimer);
-      };
+      return;
     }
-  }, [msg, pathname, router]);
+
+    setIsExiting(false);
+
+    const exitTimer = setTimeout(() => {
+      setIsExiting(true);
+    }, 2400);
+
+    const removeTimer = setTimeout(() => {
+      window.history.replaceState(window.history.state, '', pathname);
+    }, 2900);
+
+    return () => {
+      clearTimeout(exitTimer);
+      clearTimeout(removeTimer);
+    };
+  }, [isVisible, pathname]);
 
   if (!isVisible || !msg) return null;
 

@@ -17,15 +17,17 @@ const STATUS_LABELS = {
   REVERTED: '過去の反映',
 } as const;
 
+const dateTimeFormatter = new Intl.DateTimeFormat('ja-JP', {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+});
+
 function formatDateTime(value: string | null) {
   if (!value) {
     return '未実行';
   }
 
-  return new Intl.DateTimeFormat('ja-JP', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value));
+  return dateTimeFormatter.format(new Date(value));
 }
 
 export function HistoryList({

@@ -53,7 +53,7 @@ export function ProductCard({ product }: Props) {
           className="shrink-0 object-contain"
           unoptimized
         />
-        <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100 truncate text-center">
+        <h3 className="font-semibold text-base text-zinc-900 dark:text-zinc-100 truncate text-center">
           {product.name}
         </h3>
       </div>

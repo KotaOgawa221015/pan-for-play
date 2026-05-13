@@ -27,6 +27,11 @@ async function setSessionCookie(userId: string) {
 }
 
 export async function loginAction(_prevState: unknown, formData: FormData) {
+  const currentUser = await getCurrentUser();
+  if (currentUser) {
+    redirect('/');
+  }
+
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
@@ -50,6 +55,11 @@ export async function loginAction(_prevState: unknown, formData: FormData) {
 }
 
 export async function signupAction(_prevState: unknown, formData: FormData) {
+  const currentUser = await getCurrentUser();
+  if (currentUser) {
+    redirect('/');
+  }
+
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
   const name = formData.get('name') as string;
@@ -80,6 +90,7 @@ export async function signupAction(_prevState: unknown, formData: FormData) {
 }
 
 export async function logoutAction() {
+  await requireCurrentUser();
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
   redirect('/login?msg=logout_success');

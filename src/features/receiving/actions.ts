@@ -22,6 +22,7 @@ async function requireCurrentUserId() {
 }
 
 export async function startReceivingReview(fileName: string) {
+  await requireCurrentUserId();
   const draft = await prepareReviewDraft(fileName, {
     getCurrentUserId: requireCurrentUserId,
     extractProducts: extractProductsFromMock,
@@ -70,45 +71,64 @@ export async function applyReceivingReview(input: ReviewInput) {
     });
 
     const batchLineIds = new Set(batch.lines.map((line) => line.id));
-    const createdProductIds = new Map<string, string>();
-
-    for (const product of reviewedProducts) {
-      if (!batchLineIds.has(product.lineId)) {
-        throw new Error('別の納品書行が混在しています。');
-      }
-
-      let matchedProductId = product.selectedProductId;
-
-      if (!matchedProductId) {
-        const normalizedProductName = normalizeProductName(product.name);
-        const cachedProductId = createdProductIds.get(normalizedProductName);
-
-        if (cachedProductId) {
-          matchedProductId = cachedProductId;
-        } else {
-          const createdProduct = await createCatalogProduct(tx, product.name);
-          matchedProductId = createdProduct.id;
-          createdProductIds.set(normalizedProductName, createdProduct.id);
-        }
-      }
-
-      if (!matchedProductId) {
-        throw new Error(`商品の紐付けに失敗しました: ${product.name}`);
-      }
-
-      const status = getProductStatusFromCount(product.count);
-
-      await tx.uploadBatchLine.update({
-        where: { id: product.lineId },
-        data: {
-          rawText: product.name,
-          count: product.count,
-          matchedProductId,
-          matchStatus: 'MATCHED',
-          appliedStatus: status,
-        },
-      });
+    const missingLine = reviewedProducts.find(
+      (product) => !batchLineIds.has(product.lineId),
+    );
+    if (missingLine) {
+      throw new Error('別の納品書行が混在しています。');
     }
+
+    const newProductNameByNormalizedName = new Map<string, string>();
+    for (const product of reviewedProducts) {
+      if (product.selectedProductId) {
+        continue;
+      }
+      const normalizedProductName = normalizeProductName(product.name);
+      if (!newProductNameByNormalizedName.has(normalizedProductName)) {
+        newProductNameByNormalizedName.set(normalizedProductName, product.name);
+      }
+    }
+
+    const createdProducts = await Promise.all(
+      [...newProductNameByNormalizedName.values()].map((productName) =>
+        createCatalogProduct(tx, productName),
+      ),
+    );
+
+    const createdProductIdByNormalizedName = new Map<string, string>();
+    for (const createdProduct of createdProducts) {
+      createdProductIdByNormalizedName.set(
+        normalizeProductName(createdProduct.name),
+        createdProduct.id,
+      );
+    }
+
+    await Promise.all(
+      reviewedProducts.map(async (product) => {
+        const matchedProductId =
+          product.selectedProductId ??
+          createdProductIdByNormalizedName.get(
+            normalizeProductName(product.name),
+          );
+
+        if (!matchedProductId) {
+          throw new Error(`商品の紐付けに失敗しました: ${product.name}`);
+        }
+
+        const status = getProductStatusFromCount(product.count);
+
+        await tx.uploadBatchLine.update({
+          where: { id: product.lineId },
+          data: {
+            rawText: product.name,
+            count: product.count,
+            matchedProductId,
+            matchStatus: 'MATCHED',
+            appliedStatus: status,
+          },
+        });
+      }),
+    );
 
     await tx.uploadBatch.update({
       where: { id: batch.id },

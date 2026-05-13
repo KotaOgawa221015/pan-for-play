@@ -22,7 +22,7 @@ type Props = {
 };
 
 export function Dashboard({ recentHistory }: Props) {
-  const router = useRouter();
+  const { refresh } = useRouter();
   const [draft, setDraft] = useState<ReviewDraft | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -31,7 +31,7 @@ export function Dashboard({ recentHistory }: Props) {
   const [busyBatchId, setBusyBatchId] = useState<string | null>(null);
 
   const refreshPage = () => {
-    router.refresh();
+    refresh();
   };
 
   const handleRead = async (fileName: string) => {
@@ -113,6 +113,7 @@ export function Dashboard({ recentHistory }: Props) {
       />
 
       <ReviewModal
+        key={draft?.batchId ?? 'draft-closed'}
         draft={draft}
         isApplying={isApplying}
         onApply={handleApply}

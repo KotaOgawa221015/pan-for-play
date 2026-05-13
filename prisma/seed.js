@@ -56,28 +56,36 @@ function minutesAgo(now, minutes) {
 }
 
 async function main() {
-  await prisma.inventoryCheck.deleteMany();
-  await prisma.uploadBatchLine.deleteMany();
-  await prisma.uploadBatch.deleteMany();
-  await prisma.account.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.verificationToken.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.$transaction([
+    prisma.inventoryCheck.deleteMany(),
+    prisma.uploadBatchLine.deleteMany(),
+    prisma.uploadBatch.deleteMany(),
+    prisma.account.deleteMany(),
+    prisma.session.deleteMany(),
+    prisma.verificationToken.deleteMany(),
+    prisma.product.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
 
-  const createdUsers = [];
-  for (const user of seedUsers) {
-    const passwordHash = await bcrypt.hash(user.password, 10);
-    const createdUser = await prisma.user.create({
-      data: {
-        name: user.name,
-        email: user.email,
-        passwordHash,
-        role: user.role,
-      },
-    });
-    createdUsers.push(createdUser);
-  }
+  const usersWithHashes = await Promise.all(
+    seedUsers.map(async (user) => ({
+      ...user,
+      passwordHash: await bcrypt.hash(user.password, 10),
+    })),
+  );
+
+  const createdUsers = await Promise.all(
+    usersWithHashes.map((user) =>
+      prisma.user.create({
+        data: {
+          name: user.name,
+          email: user.email,
+          passwordHash: user.passwordHash,
+          role: user.role,
+        },
+      }),
+    ),
+  );
 
   const adminUser = createdUsers.find((user) => user.role === 'ADMIN');
   if (!adminUser) {
@@ -110,47 +118,51 @@ async function main() {
     );
   }
 
-  for (const history of receivingHistoryFixture.batches) {
-    const processedAt = minutesAgo(now, history.processedMinutesAgo);
-    const appliedAt = minutesAgo(now, history.appliedMinutesAgo);
-    const revertedAt = minutesAgo(now, history.revertedMinutesAgo);
+  await Promise.all(
+    receivingHistoryFixture.batches.map(async (history) => {
+      const processedAt = minutesAgo(now, history.processedMinutesAgo);
+      const appliedAt = minutesAgo(now, history.appliedMinutesAgo);
+      const revertedAt = minutesAgo(now, history.revertedMinutesAgo);
 
-    const batch = await prisma.uploadBatch.create({
-      data: {
-        uploadedByUserId: adminUser.id,
-        originalFileName: history.originalFileName,
-        storagePath: null,
-        processingStatus: history.processingStatus,
-        processedAt,
-        appliedAt,
-        revertedAt,
-      },
-    });
-
-    for (const [index, product] of history.products.entries()) {
-      const matchedProduct = productByName.get(product.name);
-
-      if (!matchedProduct) {
-        throw new Error(
-          `Seed receiving product is missing from catalog: ${product.name}`,
-        );
-      }
-
-      const status = statusFromCount(product.count);
-
-      await prisma.uploadBatchLine.create({
+      const batch = await prisma.uploadBatch.create({
         data: {
-          uploadBatchId: batch.id,
-          lineNumber: index + 1,
-          rawText: product.name,
-          count: product.count,
-          matchedProductId: matchedProduct.id,
-          matchStatus: 'MATCHED',
-          appliedStatus: status,
+          uploadedByUserId: adminUser.id,
+          originalFileName: history.originalFileName,
+          storagePath: null,
+          processingStatus: history.processingStatus,
+          processedAt,
+          appliedAt,
+          revertedAt,
         },
       });
-    }
-  }
+
+      await Promise.all(
+        history.products.map(async (product, index) => {
+          const matchedProduct = productByName.get(product.name);
+
+          if (!matchedProduct) {
+            throw new Error(
+              `Seed receiving product is missing from catalog: ${product.name}`,
+            );
+          }
+
+          const status = statusFromCount(product.count);
+
+          await prisma.uploadBatchLine.create({
+            data: {
+              uploadBatchId: batch.id,
+              lineNumber: index + 1,
+              rawText: product.name,
+              count: product.count,
+              matchedProductId: matchedProduct.id,
+              matchStatus: 'MATCHED',
+              appliedStatus: status,
+            },
+          });
+        }),
+      );
+    }),
+  );
 }
 
 main()

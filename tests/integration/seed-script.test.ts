@@ -76,8 +76,8 @@ describe('seed script', () => {
     expect(users.some((user) => user.role === 'ADMIN')).toBe(true);
 
     const products = await prisma.product.findMany();
-    expect(products.map((product) => product.name).sort()).toEqual(
-      [...catalogFixture.products].sort(),
+    expect(products.map((product) => product.name).toSorted()).toEqual(
+      catalogFixture.products.toSorted(),
     );
 
     const batches = await prisma.uploadBatch.findMany({

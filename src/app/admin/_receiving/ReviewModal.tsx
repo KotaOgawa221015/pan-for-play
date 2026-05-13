@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type {
   ReviewDraft,
   ReviewInput,
@@ -31,13 +31,10 @@ function formatCountStatus(count: number) {
 }
 
 export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
-  const [products, setProducts] = useState<ReviewLine[]>([]);
+  const [products, setProducts] = useState<ReviewLine[]>(
+    () => draft?.products ?? [],
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    setProducts(draft?.products ?? []);
-    setErrorMessage(null);
-  }, [draft]);
 
   const catalogById = useMemo(
     () => new Map(draft?.catalog.map((product) => [product.id, product]) ?? []),

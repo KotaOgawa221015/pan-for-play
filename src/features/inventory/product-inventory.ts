@@ -38,22 +38,23 @@ export async function getInventoryProducts(): Promise<Product[]> {
     appliedBatch.processedAt?.toISOString() ??
     appliedBatch.createdAt.toISOString();
 
-  return appliedBatch.lines
-    .map((line) => {
-      const product = line.matchedProduct;
+  const products: Product[] = [];
+  for (const line of appliedBatch.lines) {
+    const product = line.matchedProduct;
+    if (!product || line.count === 0) {
+      continue;
+    }
 
-      if (!product || line.count === 0) {
-        return null;
-      }
+    products.push({
+      id: product.id,
+      name: product.name,
+      count: line.count,
+      status: getProductStatusFromCount(line.count),
+      updatedAt,
+    });
+  }
 
-      return {
-        id: product.id,
-        name: product.name,
-        count: line.count,
-        status: getProductStatusFromCount(line.count),
-        updatedAt,
-      } satisfies Product;
-    })
-    .filter((product): product is Product => product !== null)
-    .sort((left, right) => left.name.localeCompare(right.name, 'ja'));
+  return products.sort((left, right) =>
+    left.name.localeCompare(right.name, 'ja'),
+  );
 }
