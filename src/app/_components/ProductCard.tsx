@@ -60,27 +60,44 @@ export function ProductCard({ product }: Props) {
     });
   };
 
+  const isSoldOut = STATUS_LABELS[optimisticStatus] === '売り切れ';
+
+  const isSoup =
+    product.name.includes('スープ') ||
+    product.name === 'ミネストローネ' ||
+    product.name === 'クラムチャウダー';
+
+  const iconSrc = isSoup ? '/soup.png' : '/bread.png';
+
   return (
-    <div className="flex flex-col justify-between p-4 bg-white rounded-2xl border border-zinc-100 shadow-sm dark:bg-zinc-800 dark:border-zinc-700 aspect-square">
-      <div className="space-y-2">
-        <div className="text-center font-medium text-zinc-900 dark:text-zinc-100">
+    <div
+      className={`flex flex-col h-full p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 transition-all hover:-translate-y-1 hover:shadow-lg ${isSoldOut ? 'opacity-50 grayscale' : ''
+        }`}
+    >
+      <div className="flex items-center justify-center gap-2.5 h-10 mb-1.5 overflow-hidden px-1">
+        <img
+          src={iconSrc}
+          alt=""
+          className="w-9 h-9 shrink-0 object-contain"
+        />
+        <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100 truncate text-center">
           {product.name}
-        </div>
-        <div className="flex flex-wrap items-center justify-center gap-2 text-[10px]">
-          <span
-            className={`px-2 py-0.5 rounded-full font-semibold ${
-              STATUS_STYLES[optimisticStatus].badge
-            }`}
-          >
-            {STATUS_LABELS[optimisticStatus]}
-          </span>
-          <span className="text-zinc-400">
-            最終更新 {isPending ? '更新中...' : updatedLabel}
-          </span>
-        </div>
+        </h3>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="flex flex-wrap items-start justify-center gap-x-3 gap-y-1 h-10 mb-2">
+        <span
+          className={`px-3 py-0.5 rounded-full text-[11px] font-bold tracking-wider shrink-0 ${STATUS_STYLES[optimisticStatus].badge
+            }`}
+        >
+          {STATUS_LABELS[optimisticStatus]}
+        </span>
+        <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
+          最終更新 {isPending ? '更新中...' : updatedLabel}
+        </span>
+      </div>
+
+      <div className="mt-auto pt-4 border-t border-zinc-100 dark:border-zinc-800 flex gap-2">
         {PRODUCT_STATUSES.map((status) => {
           const isActive = optimisticStatus === status;
           const styles = STATUS_STYLES[status];
@@ -92,9 +109,8 @@ export function ProductCard({ product }: Props) {
               onClick={() => handleStatusChange(status)}
               disabled={isPending}
               aria-pressed={isActive}
-              className={`flex-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition ${
-                isActive ? styles.active : styles.inactive
-              } ${isPending ? 'opacity-70' : ''}`}
+              className={`flex-1 rounded-full border px-2 py-1.5 text-[11px] font-bold transition-all ${isActive ? styles.active : styles.inactive
+                } ${isPending ? 'opacity-70' : 'hover:scale-105 active:scale-95'}`}
             >
               {STATUS_LABELS[status]}
             </button>
