@@ -1,6 +1,6 @@
-import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '@prisma/client';
@@ -16,15 +16,8 @@ const prismaBinary =
     : path.join(rootDir, 'node_modules', '.bin', 'prisma');
 
 function runPrisma(args: string[]) {
+  const { execFileSync } = require('node:child_process');
   execFileSync(prismaBinary, args, {
-    cwd: rootDir,
-    env: { ...process.env, DATABASE_URL: databaseUrl },
-    stdio: 'pipe',
-  });
-}
-
-function runNode(args: string[]) {
-  execFileSync(process.execPath, args, {
     cwd: rootDir,
     env: { ...process.env, DATABASE_URL: databaseUrl },
     stdio: 'pipe',
@@ -39,7 +32,10 @@ describe('seed script', () => {
     await rm(dbPath, { force: true });
 
     runPrisma(['migrate', 'deploy']);
-    runNode(['prisma/seed.js']);
+    process.env.DATABASE_URL = databaseUrl;
+    const require = createRequire(import.meta.url);
+    const { seed } = require('../../prisma/seed.js');
+    await seed();
 
     prisma = new PrismaClient({
       adapter: new PrismaBetterSqlite3({ url: databaseUrl }),

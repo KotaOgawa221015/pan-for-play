@@ -4,15 +4,15 @@ const bcrypt = require('bcryptjs');
 const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
 const { PrismaClient } = require('@prisma/client');
 
-const databaseUrl = process.env.DATABASE_URL;
+function createPrismaClient(databaseUrl) {
+  if (!databaseUrl) {
+    throw new Error('DATABASE_URL is required to run the seed script.');
+  }
 
-if (!databaseUrl) {
-  throw new Error('DATABASE_URL is required to run the seed script.');
+  return new PrismaClient({
+    adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
+  });
 }
-
-const prisma = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
-});
 
 const seedProducts = [
   { name: 'ふわふわコーヒーメロンパン', isActive: true },
@@ -43,138 +43,146 @@ const seedUsers = [
   },
 ];
 
-async function main() {
-  await prisma.inventoryCheck.deleteMany();
-  await prisma.uploadBatchLine.deleteMany();
-  await prisma.uploadBatch.deleteMany();
-  await prisma.account.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.verificationToken.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.user.deleteMany();
+async function seed() {
+  const prisma = createPrismaClient(process.env.DATABASE_URL);
 
-  const createdUsers = [];
-  for (const user of seedUsers) {
-    const passwordHash = await bcrypt.hash(user.password, 10);
-    const createdUser = await prisma.user.create({
-      data: {
-        name: user.name,
-        email: user.email,
-        passwordHash,
-        role: user.role,
-      },
-    });
-    createdUsers.push(createdUser);
-  }
+  try {
+    await prisma.inventoryCheck.deleteMany();
+    await prisma.uploadBatchLine.deleteMany();
+    await prisma.uploadBatch.deleteMany();
+    await prisma.account.deleteMany();
+    await prisma.session.deleteMany();
+    await prisma.verificationToken.deleteMany();
+    await prisma.product.deleteMany();
+    await prisma.user.deleteMany();
 
-  const adminUser = createdUsers.find((user) => user.role === 'ADMIN');
-  const memberUser = createdUsers.find((user) => user.role === 'MEMBER');
+    const createdUsers = [];
+    for (const user of seedUsers) {
+      const passwordHash = await bcrypt.hash(user.password, 10);
+      const createdUser = await prisma.user.create({
+        data: {
+          name: user.name,
+          email: user.email,
+          passwordHash,
+          role: user.role,
+        },
+      });
+      createdUsers.push(createdUser);
+    }
 
-  if (!adminUser || !memberUser) {
-    throw new Error('Seed users are missing required roles.');
-  }
+    const adminUser = createdUsers.find((user) => user.role === 'ADMIN');
+    const memberUser = createdUsers.find((user) => user.role === 'MEMBER');
 
-  const products = await Promise.all(
-    seedProducts.map((product) => prisma.product.create({ data: product })),
-  );
+    if (!adminUser || !memberUser) {
+      throw new Error('Seed users are missing required roles.');
+    }
 
-  const now = new Date();
-  const statusCycle = ['PLENTIFUL', 'FEW_LEFT', 'SOLD_OUT'];
-  const manualChecks = [];
+    const products = await Promise.all(
+      seedProducts.map((product) => prisma.product.create({ data: product })),
+    );
 
-  products.forEach((product, index) => {
-    manualChecks.push({
-      productId: product.id,
-      checkedByUserId: adminUser.id,
-      status: statusCycle[index % statusCycle.length],
-      sourceType: 'MANUAL',
-      checkedAt: new Date(now.getTime() - (products.length - index) * 3600000),
-    });
+    const now = new Date();
+    const statusCycle = ['PLENTIFUL', 'FEW_LEFT', 'SOLD_OUT'];
+    const manualChecks = [];
 
-    if (index % 4 === 0) {
+    products.forEach((product, index) => {
       manualChecks.push({
         productId: product.id,
-        checkedByUserId: memberUser.id,
-        status: 'PLENTIFUL',
+        checkedByUserId: adminUser.id,
+        status: statusCycle[index % statusCycle.length],
         sourceType: 'MANUAL',
-        checkedAt: new Date(now.getTime() - (48 + index) * 3600000),
-        note: null,
+        checkedAt: new Date(
+          now.getTime() - (products.length - index) * 3600000,
+        ),
       });
+
+      if (index % 4 === 0) {
+        manualChecks.push({
+          productId: product.id,
+          checkedByUserId: memberUser.id,
+          status: 'PLENTIFUL',
+          sourceType: 'MANUAL',
+          checkedAt: new Date(now.getTime() - (48 + index) * 3600000),
+          note: null,
+        });
+      }
+    });
+
+    await prisma.inventoryCheck.createMany({ data: manualChecks });
+
+    const uploadBatch = await prisma.uploadBatch.create({
+      data: {
+        uploadedByUserId: adminUser.id,
+        originalFileName: 'invoice-2026-05-10.jpg',
+        storagePath: 'uploads/invoices/invoice-2026-05-10.jpg',
+        processingStatus: 'APPLIED',
+        processedAt: new Date(now.getTime() - 45 * 60000),
+      },
+    });
+
+    const productByName = new Map(
+      products.map((product) => [product.name, product]),
+    );
+
+    const uploadLines = [
+      {
+        lineNumber: 1,
+        rawText: 'ふわふわコーヒーメロンパン x2',
+        matchedProductId: productByName.get('ふわふわコーヒーメロンパン')?.id,
+        matchStatus: 'MATCHED',
+        appliedStatus: 'PLENTIFUL',
+      },
+      {
+        lineNumber: 2,
+        rawText: 'クラムチャウダー x1',
+        matchedProductId: productByName.get('クラムチャウダー')?.id,
+        matchStatus: 'MATCHED',
+        appliedStatus: 'FEW_LEFT',
+      },
+      {
+        lineNumber: 3,
+        rawText: '商品名不明 x1',
+        matchedProductId: null,
+        matchStatus: 'NEEDS_REVIEW',
+        appliedStatus: 'FEW_LEFT',
+      },
+    ];
+
+    await prisma.uploadBatchLine.createMany({
+      data: uploadLines.map((line) => ({
+        uploadBatchId: uploadBatch.id,
+        lineNumber: line.lineNumber,
+        rawText: line.rawText,
+        matchedProductId: line.matchedProductId || null,
+        matchStatus: line.matchStatus,
+        appliedStatus: line.appliedStatus,
+      })),
+    });
+
+    const uploadChecks = uploadLines
+      .filter((line) => line.matchedProductId)
+      .map((line, index) => ({
+        productId: line.matchedProductId,
+        checkedByUserId: adminUser.id,
+        uploadBatchId: uploadBatch.id,
+        status: line.appliedStatus,
+        sourceType: 'UPLOAD',
+        checkedAt: new Date(now.getTime() - (30 - index) * 60000),
+      }));
+
+    if (uploadChecks.length > 0) {
+      await prisma.inventoryCheck.createMany({ data: uploadChecks });
     }
-  });
-
-  await prisma.inventoryCheck.createMany({ data: manualChecks });
-
-  const uploadBatch = await prisma.uploadBatch.create({
-    data: {
-      uploadedByUserId: adminUser.id,
-      originalFileName: 'invoice-2026-05-10.jpg',
-      storagePath: 'uploads/invoices/invoice-2026-05-10.jpg',
-      processingStatus: 'APPLIED',
-      processedAt: new Date(now.getTime() - 45 * 60000),
-    },
-  });
-
-  const productByName = new Map(
-    products.map((product) => [product.name, product]),
-  );
-
-  const uploadLines = [
-    {
-      lineNumber: 1,
-      rawText: 'ふわふわコーヒーメロンパン x2',
-      matchedProductId: productByName.get('ふわふわコーヒーメロンパン')?.id,
-      matchStatus: 'MATCHED',
-      appliedStatus: 'PLENTIFUL',
-    },
-    {
-      lineNumber: 2,
-      rawText: 'クラムチャウダー x1',
-      matchedProductId: productByName.get('クラムチャウダー')?.id,
-      matchStatus: 'MATCHED',
-      appliedStatus: 'FEW_LEFT',
-    },
-    {
-      lineNumber: 3,
-      rawText: '商品名不明 x1',
-      matchedProductId: null,
-      matchStatus: 'NEEDS_REVIEW',
-      appliedStatus: 'FEW_LEFT',
-    },
-  ];
-
-  await prisma.uploadBatchLine.createMany({
-    data: uploadLines.map((line) => ({
-      uploadBatchId: uploadBatch.id,
-      lineNumber: line.lineNumber,
-      rawText: line.rawText,
-      matchedProductId: line.matchedProductId || null,
-      matchStatus: line.matchStatus,
-      appliedStatus: line.appliedStatus,
-    })),
-  });
-
-  const uploadChecks = uploadLines
-    .filter((line) => line.matchedProductId)
-    .map((line, index) => ({
-      productId: line.matchedProductId,
-      checkedByUserId: adminUser.id,
-      uploadBatchId: uploadBatch.id,
-      status: line.appliedStatus,
-      sourceType: 'UPLOAD',
-      checkedAt: new Date(now.getTime() - (30 - index) * 60000),
-    }));
-
-  if (uploadChecks.length > 0) {
-    await prisma.inventoryCheck.createMany({ data: uploadChecks });
+  } finally {
+    await prisma.$disconnect();
   }
 }
 
-main()
-  .catch((error) => {
+module.exports = { seed };
+
+if (require.main === module) {
+  seed().catch((error) => {
     console.error(error);
     process.exitCode = 1;
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
   });
+}
