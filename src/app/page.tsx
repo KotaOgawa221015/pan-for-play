@@ -1,7 +1,7 @@
-import { ProductCard } from '@/components/ProductCard';
+import { ProductCard } from '@/app/_components/ProductCard';
 import { getInventoryProducts } from '@/features/inventory/product-inventory';
 import Link from 'next/link';
-import { UserMenu } from '@/components/UserMenu';
+import { UserMenu } from '@/app/_components/UserMenu';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
