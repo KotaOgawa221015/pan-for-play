@@ -3,6 +3,7 @@ import { getInventoryProducts } from '@/features/inventory/product-inventory';
 import Link from 'next/link';
 import { UserMenu } from '@/app/_components/UserMenu';
 import type { Metadata } from 'next';
+import { FlashMessage } from '@/app/_components/FlashMessage';
 
 export const metadata: Metadata = {
   title: 'パンコレ',
@@ -21,13 +22,7 @@ export default async function Page({
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
-      {(msg === 'login_success' || msg === 'signup_success') && (
-        <div className="bg-emerald-50 border-b border-emerald-100 text-emerald-700 text-center py-1.5 text-xs font-medium dark:bg-emerald-950/20 dark:border-emerald-900/50 dark:text-emerald-400">
-          {msg === 'login_success'
-            ? 'ログインしました'
-            : 'アカウントを作成しました'}
-        </div>
-      )}
+      <FlashMessage msg={msg} />
       <header className="relative p-6 border-b bg-white dark:bg-zinc-950 dark:border-zinc-800">
         <div className="max-w-6xl mx-auto relative flex items-center justify-center min-h-16">
           <div className="flex flex-col items-center justify-center leading-none mt-1 text-center">

@@ -74,7 +74,7 @@ export async function signupAction(_prevState: unknown, formData: FormData) {
 export async function logoutAction() {
   const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE_NAME);
-  redirect('/login');
+  redirect('/login?msg=logout_success');
 }
 
 export async function getCurrentUser() {
