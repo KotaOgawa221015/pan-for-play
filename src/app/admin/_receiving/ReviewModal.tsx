@@ -116,8 +116,8 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/65 p-4">
-      <div className="w-full max-w-5xl max-h-[90vh] overflow-hidden rounded-[28px] border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-6 py-5">
+      <div className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+        <div className="shrink-0 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-6 py-5">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
               Delivery Note Review
@@ -136,7 +136,7 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
           </button>
         </div>
 
-        <div className="max-h-[calc(90vh-144px)] overflow-y-auto px-6 py-5 space-y-5">
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-5">
           <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 text-sm text-zinc-600 dark:text-zinc-300">
             商品名と数量を確認して、既存商品への紐付けまたは新規商品登録を確定します。
           </div>
@@ -246,7 +246,7 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-zinc-200 dark:border-zinc-800 px-6 py-5">
+        <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-200 dark:border-zinc-800 px-6 py-5">
           <p className="text-sm text-zinc-500">
             {products.length} 件の読取結果をレビュー中
           </p>
