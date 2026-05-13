@@ -1,70 +1,60 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
-import { getCurrentUserId } from '@/features/auth/account-access';
+import { getProductStatusFromCount } from '@/features/inventory/counts';
 import { prisma } from '@/lib/prisma';
-import {
-  isProductStatus,
-  type Product,
-  type ProductStatus,
-} from '@/types/inventory';
+import type { Product } from '@/types/inventory';
 
 export async function getInventoryProducts(): Promise<Product[]> {
-  const products = await prisma.product.findMany({
-    orderBy: { name: 'asc' },
+  const appliedBatch = await prisma.uploadBatch.findFirst({
+    where: {
+      processingStatus: 'APPLIED',
+    },
+    orderBy: {
+      appliedAt: 'desc',
+    },
     include: {
-      inventoryChecks: {
-        orderBy: { checkedAt: 'desc' },
-        take: 1,
+      lines: {
+        orderBy: {
+          lineNumber: 'asc',
+        },
+        include: {
+          matchedProduct: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
       },
     },
   });
 
-  return products.map((product) => {
-    const latestCheck = product.inventoryChecks[0];
+  if (!appliedBatch) {
+    return [];
+  }
 
-    if (!latestCheck) {
-      throw new Error(`Missing inventory check for product: ${product.id}`);
+  const updatedAt =
+    appliedBatch.appliedAt?.toISOString() ??
+    appliedBatch.processedAt?.toISOString() ??
+    appliedBatch.createdAt.toISOString();
+
+  const products: Product[] = [];
+  for (const line of appliedBatch.lines) {
+    const product = line.matchedProduct;
+    if (!product || line.count === 0) {
+      continue;
     }
 
-    const status = latestCheck.status;
-
-    if (!isProductStatus(status)) {
-      throw new Error(`Invalid status: ${status}`);
-    }
-
-    return {
+    products.push({
       id: product.id,
       name: product.name,
-      status,
-      updatedAt: latestCheck.checkedAt.toISOString(),
-    };
-  });
-}
-
-export async function updateProductStatus(
-  productId: string,
-  status: ProductStatus,
-) {
-  if (!isProductStatus(status)) {
-    throw new Error(`Invalid status: ${status}`);
+      count: line.count,
+      status: getProductStatusFromCount(line.count),
+      updatedAt,
+    });
   }
 
-  const userId = await getCurrentUserId();
-
-  if (!userId) {
-    throw new Error('Authentication required.');
-  }
-
-  await prisma.inventoryCheck.create({
-    data: {
-      productId,
-      checkedByUserId: userId,
-      status,
-      sourceType: 'MANUAL',
-      checkedAt: new Date(),
-    },
-  });
-
-  revalidatePath('/', 'layout');
+  return products.sort((left, right) =>
+    left.name.localeCompare(right.name, 'ja'),
+  );
 }

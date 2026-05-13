@@ -1,0 +1,44 @@
+{
+  "batches": [
+    {
+      "originalFileName": "invoice-2026-04-07.jpg",
+      "processingStatus": "REVERTED",
+      "processedMinutesAgo": 4320,
+      "appliedMinutesAgo": 4315,
+      "revertedMinutesAgo": 60,
+      "products": [
+        { "name": "ふわふわコーヒーメロンパン", "count": 8 },
+        { "name": "ふわとろチーズパン", "count": 7 },
+        { "name": "天然酵母ガーリックフランス", "count": 6 },
+        { "name": "3種のチーズパン", "count": 5 },
+        { "name": "ふんわりツナマヨパン", "count": 4 },
+        { "name": "ゲランドの塩パン", "count": 3 },
+        { "name": "枝豆チーズフランス", "count": 2 },
+        { "name": "ペッパーマヨとベーコンのエピ", "count": 1 },
+        { "name": "クラムチャウダー", "count": 4 },
+        { "name": "オニオングラタンスープ", "count": 4 },
+        { "name": "ミネストローネ", "count": 4 }
+      ]
+    },
+    {
+      "originalFileName": "invoice-2026-05-10.jpg",
+      "processingStatus": "APPLIED",
+      "processedMinutesAgo": 45,
+      "appliedMinutesAgo": 30,
+      "revertedMinutesAgo": null,
+      "products": [
+        { "name": "焼きカレーパン", "count": 19 },
+        { "name": "抹茶&ホワイトチョコのベーグル", "count": 19 },
+        { "name": "濃厚チーズクロワッサン", "count": 19 },
+        { "name": "よもぎ太郎", "count": 19 },
+        { "name": "ペパロニトマトのごちそうピザパン", "count": 19 },
+        { "name": "ふわふわお抹茶メロンパン", "count": 19 },
+        { "name": "バジル香るフォカッチャ", "count": 18 },
+        { "name": "ベーグル しば漬け", "count": 18 },
+        { "name": "オニオングラタンスープ", "count": 4 },
+        { "name": "クラムチャウダー", "count": 4 },
+        { "name": "ミネストローネ", "count": 4 }
+      ]
+    }
+  ]
+}

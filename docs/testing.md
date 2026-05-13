@@ -1,6 +1,6 @@
 # テスト構造
 
-この文書は、現行実装が従うテスト配置と責務境界を定義する。
+この文書は、現行実装のテスト配置と契約境界を定義する。
 
 ## 配置
 
@@ -10,25 +10,39 @@
 
 ```txt
 src/
+  features/
+    inventory/
+      counts.ts
+      counts.test.ts
   types/
     inventory.ts
     inventory.test.ts
+```
 
+`tests/integration` は feature 境界とランタイム境界をまたぐ振る舞いを置く。
+
+```txt
 tests/
   integration/
     inventory-actions.test.ts
+    receiving-actions.test.ts
+    seed-script.test.ts
 ```
 
-## 境界
+## 契約境界
 
-近接配置するテストは、単一モジュールが所有する公開契約を検証する。`inventory.ts` では、受け入れる在庫状態と、その状態ごとの表示メタデータが契約である。
+`src/types/inventory.test.ts` は在庫ステータスの受け入れ値と表示メタデータ契約を検証する。
 
-`tests/integration` のテストは、feature、Next.js ランタイム API、永続化境界の組み合わせとして観測される振る舞いを検証する。`inventory-actions.test.ts` では、商品一覧の整形、無効な状態値の拒否、更新後の再検証要求がその対象である。
+`src/features/inventory/counts.test.ts` は数量から在庫ステータスへの導出契約を検証する。
+
+`tests/integration/inventory-actions.test.ts` は `APPLIED` 受け入れバッチからトップ在庫を導出する振る舞いを検証する。
+
+`tests/integration/receiving-actions.test.ts` はレビュー下書き作成、受け入れ適用、再適用、削除制約を検証する。
+
+`tests/integration/seed-script.test.ts` はカタログ商品 fixture と受け入れ履歴 fixture に基づくシード整合性を検証する。
 
 ## 運用原則
 
-テストは実装詳細ではなく owning boundary の外部可観測な振る舞いを固定する。
+テストは owning boundary の外部可観測な振る舞いを固定する。
 
-外部依存をまたぐ統合は、境界を越える必要があるときだけ `tests/` に上げる。単一モジュールで閉じる契約は近接配置から外さない。
-
-共通の fixture や補助関数は、重複が現実の負債になった時点で追加する。用途が一つしかない段階では、テストの近くに置く。
+ファイル分割や近接モジュール間の責務配分のような内部構成は、境界契約でない限り固定しない。

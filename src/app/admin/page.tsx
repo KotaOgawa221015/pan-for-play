@@ -1,10 +1,25 @@
 import Link from 'next/link';
-import { UploadForm } from './UploadForm';
+import { redirect } from 'next/navigation';
+import { getCurrentUser } from '@/features/auth/account-access';
+import { getRecentReceivingHistory } from '@/features/receiving/records';
+import { Dashboard } from './_receiving/Dashboard';
 
-export default function UploadPage() {
+export default async function UploadPage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
+  if (user.role !== 'ADMIN') {
+    redirect('/');
+  }
+
+  const recentHistory = await getRecentReceivingHistory();
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-6">
-      <div className="max-w-xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6">
         <header className="flex items-center justify-between border-b border-zinc-300 dark:border-zinc-800 pb-4 mt-2">
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
             納品書読み込み
@@ -14,19 +29,7 @@ export default function UploadPage() {
           </Link>
         </header>
 
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm">
-          <div className="mb-6">
-            <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-              画像アップロード
-            </h2>
-            <p className="text-xs text-zinc-500 mt-1">
-              撮影した納品書の画像をアップロードしてください。
-            </p>
-          </div>
-
-          {/* フォームコンポーネント */}
-          <UploadForm />
-        </div>
+        <Dashboard recentHistory={recentHistory} />
       </div>
     </div>
   );

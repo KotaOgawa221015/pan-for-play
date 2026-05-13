@@ -5,6 +5,7 @@ export type ProductStatus = PrismaInventoryStatus;
 export type Product = {
   id: string;
   name: string;
+  count: number;
   status: ProductStatus;
   updatedAt: string;
 };

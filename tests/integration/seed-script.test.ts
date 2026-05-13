@@ -5,6 +5,8 @@ import path from 'node:path';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { PrismaClient } from '@prisma/client';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import catalogFixture from '../../prisma/fixtures/catalog-products.json';
+import receivingHistoryFixture from '../../prisma/fixtures/receiving-history.json';
 
 const rootDir = path.resolve(__dirname, '..', '..');
 const tmpDir = path.join(rootDir, '.tmp');
@@ -68,27 +70,40 @@ describe('seed script', () => {
     }
   });
 
-  it('loads inventory and upload seed data', async () => {
+  it('loads product and receiving seed data from the fixtures', async () => {
     const users = await prisma.user.findMany();
     expect(users).toHaveLength(2);
     expect(users.some((user) => user.role === 'ADMIN')).toBe(true);
 
     const products = await prisma.product.findMany();
-    expect(products.length).toBeGreaterThan(0);
+    expect(products.map((product) => product.name).toSorted()).toEqual(
+      catalogFixture.products.toSorted(),
+    );
 
-    const checks = await prisma.inventoryCheck.findMany();
-    expect(checks.length).toBeGreaterThanOrEqual(products.length);
+    const batches = await prisma.uploadBatch.findMany({
+      include: {
+        lines: true,
+      },
+    });
+    expect(batches).toHaveLength(receivingHistoryFixture.batches.length);
+    expect(
+      batches.filter((batch) => batch.processingStatus === 'APPLIED'),
+    ).toHaveLength(1);
+    expect(
+      batches.filter((batch) => batch.processingStatus === 'REVERTED'),
+    ).toHaveLength(1);
 
-    const uploadBatch = await prisma.uploadBatch.findFirst();
-    expect(uploadBatch).not.toBeNull();
-
-    if (!uploadBatch) {
-      throw new Error('Expected an upload batch to exist after seeding.');
+    const currentBatch = batches.find(
+      (batch) => batch.processingStatus === 'APPLIED',
+    );
+    if (!currentBatch) {
+      throw new Error('Expected one current receiving batch.');
     }
 
-    const uploadLines = await prisma.uploadBatchLine.findMany({
-      where: { uploadBatchId: uploadBatch.id },
-    });
-    expect(uploadLines.length).toBeGreaterThan(0);
+    expect(currentBatch.lines.length).toBe(
+      receivingHistoryFixture.batches.find(
+        (history) => history.processingStatus === 'APPLIED',
+      )?.products.length,
+    );
   });
 });

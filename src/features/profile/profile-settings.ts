@@ -1,15 +1,15 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getCurrentUserId } from '@/features/auth/account-access';
+import { requireCurrentUser } from '@/features/auth/account-access';
 import { prisma } from '@/lib/prisma';
 
 export async function updateProfileAction(
   _prevState: unknown,
   formData: FormData,
 ) {
-  const userId = await getCurrentUserId();
-  if (!userId) return { error: '認証が必要です' };
+  const user = await requireCurrentUser();
+  const userId = user.id;
 
   const name = formData.get('name') as string;
   const email = formData.get('email') as string;
