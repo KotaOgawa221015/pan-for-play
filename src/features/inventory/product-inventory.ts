@@ -1,10 +1,12 @@
 'use server';
 
+import { requireCurrentUser } from '@/features/auth/account-access';
 import { getProductStatusFromCount } from '@/features/inventory/counts';
 import { prisma } from '@/lib/prisma';
 import type { Product } from '@/types/inventory';
 
 export async function getInventoryProducts(): Promise<Product[]> {
+  await requireCurrentUser();
   const appliedBatch = await prisma.uploadBatch.findFirst({
     where: {
       processingStatus: 'APPLIED',

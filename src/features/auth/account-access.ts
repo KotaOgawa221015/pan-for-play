@@ -1,142 +1,50 @@
 'use server';
 
-import bcrypt from 'bcryptjs';
-import type { UserRole } from '@prisma/client';
-import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-import { SESSION_COOKIE_NAME } from './session-cookie';
+import { auth, signIn, signOut } from './auth';
 
-export type AuthenticatedUser = {
-  id: string;
-  email: string;
-  name: string;
-  role: UserRole;
-};
+export async function loginWithGoogleAction() {
+  await signIn('google', { redirectTo: '/' });
+}
+
+export async function logoutAction() {
+  await signOut({ redirectTo: '/login' });
+}
+
+export async function getCurrentUser() {
+  const session = await auth();
+  if (!session?.user?.id) return null;
+
+  return prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+      deletedAt: null,
+    },
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      role: true,
+    },
+  });
+}
 
 export type SessionStatus =
   | { status: 'anonymous' }
   | { status: 'invalid' }
-  | { status: 'authenticated'; user: AuthenticatedUser };
-
-async function setSessionCookie(userId: string) {
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE_NAME, userId, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  });
-}
-
-export async function loginAction(_prevState: unknown, formData: FormData) {
-  const currentUser = await getCurrentUser();
-  if (currentUser) {
-    redirect('/');
-  }
-
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-
-  if (!email || !password) {
-    return { error: 'メールアドレスとパスワードを入力してください' };
-  }
-
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
-    return { error: 'メールアドレスまたはパスワードが正しくありません' };
-  }
-
-  const isMatch = await bcrypt.compare(password, user.passwordHash);
-  if (!isMatch) {
-    return { error: 'メールアドレスまたはパスワードが正しくありません' };
-  }
-
-  await setSessionCookie(user.id);
-
-  redirect('/?msg=login_success');
-}
-
-export async function signupAction(_prevState: unknown, formData: FormData) {
-  const currentUser = await getCurrentUser();
-  if (currentUser) {
-    redirect('/');
-  }
-
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
-  const name = formData.get('name') as string;
-
-  if (!name?.trim()) {
-    return { error: '表示名を入力してください' };
-  }
-  if (!email?.includes('@')) {
-    return { error: '有効なメールアドレスを入力してください' };
-  }
-  if (!password || password.length < 6) {
-    return { error: 'パスワードは6文字以上で入力してください' };
-  }
-
-  const existingUser = await prisma.user.findUnique({ where: { email } });
-  if (existingUser) {
-    return { error: 'このメールアドレスは既に登録されています' };
-  }
-
-  const passwordHash = await bcrypt.hash(password, 10);
-  const user = await prisma.user.create({
-    data: { email, passwordHash, name: name.trim() },
-  });
-
-  await setSessionCookie(user.id);
-
-  redirect('/?msg=signup_success');
-}
-
-export async function logoutAction() {
-  await requireCurrentUser();
-  const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE_NAME);
-  redirect('/login?msg=logout_success');
-}
+  | { status: 'authenticated'; user: any };
 
 export async function getSessionStatus(): Promise<SessionStatus> {
-  const cookieStore = await cookies();
-  const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
-
-  if (!userId) {
+  const session = await auth();
+  if (!session?.user) {
     return { status: 'anonymous' };
   }
-
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-    },
-  });
-
-  if (!user) {
-    return { status: 'invalid' };
-  }
-
-  return { status: 'authenticated', user };
-}
-
-export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
-  const session = await getSessionStatus();
-
-  if (session.status !== 'authenticated') {
-    return null;
-  }
-
-  return session.user;
+  return { status: 'authenticated', user: session.user };
 }
 
 export async function getCurrentUserId() {
-  return (await getCurrentUser())?.id ?? null;
+  const session = await auth();
+  return session?.user?.id ?? null;
 }
 
 export async function requireCurrentUser() {

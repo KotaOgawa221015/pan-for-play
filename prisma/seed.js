@@ -1,5 +1,4 @@
 require('dotenv/config');
-const bcrypt = require('bcryptjs');
 const Database = require('better-sqlite3');
 
 const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
@@ -127,7 +126,9 @@ async function main() {
   );
 
   if (appliedBatches.length !== 1) {
-    throw new Error('Receiving history fixture must contain exactly one APPLIED batch.');
+    throw new Error(
+      'Receiving history fixture must contain exactly one APPLIED batch.',
+    );
   }
 
   await Promise.all(
@@ -152,7 +153,9 @@ async function main() {
         history.products.map(async (product, index) => {
           const matchedProduct = productByName.get(product.name);
           if (!matchedProduct) {
-            throw new Error(`Seed receiving product is missing: ${product.name}`);
+            throw new Error(
+              `Seed receiving product is missing: ${product.name}`,
+            );
           }
 
           const status = statusFromCount(product.count);
