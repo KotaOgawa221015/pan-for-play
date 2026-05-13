@@ -37,31 +37,29 @@ export async function deleteAccountAction() {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return { error: 'ユーザーが見つかりません' };
 
-    // トランザクションで整合性を保ちつつ論理削除
     await prisma.$transaction([
       // 1. Userのemailを書き換えてユニーク制約を逃がし、deletedAtを刻む
       prisma.user.update({
         where: { id: userId },
         data: {
           deletedAt: new Date(),
-          email: `${user.email}_deleted_${Date.now()}`, // 同じGoogleアカウントで再登録可能にする
+          email: `${user.email}_deleted_${Date.now()}`,
         },
       }),
-      // 2. 外部認証連携(Google)を解除（これをしないと次回ログイン時に古いUserに紐付く）
+      // 2. 外部認証連携を解除（これをしないと次回ログイン時に古いUserに紐付く）
       prisma.account.deleteMany({
         where: { userId: userId },
       }),
-      // 3. 現在のセッションをDBから削除
+      // 3. セッションをDBから削除
       prisma.session.deleteMany({
         where: { userId: userId },
       }),
     ]);
-
-    // 重要：最後にサインアウトしてCookieをクリア
-    await signOut({ redirectTo: "/login?msg=logout_success" });
-    return { success: true };
   } catch (error) {
     console.error('Delete account error:', error);
     return { error: '退会処理に失敗しました' };
   }
+
+  // 重要：signOutはtry-catchの外で呼び出す
+  await signOut({ redirectTo: "/login?msg=logout_success" });
 }
