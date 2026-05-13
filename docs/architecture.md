@@ -7,28 +7,28 @@
 ```txt
 src/
   app/
+    _components/
     layout.tsx
     page.tsx
     login/
     signup/
     profile/
-    admin/upload/
+    admin/
 
   features/
     auth/
     inventory/
     profile/
 
-  components/
   lib/
   types/
 ```
 
-`src/app` はルーティング境界である。`page.tsx`、`layout.tsx`、各 URL セグメント配下の画面はここに置く。画面固有の表示ロジックは近接配置できるが、複数画面で再利用される処理は `features`、`components`、`lib` に分ける。
+`src/app` はルーティング境界である。`page.tsx`、`layout.tsx`、各 URL セグメント配下の画面はここに置く。画面固有の表示ロジックは近接配置できるが、複数画面で再利用される処理は `features` と `lib` に分ける。
 
 `src/features` はアプリ固有の機能を置く。現在の機能境界は `auth`、`inventory`、`profile` である。認証、在庫表示と更新、プロフィール更新のような振る舞いは、呼び出し元の画面ではなく、その機能ディレクトリが所有する。
 
-`src/components` は機能横断で再利用する UI を置く。単一画面だけに閉じた表示部品は、その画面の近くに置ける。
+`src/app/_components` は App Router 配下で共有する表示部品を置く。機能横断の業務判断は持たせず、状態更新や永続化は feature が担当する。
 
 `src/lib` は外部システムやランタイムとの接続点を置く。現在は Prisma クライアントがここにある。アプリ全体で共有するインフラ境界だけを置き、機能固有の業務判断は持たせない。
 
