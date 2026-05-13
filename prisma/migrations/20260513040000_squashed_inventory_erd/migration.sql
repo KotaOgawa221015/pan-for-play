@@ -1,11 +1,25 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE "Product" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
 
-  - You are about to drop the column `status` on the `Product` table. All the data in the column will be lost.
-  - You are about to drop the column `displayName` on the `User` table. All the data in the column will be lost.
-  - Added the required column `name` to the `User` table without a default value. This is not possible if the table is not empty.
+-- CreateTable
+CREATE TABLE "User" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "emailVerified" DATETIME,
+    "image" TEXT,
+    "passwordHash" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'MEMBER',
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL
+);
 
-*/
 -- CreateTable
 CREATE TABLE "Account" (
     "id" TEXT NOT NULL PRIMARY KEY,
@@ -84,61 +98,11 @@ CREATE TABLE "UploadBatchLine" (
     CONSTRAINT "UploadBatchLine_matchedProductId_fkey" FOREIGN KEY ("matchedProductId") REFERENCES "Product" ("id") ON DELETE SET NULL ON UPDATE CASCADE
 );
 
-INSERT INTO "InventoryCheck" ("id", "productId", "checkedByUserId", "uploadBatchId", "status", "sourceType", "checkedAt", "note", "createdAt")
-SELECT
-    lower(hex(randomblob(16))),
-    "id",
-    (SELECT "id" FROM "User" ORDER BY "createdAt" ASC LIMIT 1),
-    NULL,
-    "status",
-    'MANUAL',
-    "updatedAt",
-    NULL,
-    "updatedAt"
-FROM "Product";
-
--- RedefineTables
-PRAGMA defer_foreign_keys=ON;
-PRAGMA foreign_keys=OFF;
-CREATE TABLE "new_Product" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "isActive" BOOLEAN NOT NULL DEFAULT true,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
-INSERT INTO "new_Product" ("createdAt", "id", "name", "updatedAt") SELECT "createdAt", "id", "name", "updatedAt" FROM "Product";
-DROP TABLE "Product";
-ALTER TABLE "new_Product" RENAME TO "Product";
+-- CreateIndex
 CREATE UNIQUE INDEX "Product_name_key" ON "Product"("name");
-CREATE TABLE "new_User" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "name" TEXT NOT NULL,
-    "email" TEXT NOT NULL,
-    "emailVerified" DATETIME,
-    "image" TEXT,
-    "passwordHash" TEXT NOT NULL,
-    "role" TEXT NOT NULL DEFAULT 'MEMBER',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
-);
-INSERT INTO "new_User" ("createdAt", "email", "emailVerified", "id", "image", "name", "passwordHash", "role", "updatedAt")
-SELECT
-    "createdAt",
-    "email",
-    NULL,
-    "id",
-    NULL,
-    COALESCE("displayName", "email"),
-    "passwordHash",
-    "role",
-    "updatedAt"
-FROM "User";
-DROP TABLE "User";
-ALTER TABLE "new_User" RENAME TO "User";
+
+-- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
-PRAGMA foreign_keys=ON;
-PRAGMA defer_foreign_keys=OFF;
 
 -- CreateIndex
 CREATE INDEX "Account_userId_idx" ON "Account"("userId");
