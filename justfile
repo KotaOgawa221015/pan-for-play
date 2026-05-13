@@ -14,11 +14,11 @@ help:
 
 # Start development server
 dev:
-    npm run dev
+    pnpm dev
 
 # Build the application
 build:
-    npm run build
+    pnpm build
 
 # Install dependencies and apply database migrations
 setup:
@@ -26,9 +26,9 @@ setup:
         cp .env.example .env; \
         echo "Created .env from .env.example"; \
     fi
-    npm ci
+    pnpm install
     mkdir -p data
-    npm run db:setup
+    pnpm db:setup
 
 # ==============================================================================
 # Code Quality
@@ -36,14 +36,14 @@ setup:
 
 # Apply formatter and safe lint fixes
 fix:
-    npm run format
-    npm run lint:fix
+    pnpm format
+    pnpm lint:fix
 
 # Run formatting checks, lint, and typecheck
 check:
-    npm run format:check
-    npm run lint
-    npm run typecheck
+    pnpm format:check
+    pnpm lint
+    pnpm typecheck
 
 # ==============================================================================
 # Docker Environment Commands
@@ -108,21 +108,21 @@ build-prod:
 # Run Prisma migrate dev with optional arguments
 db-migrate *args:
     mkdir -p data
-    npm run db:migrate {{ args }}
+    pnpm db:migrate {{ args }}
 
 db-seed:
     mkdir -p data
-    npm run db:seed
+    pnpm db:seed
 
 # Reset the database (caution: deletes all data)
 db-reset:
     mkdir -p data
-    npm run db:reset
+    pnpm db:reset
 
 # Open Prisma Studio to browse/edit data
 db-studio:
     mkdir -p data
-    npx prisma studio
+    pnpm exec prisma studio
 
 # ==============================================================================
 # Testing
@@ -130,12 +130,12 @@ db-studio:
 
 # Run test suite
 test:
-    npm run test
+    pnpm test
 
 # Generate coverage report
 coverage:
     rm -rf coverage
-    npm run test:coverage
+    pnpm test:coverage
 
 # ==============================================================================
 # Cleanup
