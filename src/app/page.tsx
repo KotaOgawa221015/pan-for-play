@@ -1,9 +1,11 @@
 import { ProductCard } from '@/app/_components/ProductCard';
 import { getInventoryProducts } from '@/features/inventory/product-inventory';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { UserMenu } from '@/app/_components/UserMenu';
 import type { Metadata } from 'next';
 import { FlashMessage } from '@/app/_components/FlashMessage';
+import { getCurrentUser } from '@/features/auth/account-access';
 
 export const metadata: Metadata = {
   title: 'パンコレ',
@@ -15,10 +17,15 @@ export default async function Page({
 }: {
   searchParams: Promise<{ msg?: string }>;
 }) {
-  const [{ msg }, products] = await Promise.all([
+  const [{ msg }, user, products] = await Promise.all([
     searchParams,
+    getCurrentUser(),
     getInventoryProducts(),
   ]);
+
+  if (!user) {
+    redirect('/login');
+  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">

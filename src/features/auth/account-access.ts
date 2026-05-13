@@ -1,11 +1,19 @@
 'use server';
 
 import bcrypt from 'bcryptjs';
+import type { UserRole } from '@prisma/client';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 
 const SESSION_COOKIE_NAME = 'pancolle_session';
+
+export type AuthenticatedUser = {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+};
 
 async function setSessionCookie(userId: string) {
   const cookieStore = await cookies();
@@ -77,13 +85,13 @@ export async function logoutAction() {
   redirect('/login?msg=logout_success');
 }
 
-export async function getCurrentUser() {
+export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
   const cookieStore = await cookies();
   const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (!userId) return null;
 
-  return prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: userId },
     select: {
       id: true,
@@ -92,9 +100,35 @@ export async function getCurrentUser() {
       role: true,
     },
   });
+
+  if (!user) {
+    cookieStore.delete(SESSION_COOKIE_NAME);
+    return null;
+  }
+
+  return user;
 }
 
 export async function getCurrentUserId() {
-  const cookieStore = await cookies();
-  return cookieStore.get(SESSION_COOKIE_NAME)?.value ?? null;
+  return (await getCurrentUser())?.id ?? null;
+}
+
+export async function requireCurrentUser() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error('セッションが無効です。再ログインしてください。');
+  }
+
+  return user;
+}
+
+export async function requireAdminUser() {
+  const user = await requireCurrentUser();
+
+  if (user.role !== 'ADMIN') {
+    throw new Error('管理者権限が必要です。');
+  }
+
+  return user;
 }

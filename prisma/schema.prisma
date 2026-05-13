@@ -22,6 +22,7 @@ enum UploadBatchProcessingStatus {
   PROCESSED
   FAILED
   APPLIED
+  REVERTED
 }
 
 enum UploadBatchLineMatchStatus {
@@ -109,13 +110,15 @@ model InventoryCheck {
   checkedByUserId String
   uploadBatchId   String?
   status          InventoryStatus
+  count           Int
   sourceType      InventorySourceType
+  isActive        Boolean            @default(true)
   checkedAt       DateTime
   note            String?
   createdAt       DateTime           @default(now())
 
-  product       Product     @relation(fields: [productId], references: [id])
-  checkedByUser User        @relation(fields: [checkedByUserId], references: [id])
+  product       Product      @relation(fields: [productId], references: [id])
+  checkedByUser User         @relation(fields: [checkedByUserId], references: [id])
   uploadBatch   UploadBatch? @relation(fields: [uploadBatchId], references: [id])
 
   @@index([productId, checkedAt])
@@ -127,9 +130,11 @@ model UploadBatch {
   id               String                     @id @default(cuid())
   uploadedByUserId String
   originalFileName String
-  storagePath      String
+  storagePath      String?
   processingStatus UploadBatchProcessingStatus @default(PENDING)
   processedAt      DateTime?
+  appliedAt        DateTime?
+  revertedAt       DateTime?
   createdAt        DateTime                   @default(now())
   updatedAt        DateTime                   @updatedAt
 
@@ -145,6 +150,7 @@ model UploadBatchLine {
   uploadBatchId    String
   lineNumber       Int
   rawText          String
+  count            Int
   matchedProductId String?
   matchStatus      UploadBatchLineMatchStatus
   appliedStatus    InventoryStatus

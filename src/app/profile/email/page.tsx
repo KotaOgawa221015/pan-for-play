@@ -1,12 +1,20 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
+import { getCurrentUser } from '@/features/auth/account-access';
 
 export const metadata: Metadata = {
   title: 'メールアドレス変更 | パンコレ',
   description: 'メールアドレスを変更します。',
 };
 
-export default function EmailChangePage() {
+export default async function EmailChangePage() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    redirect('/login');
+  }
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
       <div className="max-w-xl mx-auto space-y-6">

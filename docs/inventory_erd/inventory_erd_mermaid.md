@@ -73,7 +73,9 @@ erDiagram
         string checkedByUserId FK
         string uploadBatchId FK "NULL"
         string status
+        int count
         string sourceType
+        boolean isActive
         datetime checkedAt
         string note "NULL"
         datetime createdAt
@@ -83,9 +85,11 @@ erDiagram
         string id PK
         string uploadedByUserId FK
         string originalFileName
-        string storagePath
+        string storagePath "NULL"
         string processingStatus
         datetime processedAt "NULL"
+        datetime appliedAt "NULL"
+        datetime revertedAt "NULL"
         datetime createdAt
         datetime updatedAt
     }
@@ -95,16 +99,17 @@ erDiagram
         string uploadBatchId FK
         int lineNumber
         string rawText
+        int count
         string matchedProductId FK "NULL"
         string matchStatus
-        string appliedStatus "NULL"
+        string appliedStatus
         datetime createdAt
     }
 ```
 
 Notes:
 
-- Current inventory is derived from the latest `INVENTORY_CHECK` for each `PRODUCT`.
+- Current inventory is derived from the latest active `INVENTORY_CHECK` for each `PRODUCT`.
 - `FEW_LEFT` means 1 to 5 items remaining.
 - `UPLOAD_BATCH_LINE` represents extracted product candidates from one upload, not a persistent property of `PRODUCT`.
 - Credentials + JWT uses `USER` for authentication state. OAuth uses `ACCOUNT`, database sessions use `SESSION`, and email-token flows use `VERIFICATION_TOKEN`.
