@@ -1,6 +1,7 @@
 'use client';
 
 import { useOptimistic, useTransition } from 'react';
+import Image from 'next/image';
 import { updateProductStatus } from '@/features/inventory/product-inventory';
 import {
   PRODUCT_STATUSES,
@@ -71,14 +72,18 @@ export function ProductCard({ product }: Props) {
 
   return (
     <div
-      className={`flex flex-col h-full p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 transition-all hover:-translate-y-1 hover:shadow-lg ${isSoldOut ? 'opacity-50 grayscale' : ''
-        }`}
+      className={`flex flex-col h-full p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800 transition-all hover:-translate-y-1 hover:shadow-lg ${
+        isSoldOut ? 'opacity-50 grayscale' : ''
+      }`}
     >
       <div className="flex items-center justify-center gap-2.5 h-10 mb-1.5 overflow-hidden px-1">
-        <img
+        <Image
           src={iconSrc}
           alt=""
-          className="w-9 h-9 shrink-0 object-contain"
+          width={36}
+          height={36}
+          className="shrink-0 object-contain"
+          unoptimized
         />
         <h3 className="font-bold text-base text-zinc-900 dark:text-zinc-100 truncate text-center">
           {product.name}
@@ -87,8 +92,9 @@ export function ProductCard({ product }: Props) {
 
       <div className="flex flex-wrap items-start justify-center gap-x-3 gap-y-1 h-10 mb-2">
         <span
-          className={`px-3 py-0.5 rounded-full text-[11px] font-bold tracking-wider shrink-0 ${STATUS_STYLES[optimisticStatus].badge
-            }`}
+          className={`px-3 py-0.5 rounded-full text-[11px] font-bold tracking-wider shrink-0 ${
+            STATUS_STYLES[optimisticStatus].badge
+          }`}
         >
           {STATUS_LABELS[optimisticStatus]}
         </span>
@@ -109,8 +115,9 @@ export function ProductCard({ product }: Props) {
               onClick={() => handleStatusChange(status)}
               disabled={isPending}
               aria-pressed={isActive}
-              className={`flex-1 rounded-full border px-2 py-1.5 text-[11px] font-bold transition-all ${isActive ? styles.active : styles.inactive
-                } ${isPending ? 'opacity-70' : 'hover:scale-105 active:scale-95'}`}
+              className={`flex-1 rounded-full border px-2 py-1.5 text-[11px] font-bold transition-all ${
+                isActive ? styles.active : styles.inactive
+              } ${isPending ? 'opacity-70' : 'hover:scale-105 active:scale-95'}`}
             >
               {STATUS_LABELS[status]}
             </button>
