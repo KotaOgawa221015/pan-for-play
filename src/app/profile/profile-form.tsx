@@ -40,19 +40,12 @@ export function ProfileForm({ user }: { user: { name: string | null } }) {
           </button>
         </form>
       </div>
-
-      <div className="bg-rose-50 dark:bg-rose-950/20 p-6 rounded-xl border border-rose-100 dark:border-rose-900/50">
-        <h2 className="font-semibold text-rose-800 dark:text-rose-400 text-lg mb-2">危険な操作</h2>
-        <p className="text-sm text-rose-600 dark:text-rose-500 mb-6">
-          退会すると、あなたのアカウント情報および関連するデータがすべて削除されます。
-        </p>
-        <button
-          onClick={handleDeleteAccount}
-          className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-rose-700 transition"
-        >
-          退会する
-        </button>
-      </div>
+      <button
+        onClick={handleDeleteAccount}
+        className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-rose-700 transition"
+      >
+        退会する
+      </button>
     </div>
   );
 }
