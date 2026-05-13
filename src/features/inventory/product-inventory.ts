@@ -23,8 +23,14 @@ export async function getInventoryProducts(): Promise<Product[]> {
   return products.map((product) => {
     const latestCheck = product.inventoryChecks[0];
 
+    // 在庫確認データがない場合は、エラーを投げずにデフォルト値を返す
     if (!latestCheck) {
-      throw new Error(`Missing inventory check for product: ${product.id}`);
+      return {
+        id: product.id,
+        name: product.name,
+        status: 'SOLD_OUT' as ProductStatus, // デフォルト値
+        updatedAt: product.createdAt.toISOString(),
+      };
     }
 
     const status = latestCheck.status;
