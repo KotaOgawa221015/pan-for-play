@@ -42,27 +42,34 @@ const seedUsers = [
 
 async function main() {
   // データのクリーンアップ（依存関係の順序を考慮）
-  await prisma.inventoryCheck.deleteMany();
-  await prisma.uploadBatchLine.deleteMany();
-  await prisma.uploadBatch.deleteMany();
-  await prisma.account.deleteMany();
-  await prisma.session.deleteMany();
-  await prisma.verificationToken.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.user.deleteMany();
+  await prisma.$transaction([
+    prisma.inventoryCheck.deleteMany(),
+    prisma.uploadBatchLine.deleteMany(),
+    prisma.account.deleteMany(),
+    prisma.session.deleteMany(),
+    prisma.verificationToken.deleteMany(),
+    prisma.uploadBatch.deleteMany(),
+    prisma.product.deleteMany(),
+    prisma.user.deleteMany(),
+  ]);
 
-  // 1. ユーザーの作成
-  const createdUsers = [];
-  for (const user of seedUsers) {
-    const createdUser = await prisma.user.create({
-      data: {
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
-    createdUsers.push(createdUser);
-  }
+  // 1 & 2. ユーザーと製品の作成
+  const [createdUsers, products] = await Promise.all([
+    Promise.all(
+      seedUsers.map((user) =>
+        prisma.user.create({
+          data: {
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          },
+        }),
+      ),
+    ),
+    Promise.all(
+      seedProducts.map((product) => prisma.product.create({ data: product })),
+    ),
+  ]);
 
   const adminUser = createdUsers.find((user) => user.role === 'ADMIN');
   const memberUser = createdUsers.find((user) => user.role === 'MEMBER');
@@ -70,11 +77,6 @@ async function main() {
   if (!adminUser || !memberUser) {
     throw new Error('Seed users are missing required roles.');
   }
-
-  // 2. 製品の作成
-  const products = await Promise.all(
-    seedProducts.map((product) => prisma.product.create({ data: product })),
-  );
 
   const now = new Date();
   const statusCycle = ['PLENTIFUL', 'FEW_LEFT', 'SOLD_OUT'];
@@ -154,16 +156,19 @@ async function main() {
   });
 
   // 5. アップロード由来の在庫確認レコード作成
-  const uploadChecks = uploadLines
-    .filter((line) => line.matchedProductId)
-    .map((line, index) => ({
-      productId: line.matchedProductId,
-      checkedByUserId: adminUser.id,
-      uploadBatchId: uploadBatch.id,
-      status: line.appliedStatus,
-      sourceType: 'UPLOAD',
-      checkedAt: new Date(now.getTime() - (30 - index) * 60000),
-    }));
+  const uploadChecks = uploadLines.reduce((acc, line, index) => {
+    if (line.matchedProductId) {
+      acc.push({
+        productId: line.matchedProductId,
+        checkedByUserId: adminUser.id,
+        uploadBatchId: uploadBatch.id,
+        status: line.appliedStatus,
+        sourceType: 'UPLOAD',
+        checkedAt: new Date(now.getTime() - (30 - index) * 60000),
+      });
+    }
+    return acc;
+  }, []);
 
   if (uploadChecks.length > 0) {
     await prisma.inventoryCheck.createMany({ data: uploadChecks });

@@ -1,8 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getCurrentUserId } from '@/features/auth/account-access';
 import { prisma } from '@/lib/prisma';
+import { auth } from '@/features/auth/auth';
 import {
   isProductStatus,
   type Product,
@@ -10,6 +10,11 @@ import {
 } from '@/types/inventory';
 
 export async function getInventoryProducts(): Promise<Product[]> {
+  const session = await auth();
+  if (!session) {
+    throw new Error('Authentication required.');
+  }
+
   const products = await prisma.product.findMany({
     orderBy: { name: 'asc' },
     include: {
@@ -52,12 +57,16 @@ export async function updateProductStatus(
   productId: string,
   status: ProductStatus,
 ) {
+  const session = await auth();
+  if (!session) {
+    throw new Error('Authentication required.');
+  }
+
   if (!isProductStatus(status)) {
     throw new Error(`Invalid status: ${status}`);
   }
 
-  const userId = await getCurrentUserId();
-
+  const userId = session.user.id;
   if (!userId) {
     throw new Error('Authentication required.');
   }

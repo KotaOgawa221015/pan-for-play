@@ -1,16 +1,16 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { getCurrentUserId } from '@/features/auth/account-access';
 import { prisma } from '@/lib/prisma';
-import { signOut } from '@/features/auth/auth';
+import { auth, signOut } from '@/features/auth/auth';
 
 export async function updateProfileAction(
   _prevState: unknown,
   formData: FormData,
 ) {
-  const userId = await getCurrentUserId();
-  if (!userId) return { error: '認証が必要です' };
+  const session = await auth();
+  if (!session?.user?.id) return { error: '認証が必要です' };
+  const userId = session.user.id;
 
   const name = formData.get('name') as string;
 
@@ -32,8 +32,9 @@ export async function updateProfileAction(
 }
 
 export async function deleteAccountAction() {
-  const userId = await getCurrentUserId();
-  if (!userId) return { error: '認証が必要です' };
+  const session = await auth();
+  if (!session?.user?.id) return { error: '認証が必要です' };
+  const userId = session.user.id;
 
   try {
     const user = await prisma.user.findUnique({

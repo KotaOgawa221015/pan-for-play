@@ -1,28 +1,49 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useReducer, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 
+type State = {
+  isVisible: boolean;
+  isExiting: boolean;
+};
+
+type Action = { type: 'SHOW' } | { type: 'EXIT' } | { type: 'HIDE' };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'SHOW':
+      return { isVisible: true, isExiting: false };
+    case 'EXIT':
+      return { ...state, isExiting: true };
+    case 'HIDE':
+      return { ...state, isVisible: false };
+    default:
+      return state;
+  }
+}
+
 export function FlashMessage({ msg }: { msg?: string }) {
-  const [isVisible, setIsVisible] = useState(!!msg);
-  const [isExiting, setIsExiting] = useState(false);
-  const router = useRouter();
+  const [state, dispatch] = useReducer(reducer, {
+    isVisible: !!msg,
+    isExiting: false,
+  });
+  const { replace } = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
     const validMessages = ['login_success', 'signup_success', 'logout_success'];
 
     if (msg && validMessages.includes(msg)) {
-      setIsVisible(true);
-      setIsExiting(false);
+      dispatch({ type: 'SHOW' });
 
       const exitTimer = setTimeout(() => {
-        setIsExiting(true);
+        dispatch({ type: 'EXIT' });
       }, 2400);
 
       const removeTimer = setTimeout(() => {
-        setIsVisible(false);
-        router.replace(pathname, { scroll: false });
+        dispatch({ type: 'HIDE' });
+        replace(pathname, { scroll: false });
       }, 2900);
 
       return () => {
@@ -30,9 +51,9 @@ export function FlashMessage({ msg }: { msg?: string }) {
         clearTimeout(removeTimer);
       };
     }
-  }, [msg, pathname, router]);
+  }, [msg, pathname, replace]);
 
-  if (!isVisible || !msg) return null;
+  if (!state.isVisible || !msg) return null;
 
   const isLogout = msg === 'logout_success';
 
@@ -53,7 +74,11 @@ export function FlashMessage({ msg }: { msg?: string }) {
         text-center py-2 text-xs font-medium 
         transition-all duration-500 ease-in-out
         ${styles}
-        ${isExiting ? 'opacity-0 -translate-y-full' : 'opacity-100 translate-y-0'}
+        ${
+          state.isExiting
+            ? 'opacity-0 -translate-y-full'
+            : 'opacity-100 translate-y-0'
+        }
       `}
     >
       {messageMap[msg]}
