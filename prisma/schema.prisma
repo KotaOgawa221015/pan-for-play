@@ -56,6 +56,7 @@ model User {
   role          UserRole @default(MEMBER)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  deletedAt     DateTime?
 
   inventoryChecks InventoryCheck[]
   uploadBatches   UploadBatch[]

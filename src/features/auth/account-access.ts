@@ -16,7 +16,10 @@ export async function getCurrentUser() {
   if (!session?.user?.id) return null;
 
   return prisma.user.findUnique({
-    where: { id: session.user.id },
+    where: {
+      id: session.user.id,
+      deletedAt: null,
+    },
     select: {
       id: true,
       name: true,
@@ -25,7 +28,6 @@ export async function getCurrentUser() {
     },
   });
 }
-
 export async function getCurrentUserId() {
   const session = await auth();
   return session?.user?.id ?? null;

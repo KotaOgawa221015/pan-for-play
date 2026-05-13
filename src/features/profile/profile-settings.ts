@@ -34,13 +34,34 @@ export async function deleteAccountAction() {
   if (!userId) return { error: '認証が必要です' };
 
   try {
-    await prisma.user.delete({
-      where: { id: userId },
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) return { error: 'ユーザーが見つかりません' };
 
-    await signOut({ redirectTo: "/login" });
+    // トランザクションで整合性を保ちつつ論理削除
+    await prisma.$transaction([
+      // 1. Userのemailを書き換えてユニーク制約を逃がし、deletedAtを刻む
+      prisma.user.update({
+        where: { id: userId },
+        data: {
+          deletedAt: new Date(),
+          email: `${user.email}_deleted_${Date.now()}`, // 同じGoogleアカウントで再登録可能にする
+        },
+      }),
+      // 2. 外部認証連携(Google)を解除（これをしないと次回ログイン時に古いUserに紐付く）
+      prisma.account.deleteMany({
+        where: { userId: userId },
+      }),
+      // 3. 現在のセッションをDBから削除
+      prisma.session.deleteMany({
+        where: { userId: userId },
+      }),
+    ]);
+
+    // 重要：最後にサインアウトしてCookieをクリア
+    await signOut({ redirectTo: "/login?msg=logout_success" });
+    return { success: true };
   } catch (error) {
-    console.error(error);
+    console.error('Delete account error:', error);
     return { error: '退会処理に失敗しました' };
   }
 }
