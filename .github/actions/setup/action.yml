@@ -14,20 +14,23 @@ inputs:
     description: mise version to install
     required: false
     default: '2026.4.27'
-
 runs:
   using: composite
   steps:
+    - name: Enable Corepack
+      run: corepack enable
+      shell: bash
+
+    - name: Prepare pnpm
+      run: corepack prepare pnpm@latest --activate
+      shell: bash
+
     - name: Setup Node.js
       uses: actions/setup-node@v5
       with:
         node-version-file: ${{ inputs.node-version-file }}
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
-
-    - name: Enable Corepack
-      run: corepack enable
-      shell: bash
 
     - name: Setup mise
       if: inputs.install-mise == 'true'
