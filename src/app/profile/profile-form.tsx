@@ -8,7 +8,7 @@ import Link from 'next/link';
 export function ProfileForm({
   user,
 }: {
-  user: { displayName: string | null; email: string };
+  user: { name: string; email: string };
 }) {
   const [pState, pAction, pPending] = useActionState(updateProfileAction, null);
 
@@ -23,15 +23,15 @@ export function ProfileForm({
 
           <div className="space-y-1">
             <label
-              htmlFor="displayName"
+              htmlFor="name"
               className="text-xs font-bold text-zinc-400 uppercase"
             >
               表示名
             </label>
             <input
-              id="displayName"
-              name="displayName"
-              defaultValue={user.displayName || ''}
+              id="name"
+              name="name"
+              defaultValue={user.name}
               className="w-full p-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
             />
           </div>

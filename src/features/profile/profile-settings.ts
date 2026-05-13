@@ -11,13 +11,17 @@ export async function updateProfileAction(
   const userId = await getCurrentUserId();
   if (!userId) return { error: '認証が必要です' };
 
-  const displayName = formData.get('displayName') as string;
+  const name = formData.get('name') as string;
   const email = formData.get('email') as string;
+
+  if (!name?.trim()) {
+    return { error: '表示名を入力してください' };
+  }
 
   try {
     await prisma.user.update({
       where: { id: userId },
-      data: { displayName, email },
+      data: { name: name.trim(), email },
     });
     revalidatePath('/profile');
     return { success: 'プロフィールを更新しました' };

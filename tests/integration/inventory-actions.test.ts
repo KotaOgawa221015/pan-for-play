@@ -1,18 +1,30 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { productFindMany, productUpdate, revalidatePath } = vi.hoisted(() => ({
+const {
+  productFindMany,
+  inventoryCheckCreate,
+  revalidatePath,
+  getCurrentUserId,
+} = vi.hoisted(() => ({
   productFindMany: vi.fn(),
-  productUpdate: vi.fn(),
+  inventoryCheckCreate: vi.fn(),
   revalidatePath: vi.fn(),
+  getCurrentUserId: vi.fn(),
 }));
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     product: {
       findMany: productFindMany,
-      update: productUpdate,
+    },
+    inventoryCheck: {
+      create: inventoryCheckCreate,
     },
   },
+}));
+
+vi.mock('@/features/auth/account-access', () => ({
+  getCurrentUserId,
 }));
 
 vi.mock('next/cache', () => ({
@@ -35,8 +47,9 @@ import {
 describe('inventory server actions', () => {
   beforeEach(() => {
     productFindMany.mockReset();
-    productUpdate.mockReset();
+    inventoryCheckCreate.mockReset();
     revalidatePath.mockReset();
+    getCurrentUserId.mockReset();
   });
 
   it('loads products ordered for the inventory board', async () => {
@@ -44,14 +57,22 @@ describe('inventory server actions', () => {
       {
         id: 'bread',
         name: '食パン',
-        status: 'PLENTIFUL',
-        updatedAt: new Date('2026-05-12T10:00:00.000Z'),
+        inventoryChecks: [
+          {
+            status: 'PLENTIFUL',
+            checkedAt: new Date('2026-05-12T10:00:00.000Z'),
+          },
+        ],
       },
       {
         id: 'soup',
         name: 'スープ',
-        status: 'FEW_LEFT',
-        updatedAt: new Date('2026-05-12T11:00:00.000Z'),
+        inventoryChecks: [
+          {
+            status: 'FEW_LEFT',
+            checkedAt: new Date('2026-05-12T11:00:00.000Z'),
+          },
+        ],
       },
     ]);
 
@@ -72,6 +93,12 @@ describe('inventory server actions', () => {
 
     expect(productFindMany).toHaveBeenCalledWith({
       orderBy: { name: 'asc' },
+      include: {
+        inventoryChecks: {
+          orderBy: { checkedAt: 'desc' },
+          take: 1,
+        },
+      },
     });
   });
 
@@ -80,8 +107,12 @@ describe('inventory server actions', () => {
       {
         id: 'bread',
         name: '食パン',
-        status: 'BACKORDERED',
-        updatedAt: new Date('2026-05-12T10:00:00.000Z'),
+        inventoryChecks: [
+          {
+            status: 'BACKORDERED',
+            checkedAt: new Date('2026-05-12T10:00:00.000Z'),
+          },
+        ],
       },
     ]);
 
@@ -91,13 +122,19 @@ describe('inventory server actions', () => {
   });
 
   it('updates status and revalidates inventory pages', async () => {
-    productUpdate.mockResolvedValue({});
+    getCurrentUserId.mockResolvedValue('user-1');
+    inventoryCheckCreate.mockResolvedValue({});
 
     await updateProductStatus('bread', 'SOLD_OUT');
 
-    expect(productUpdate).toHaveBeenCalledWith({
-      where: { id: 'bread' },
-      data: { status: 'SOLD_OUT' },
+    expect(inventoryCheckCreate).toHaveBeenCalledWith({
+      data: {
+        productId: 'bread',
+        checkedByUserId: 'user-1',
+        status: 'SOLD_OUT',
+        sourceType: 'MANUAL',
+        checkedAt: expect.any(Date),
+      },
     });
     expect(revalidatePath).toHaveBeenCalledWith('/', 'layout');
   });
@@ -107,7 +144,7 @@ describe('inventory server actions', () => {
       updateProductStatus('bread', 'BACKORDERED' as never),
     ).rejects.toThrow('Invalid status: BACKORDERED');
 
-    expect(productUpdate).not.toHaveBeenCalled();
+    expect(inventoryCheckCreate).not.toHaveBeenCalled();
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 });
