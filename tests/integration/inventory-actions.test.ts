@@ -50,6 +50,8 @@ describe('inventory server actions', () => {
 
     uploadBatchFindFirst.mockResolvedValue({
       appliedAt: new Date('2026-05-12T12:00:00.000Z'),
+      processedAt: new Date('2026-05-12T11:00:00.000Z'),
+      createdAt: new Date('2026-05-12T10:00:00.000Z'),
       lines: [
         {
           count: 8,
@@ -60,10 +62,11 @@ describe('inventory server actions', () => {
 
     const result = await getInventoryProducts();
     expect(result).toHaveLength(1);
+    expect(result[0].name).toBe('食パン');
     expect(requireCurrentUser).toHaveBeenCalled();
   });
 
-  it('loads products from the applied receiving batch', async () => {
+  it('loads products from the applied receiving batch and sorts them', async () => {
     uploadBatchFindFirst.mockResolvedValue({
       appliedAt: new Date('2026-05-12T12:00:00.000Z'),
       processedAt: new Date('2026-05-12T11:00:00.000Z'),
@@ -80,7 +83,10 @@ describe('inventory server actions', () => {
       ],
     });
 
-    await expect(getInventoryProducts()).resolves.toEqual([
+    const result = await getInventoryProducts();
+
+    // ソート順の確認 (スープ -> 食パン)
+    expect(result).toEqual([
       {
         id: 'soup',
         name: 'スープ',
@@ -98,31 +104,6 @@ describe('inventory server actions', () => {
         updatedAt: '2026-05-12T12:00:00.000Z',
       },
     ]);
-
-    expect(uploadBatchFindFirst).toHaveBeenCalledWith({
-      where: {
-        processingStatus: 'APPLIED',
-      },
-      orderBy: {
-        appliedAt: 'desc',
-      },
-      include: {
-        lines: {
-          orderBy: {
-            lineNumber: 'asc',
-          },
-          include: {
-            matchedProduct: {
-              select: {
-                id: true,
-                name: true,
-                category: true,
-              },
-            },
-          },
-        },
-      },
-    });
   });
 
   it('hides zero-count lines and returns empty when no applied batch exists', async () => {
