@@ -1,7 +1,7 @@
 'use client';
 
 import { useOptimistic, useTransition } from 'react';
-import { updateProductStatus } from '@/app/actions';
+import { updateProductStatus } from '@/features/inventory/product-inventory';
 import {
   PRODUCT_STATUSES,
   STATUS_LABELS,

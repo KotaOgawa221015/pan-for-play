@@ -27,7 +27,10 @@ vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
 }));
 
-import { getInventoryProducts, updateProductStatus } from '@/app/actions';
+import {
+  getInventoryProducts,
+  updateProductStatus,
+} from '@/features/inventory/product-inventory';
 
 describe('inventory server actions', () => {
   beforeEach(() => {

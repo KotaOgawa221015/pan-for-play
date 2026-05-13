@@ -1,7 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
-import { loginAction } from '@/app/actions';
+import { loginAction } from '@/features/auth/account-access';
 import Link from 'next/link';
 
 export function LoginPageClient() {

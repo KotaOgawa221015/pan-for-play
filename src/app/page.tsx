@@ -1,5 +1,5 @@
 import { ProductCard } from '@/components/ProductCard';
-import { getInventoryProducts, getCurrentUser } from '@/app/actions';
+import { getInventoryProducts } from '@/features/inventory/product-inventory';
 import Link from 'next/link';
 import { UserMenu } from '@/components/UserMenu';
 import type { Metadata } from 'next';
@@ -14,8 +14,7 @@ export default async function Page({
 }: {
   searchParams: Promise<{ msg?: string }>;
 }) {
-  const [user, { msg }, products] = await Promise.all([
-    getCurrentUser(),
+  const [{ msg }, products] = await Promise.all([
     searchParams,
     getInventoryProducts(),
   ]);

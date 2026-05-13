@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/app/actions';
+import { getCurrentUser } from '@/features/auth/account-access';
 import { redirect } from 'next/navigation';
 import { ProfileForm } from './profile-form';
 import Link from 'next/link';

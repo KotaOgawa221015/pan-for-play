@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { logoutAction } from '@/app/actions';
+import { logoutAction } from '@/features/auth/account-access';
 import Link from 'next/link';
 
 export function UserMenu() {
