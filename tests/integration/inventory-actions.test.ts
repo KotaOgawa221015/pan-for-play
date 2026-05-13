@@ -1,16 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const {
-  productFindMany,
-  inventoryCheckCreate,
-  revalidatePath,
-  getCurrentUserId,
-} = vi.hoisted(() => ({
-  productFindMany: vi.fn(),
-  inventoryCheckCreate: vi.fn(),
-  revalidatePath: vi.fn(),
-  getCurrentUserId: vi.fn(),
-}));
+const { productFindMany, inventoryCheckCreate, revalidatePath, auth } =
+  vi.hoisted(() => ({
+    productFindMany: vi.fn(),
+    inventoryCheckCreate: vi.fn(),
+    revalidatePath: vi.fn(),
+    auth: vi.fn(),
+  }));
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -23,8 +19,8 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-vi.mock('@/features/auth/account-access', () => ({
-  getCurrentUserId,
+vi.mock('@/features/auth/auth', () => ({
+  auth,
 }));
 
 vi.mock('next/cache', () => ({
@@ -49,10 +45,11 @@ describe('inventory server actions', () => {
     productFindMany.mockReset();
     inventoryCheckCreate.mockReset();
     revalidatePath.mockReset();
-    getCurrentUserId.mockReset();
+    auth.mockReset();
   });
 
   it('loads products ordered for the inventory board', async () => {
+    auth.mockResolvedValue({ user: { id: 'admin-1' } });
     productFindMany.mockResolvedValue([
       {
         id: 'bread',
@@ -103,6 +100,7 @@ describe('inventory server actions', () => {
   });
 
   it('rejects persisted products with invalid statuses', async () => {
+    auth.mockResolvedValue({ user: { id: 'admin-1' } });
     productFindMany.mockResolvedValue([
       {
         id: 'bread',
@@ -122,7 +120,7 @@ describe('inventory server actions', () => {
   });
 
   it('updates status and revalidates inventory pages', async () => {
-    getCurrentUserId.mockResolvedValue('user-1');
+    auth.mockResolvedValue({ user: { id: 'user-1' } });
     inventoryCheckCreate.mockResolvedValue({});
 
     await updateProductStatus('bread', 'SOLD_OUT');
@@ -140,6 +138,7 @@ describe('inventory server actions', () => {
   });
 
   it('rejects invalid status updates before persistence', async () => {
+    auth.mockResolvedValue({ user: { id: 'admin-1' } });
     await expect(
       updateProductStatus('bread', 'BACKORDERED' as never),
     ).rejects.toThrow('Invalid status: BACKORDERED');
