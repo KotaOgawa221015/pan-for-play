@@ -1,5 +1,6 @@
 'use server';
 
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
 import { auth, signIn, signOut } from './auth';
 
@@ -36,9 +37,22 @@ export type SessionStatus =
 
 export async function getSessionStatus(): Promise<SessionStatus> {
   const session = await auth();
-  if (!session?.user) {
+  if (!session?.user?.id) {
     return { status: 'anonymous' };
   }
+
+  const user = await prisma.user.findUnique({
+    where: {
+      id: session.user.id,
+      deletedAt: null,
+    },
+    select: { id: true },
+  });
+
+  if (!user) {
+    return { status: 'invalid' };
+  }
+
   return { status: 'authenticated', user: session.user };
 }
 
@@ -51,7 +65,7 @@ export async function requireCurrentUser() {
   const user = await getCurrentUser();
 
   if (!user) {
-    throw new Error('セッションが無効です。再ログインしてください。');
+    redirect('/login');
   }
 
   return user;
