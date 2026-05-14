@@ -1,5 +1,4 @@
 import { ProductCategory } from '@prisma/client';
-import { getProductStatusFromCount } from '@/features/inventory/counts';
 import { isProductCategory } from '@/features/product-catalog/category';
 import type { ExtractProducts } from '@/features/product-list-extraction/types';
 import type { CatalogProduct } from '@/features/product-catalog/products';
@@ -53,7 +52,6 @@ export async function prepareReviewDraft(
         count: product.count,
         selectedProductId: matchedProduct?.id ?? null,
         matchStatus: matchedProduct ? 'MATCHED' : 'NEEDS_REVIEW',
-        appliedStatus: getProductStatusFromCount(product.count),
       } satisfies Omit<ReviewLine, 'lineId'>;
     }),
   };

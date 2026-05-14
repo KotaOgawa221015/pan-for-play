@@ -99,23 +99,34 @@ describe('seed script', () => {
     });
     expect(batches).toHaveLength(receivingHistoryFixture.batches.length);
     expect(
-      batches.filter((batch) => batch.processingStatus === 'APPLIED'),
-    ).toHaveLength(1);
-    expect(
-      batches.filter((batch) => batch.processingStatus === 'REVERTED'),
-    ).toHaveLength(1);
+      batches.every((batch) => batch.processingStatus === 'PROCESSED'),
+    ).toBe(true);
 
-    const currentBatch = batches.find(
-      (batch) => batch.processingStatus === 'APPLIED',
-    );
-    if (!currentBatch) {
-      throw new Error('Expected one current receiving batch.');
+    const publications = await prisma.inventoryPublication.findMany({
+      orderBy: { publishedAt: 'asc' },
+      include: {
+        uploadBatch: true,
+        inventoryStatusChanges: true,
+      },
+    });
+    expect(publications).toHaveLength(receivingHistoryFixture.batches.length);
+
+    const currentPublication = publications.at(-1);
+    if (!currentPublication) {
+      throw new Error('Expected one current inventory publication.');
     }
 
-    expect(currentBatch.lines.length).toBe(
-      receivingHistoryFixture.batches.find(
-        (history) => history.processingStatus === 'APPLIED',
-      )?.products.length,
+    const expectedCurrentBatch = receivingHistoryFixture.batches.reduce(
+      (latest, entry) =>
+        latest && latest.publishedMinutesAgo < entry.publishedMinutesAgo
+          ? latest
+          : entry,
     );
+
+    expect(currentPublication.uploadBatch.originalFileName).toBe(
+      expectedCurrentBatch.originalFileName,
+    );
+    expect(currentPublication.uploadBatchId).toEqual(expect.any(String));
+    expect(currentPublication.inventoryStatusChanges.length).toBeGreaterThan(0);
   });
 });

@@ -41,13 +41,17 @@ src/
 
 ## 在庫の真実源
 
-トップページ在庫は `processingStatus = APPLIED` の `UploadBatch` から導出する。
+トップページ在庫の商品集合と数量は最新の `InventoryPublication` が参照する `UploadBatch` から導出する。
 
-表示対象は適用中バッチの `lines` である。`count = 0` の行はトップページに表示しない。
+表示対象は最新公開された納品書の `lines` である。`count = 0` の行はトップページに表示しない。
 
-在庫ステータスは `features/inventory/counts.ts` の数量閾値で導出する。
+初期在庫ステータスは `features/inventory/counts.ts` の数量閾値で導出する。トップページでの個別状態変更が存在する場合は、各商品の最新 `InventoryStatusChange` が表示ステータスを上書きする。
 
-手動の個別ステータス更新は現行モデルに含めない。受け入れ適用と再適用により、どのバッチが `APPLIED` かを切り替えて在庫スナップショットを置き換える。
+手動の個別ステータス更新は現行モデルに含まれる。トップページのカード操作は `InventoryStatusChange` を1件追加する。
+
+受け入れ適用と再公開は、新しい `InventoryPublication` を追加して現在在庫の参照先を置き換える。
+
+商品別の変更者追跡は `InventoryStatusChange` が所有する。数量は根拠データであり、変更者ログはユーザ可視の在庫ステータスが変化した商品だけを記録する。
 
 ## 受け入れフローの境界
 
@@ -59,9 +63,10 @@ src/
 
 受け入れ適用は次の不変条件で動作する。
 
-1. 既存の `APPLIED` バッチを `REVERTED` に更新する。
-2. 対象バッチを `APPLIED` に更新する。
-3. トップページ在庫は新しい `APPLIED` バッチ行から導出される。
+1. 対象バッチは `PROCESSED` のまま保持する。
+2. 対象バッチを参照する新しい `InventoryPublication` を作成する。
+3. 直前公開との差分から `InventoryStatusChange` を作成する。
+4. トップページ在庫は最新 `InventoryPublication` のバッチ行から導出される。
 
 ## Fixture の責務
 

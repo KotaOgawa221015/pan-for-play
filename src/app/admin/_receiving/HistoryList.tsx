@@ -13,8 +13,6 @@ const STATUS_LABELS = {
   PENDING: '処理待ち',
   PROCESSED: 'レビュー待ち',
   FAILED: '失敗',
-  APPLIED: '適用済み',
-  REVERTED: '過去の反映',
 } as const;
 
 const dateTimeFormatter = new Intl.DateTimeFormat('ja-JP', {
@@ -43,7 +41,7 @@ export function HistoryList({
           直近の読み取り履歴
         </h2>
         <p className="text-xs text-zinc-500">
-          反映内容の確認と、必要に応じた在庫の入れ替えをここで扱います。
+          読み取り済み納品書の確認と、必要に応じた再公開をここで扱います。
         </p>
       </div>
 
@@ -76,18 +74,20 @@ export function HistoryList({
                         <dd>{formatDateTime(entry.createdAt)}</dd>
                       </div>
                       <div>
-                        <dt className="mb-1 text-zinc-400">最終適用</dt>
-                        <dd>{formatDateTime(entry.appliedAt)}</dd>
+                        <dt className="mb-1 text-zinc-400">最終公開</dt>
+                        <dd>{formatDateTime(entry.lastPublishedAt)}</dd>
                       </div>
                       <div>
-                        <dt className="mb-1 text-zinc-400">現役終了</dt>
-                        <dd>{formatDateTime(entry.revertedAt)}</dd>
+                        <dt className="mb-1 text-zinc-400">公開者</dt>
+                        <dd>{entry.lastPublishedByName ?? '未公開'}</dd>
                       </div>
                       <div>
-                        <dt className="mb-1 text-zinc-400">
-                          現在反映されている行数
-                        </dt>
-                        <dd>{entry.appliedLineCount} 行</dd>
+                        <dt className="mb-1 text-zinc-400">公開回数</dt>
+                        <dd>{entry.publicationCount} 回</dd>
+                      </div>
+                      <div>
+                        <dt className="mb-1 text-zinc-400">商品行数</dt>
+                        <dd>{entry.lineCount} 行</dd>
                       </div>
                     </dl>
 
@@ -104,24 +104,24 @@ export function HistoryList({
                   </div>
 
                   <div className="flex flex-wrap gap-2 lg:justify-end">
-                    {entry.revertedAt ? (
+                    {entry.publicationCount > 0 && !entry.isCurrent ? (
                       <button
                         type="button"
                         onClick={() => onReapply(entry.id)}
                         disabled={isBusy}
                         className="rounded-full border border-emerald-300 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
                       >
-                        この納品書の商品に入れ替える
+                        この納品書を再公開する
                       </button>
                     ) : null}
 
-                    {entry.processingStatus === 'APPLIED' ? (
+                    {entry.isCurrent ? (
                       <span className="rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700">
-                        現在反映中
+                        現在公開中
                       </span>
                     ) : null}
 
-                    {entry.processingStatus !== 'APPLIED' ? (
+                    {entry.publicationCount === 0 ? (
                       <button
                         type="button"
                         onClick={() => onDelete(entry.id)}

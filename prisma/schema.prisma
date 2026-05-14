@@ -12,11 +12,6 @@ enum InventoryStatus {
   SOLD_OUT
 }
 
-enum InventorySourceType {
-  MANUAL
-  UPLOAD
-}
-
 enum ProductCategory {
   BREAD
   SOUP
@@ -26,8 +21,6 @@ enum UploadBatchProcessingStatus {
   PENDING
   PROCESSED
   FAILED
-  APPLIED
-  REVERTED
 }
 
 enum UploadBatchLineMatchStatus {
@@ -43,32 +36,31 @@ enum UserRole {
 }
 
 model Product {
-  id        String   @id @default(cuid())
-  name      String   @unique
-  category  ProductCategory @default(BREAD)
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  inventoryChecks  InventoryCheck[]
-  uploadBatchLines UploadBatchLine[]
+  id                     String                  @id @default(cuid())
+  name                   String                  @unique
+  category               ProductCategory         @default(BREAD)
+  isActive               Boolean                 @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  uploadBatchLines       UploadBatchLine[]
+  inventoryStatusChanges InventoryStatusChange[]
 }
 
 model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  emailVerified DateTime?
-  image         String?
-  role          UserRole @default(MEMBER)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  deletedAt     DateTime?
-
-  inventoryChecks InventoryCheck[]
-  uploadBatches   UploadBatch[]
-  accounts        Account[]
-  sessions        Session[]
+  id                     String                  @id @default(cuid())
+  name                   String
+  email                  String                  @unique
+  emailVerified          DateTime?
+  image                  String?
+  role                   UserRole                @default(MEMBER)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  deletedAt              DateTime?
+  uploadBatches          UploadBatch[]
+  inventoryPublications  InventoryPublication[]
+  inventoryStatusChanges InventoryStatusChange[]
+  accounts               Account[]
+  sessions               Session[]
 }
 
 model Account {
@@ -109,61 +101,71 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model InventoryCheck {
-  id              String             @id @default(cuid())
-  productId       String
-  checkedByUserId String
-  uploadBatchId   String?
-  status          InventoryStatus
-  count           Int
-  sourceType      InventorySourceType
-  isActive        Boolean            @default(true)
-  checkedAt       DateTime
-  note            String?
-  createdAt       DateTime           @default(now())
-
-  product       Product      @relation(fields: [productId], references: [id])
-  checkedByUser User         @relation(fields: [checkedByUserId], references: [id])
-  uploadBatch   UploadBatch? @relation(fields: [uploadBatchId], references: [id])
-
-  @@index([productId, checkedAt])
-  @@index([checkedByUserId])
-  @@index([uploadBatchId])
-}
-
 model UploadBatch {
-  id               String                     @id @default(cuid())
+  id               String                    @id @default(cuid())
   uploadedByUserId String
   originalFileName String
   storagePath      String?
   processingStatus UploadBatchProcessingStatus @default(PENDING)
   processedAt      DateTime?
-  appliedAt        DateTime?
-  revertedAt       DateTime?
-  createdAt        DateTime                   @default(now())
-  updatedAt        DateTime                   @updatedAt
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
 
-  uploadedByUser  User             @relation(fields: [uploadedByUserId], references: [id])
-  lines           UploadBatchLine[]
-  inventoryChecks InventoryCheck[]
+  uploadedByUser         User                   @relation(fields: [uploadedByUserId], references: [id])
+  lines                  UploadBatchLine[]
+  inventoryPublications InventoryPublication[]
 
   @@index([uploadedByUserId])
 }
 
 model UploadBatchLine {
-  id               String                    @id @default(cuid())
+  id               String                   @id @default(cuid())
   uploadBatchId    String
   lineNumber       Int
   rawText          String
   count            Int
   matchedProductId String?
   matchStatus      UploadBatchLineMatchStatus
-  appliedStatus    InventoryStatus
-  createdAt        DateTime                  @default(now())
+  createdAt        DateTime                 @default(now())
 
   uploadBatch    UploadBatch @relation(fields: [uploadBatchId], references: [id])
   matchedProduct Product?    @relation(fields: [matchedProductId], references: [id])
 
   @@index([uploadBatchId, lineNumber])
   @@index([matchedProductId])
+}
+
+model InventoryPublication {
+  id                String                  @id @default(cuid())
+  uploadBatchId     String
+  publishedByUserId String
+  publishedAt       DateTime
+  createdAt         DateTime                @default(now())
+
+  uploadBatch            UploadBatch              @relation(fields: [uploadBatchId], references: [id])
+  publishedByUser        User                     @relation(fields: [publishedByUserId], references: [id])
+  inventoryStatusChanges InventoryStatusChange[]
+
+  @@index([uploadBatchId])
+  @@index([publishedByUserId])
+  @@index([publishedAt])
+}
+
+model InventoryStatusChange {
+  id                String              @id @default(cuid())
+  publicationId     String?
+  productId         String
+  changedByUserId   String
+  previousStatus    InventoryStatus?
+  nextStatus        InventoryStatus
+  changedAt         DateTime
+  createdAt         DateTime            @default(now())
+
+  publication   InventoryPublication? @relation(fields: [publicationId], references: [id])
+  product       Product               @relation(fields: [productId], references: [id])
+  changedByUser User                  @relation(fields: [changedByUserId], references: [id])
+
+  @@index([productId, changedAt])
+  @@index([publicationId, changedAt])
+  @@index([changedByUserId])
 }
