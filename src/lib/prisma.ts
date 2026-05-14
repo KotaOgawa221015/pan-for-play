@@ -25,7 +25,9 @@ export const prisma =
     const authToken = process.env.TURSO_AUTH_TOKEN;
 
     if (!authToken) {
-      throw new Error('TURSO_AUTH_TOKEN is required for Turso database connection.');
+      throw new Error(
+        'TURSO_AUTH_TOKEN is required for Turso database connection.',
+      );
     }
 
     const libsql = createClient({
