@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
-import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '@prisma/client';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import catalogFixture from '../../prisma/fixtures/catalog-products.json';
@@ -56,7 +56,11 @@ describe('seed script', () => {
     runNode(['prisma/seed.js']);
 
     prisma = new PrismaClient({
-      adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
+      log: ['error'],
+      adapter: new PrismaLibSql({
+        url: databaseUrl,
+        authToken: process.env.TURSO_AUTH_TOKEN || undefined,
+      }),
     });
   });
 

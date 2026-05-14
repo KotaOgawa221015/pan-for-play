@@ -17,11 +17,7 @@ export default async function Page({
 }: {
   searchParams: Promise<{ msg?: string }>;
 }) {
-  const [{ msg }, session, products] = await Promise.all([
-    searchParams,
-    getSessionStatus(),
-    getInventoryProducts(),
-  ]);
+  const session = await getSessionStatus();
 
   if (session.status === 'invalid') {
     redirect('/session/clear');
@@ -30,6 +26,11 @@ export default async function Page({
   if (session.status !== 'authenticated') {
     redirect('/login');
   }
+
+  const [{ msg }, products] = await Promise.all([
+    searchParams,
+    getInventoryProducts(),
+  ]);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">

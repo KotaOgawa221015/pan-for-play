@@ -10,6 +10,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
+        openssl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r appgroup && useradd -r -g appgroup -d /home/appuser -m appuser
@@ -24,15 +25,11 @@ ENV NODE_ENV=development
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
-        python3 \
-        make \
-        g++ \
     && rm -rf /var/lib/apt/lists/*
 
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml ./
 
-RUN --mount=type=cache,target=/root/.npm \
-    npm ci
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
@@ -70,10 +67,10 @@ COPY . .
 ARG BUILD_DATABASE_URL="file:/tmp/pancolle-build.db"
 ENV DATABASE_URL=${BUILD_DATABASE_URL}
 
-RUN npx prisma migrate deploy && \
-    npx prisma db seed && \
-    npm run build && \
-    npm prune --omit=dev
+RUN pnpm db:setup && \
+    pnpm db:seed && \
+    pnpm build && \
+    pnpm prune --prod
 
 
 # ==============================================================================
