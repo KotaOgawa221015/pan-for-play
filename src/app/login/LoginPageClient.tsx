@@ -1,6 +1,9 @@
 'use client';
 
-import { loginWithGoogleAction, loginAsAdminAction } from '@/features/auth/account-access';
+import {
+  loginWithGoogleAction,
+  loginAsAdminAction,
+} from '@/features/auth/account-access';
 
 export function LoginPageClient() {
   const isDev = process.env.NODE_ENV === 'development';

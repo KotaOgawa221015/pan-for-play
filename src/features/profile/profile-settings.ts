@@ -10,8 +10,8 @@ export async function updateProfileAction(
   formData: FormData,
 ) {
   const user = await requireCurrentUser();
-  if (!session?.user?.id) return { error: '認証が必要です' };
   const userId = user.id;
+  const email = user.email;
 
   const name = formData.get('name') as string;
 

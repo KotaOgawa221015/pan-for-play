@@ -1,8 +1,16 @@
 'use server';
 
 import { redirect } from 'next/navigation';
+import type { UserRole } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { auth, signIn, signOut } from './auth';
+
+export type AuthenticatedUser = {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+};
 
 export async function loginWithGoogleAction() {
   await signIn('google', { redirectTo: '/' });
@@ -23,6 +31,7 @@ export async function getCurrentUser() {
     },
     select: {
       id: true,
+      email: true,
       name: true,
       image: true,
       role: true,
@@ -33,7 +42,7 @@ export async function getCurrentUser() {
 export type SessionStatus =
   | { status: 'anonymous' }
   | { status: 'invalid' }
-  | { status: 'authenticated'; user: any };
+  | { status: 'authenticated'; user: AuthenticatedUser };
 
 export async function getSessionStatus(): Promise<SessionStatus> {
   const session = await auth();
@@ -53,7 +62,7 @@ export async function getSessionStatus(): Promise<SessionStatus> {
     return { status: 'invalid' };
   }
 
-  return { status: 'authenticated', user: session.user };
+  return { status: 'authenticated', user: session.user as AuthenticatedUser };
 }
 
 export async function getCurrentUserId() {
