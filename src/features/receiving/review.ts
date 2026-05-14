@@ -1,4 +1,6 @@
+import { ProductCategory } from '@prisma/client';
 import { getProductStatusFromCount } from '@/features/inventory/counts';
+import { isProductCategory } from '@/features/product-catalog/category';
 import type { ExtractProducts } from '@/features/product-list-extraction/types';
 import type { CatalogProduct } from '@/features/product-catalog/products';
 import type { ReviewInput, ReviewLine } from './types';
@@ -47,6 +49,7 @@ export async function prepareReviewDraft(
 
       return {
         name: product.name,
+        category: matchedProduct?.category ?? ProductCategory.BREAD,
         count: product.count,
         selectedProductId: matchedProduct?.id ?? null,
         matchStatus: matchedProduct ? 'MATCHED' : 'NEEDS_REVIEW',
@@ -81,6 +84,10 @@ export function validateReviewProducts(
       throw new Error(`数量は 1 以上の整数である必要があります: ${name}`);
     }
 
+    if (!isProductCategory(product.category)) {
+      throw new Error(`カテゴリが不正です: ${name}`);
+    }
+
     let resolvedName = name;
 
     if (product.selectedProductId) {
@@ -106,6 +113,7 @@ export function validateReviewProducts(
     return {
       lineId: product.lineId,
       name,
+      category: product.category,
       count: product.count,
       selectedProductId: product.selectedProductId,
     };

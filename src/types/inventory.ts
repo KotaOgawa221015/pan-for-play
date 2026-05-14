@@ -1,10 +1,15 @@
-import type { InventoryStatus as PrismaInventoryStatus } from '@prisma/client';
+import type {
+  InventoryStatus as PrismaInventoryStatus,
+  ProductCategory as PrismaProductCategory,
+} from '@prisma/client';
 
 export type ProductStatus = PrismaInventoryStatus;
+export type ProductCategory = PrismaProductCategory;
 
 export type Product = {
   id: string;
   name: string;
+  category: ProductCategory;
   count: number;
   status: ProductStatus;
   updatedAt: string;

@@ -76,9 +76,17 @@ describe('seed script', () => {
     expect(users.some((user) => user.role === 'ADMIN')).toBe(true);
 
     const products = await prisma.product.findMany();
-    expect(products.map((product) => product.name).toSorted()).toEqual(
-      catalogFixture.products.toSorted(),
+    const expectedProducts = catalogFixture.products.toSorted((left, right) =>
+      left.name.localeCompare(right.name, 'ja'),
     );
+    const actualProducts = products
+      .map((product) => ({
+        name: product.name,
+        category: product.category,
+      }))
+      .toSorted((left, right) => left.name.localeCompare(right.name, 'ja'));
+
+    expect(actualProducts).toEqual(expectedProducts);
 
     const batches = await prisma.uploadBatch.findMany({
       include: {

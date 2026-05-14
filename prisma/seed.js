@@ -2,7 +2,7 @@ require('dotenv/config');
 const bcrypt = require('bcryptjs');
 
 const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-const { PrismaClient } = require('@prisma/client');
+const { PrismaClient, ProductCategory } = require('@prisma/client');
 const catalogFixture = require('./fixtures/catalog-products.json');
 const receivingHistoryFixture = require('./fixtures/receiving-history.json');
 
@@ -15,6 +15,8 @@ if (!databaseUrl) {
 const prisma = new PrismaClient({
   adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
 });
+
+const productCategories = new Set(Object.values(ProductCategory));
 
 const seedUsers = [
   {
@@ -93,14 +95,25 @@ async function main() {
   }
 
   const products = await Promise.all(
-    catalogFixture.products.map((name) =>
-      prisma.product.create({
+    catalogFixture.products.map((product) => {
+      if (!product.name) {
+        throw new Error('Seed product name is required.');
+      }
+
+      if (!productCategories.has(product.category)) {
+        throw new Error(
+          `Seed product category is invalid: ${product.name} (${product.category})`,
+        );
+      }
+
+      return prisma.product.create({
         data: {
-          name,
+          name: product.name,
+          category: product.category,
           isActive: true,
         },
-      }),
-    ),
+      });
+    }),
   );
 
   const productByName = new Map(

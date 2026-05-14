@@ -1,5 +1,6 @@
 'use client';
 
+import { ProductCategory } from '@prisma/client';
 import Image from 'next/image';
 import { STATUS_LABELS, STATUS_STYLES, type Product } from '@/types/inventory';
 
@@ -35,12 +36,8 @@ function formatRelativeTime(value: string): string {
 export function ProductCard({ product }: Props) {
   const updatedLabel = formatRelativeTime(product.updatedAt);
 
-  const isSoup =
-    product.name.includes('スープ') ||
-    product.name === 'ミネストローネ' ||
-    product.name === 'クラムチャウダー';
-
-  const iconSrc = isSoup ? '/soup.png' : '/bread.png';
+  const iconSrc =
+    product.category === ProductCategory.SOUP ? '/soup.png' : '/bread.png';
 
   return (
     <div className="flex flex-col h-full p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">

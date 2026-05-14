@@ -1,6 +1,11 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import {
+  isProductCategory,
+  PRODUCT_CATEGORIES,
+  PRODUCT_CATEGORY_LABELS,
+} from '@/features/product-catalog/category';
 import type {
   ReviewDraft,
   ReviewInput,
@@ -55,6 +60,10 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
         return `数量は 1 以上の整数で入力してください: ${name}`;
       }
 
+      if (!isProductCategory(product.category)) {
+        return `カテゴリが不正です: ${name}`;
+      }
+
       const resolvedName = product.selectedProductId
         ? normalizeName(
             catalogById.get(product.selectedProductId)?.name ?? product.name,
@@ -100,6 +109,7 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
         products: products.map((product) => ({
           lineId: product.lineId,
           name: normalizeName(product.name),
+          category: product.category,
           count: product.count,
           selectedProductId: product.selectedProductId,
         })),
@@ -171,7 +181,7 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
                     </span>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-[minmax(0,1.5fr)_120px_minmax(0,1.2fr)]">
+                  <div className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_120px_minmax(0,1.1fr)_140px]">
                     <label className="space-y-2">
                       <span className="text-xs font-semibold text-zinc-500">
                         商品名
@@ -218,10 +228,18 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
                         value={product.selectedProductId ?? ''}
                         disabled={isApplying}
                         onChange={(event) =>
-                          handleProductChange(product.lineId, (current) => ({
-                            ...current,
-                            selectedProductId: event.target.value || null,
-                          }))
+                          handleProductChange(product.lineId, (current) => {
+                            const nextProductId = event.target.value || null;
+                            const matchedCategory = nextProductId
+                              ? catalogById.get(nextProductId)?.category
+                              : current.category;
+
+                            return {
+                              ...current,
+                              selectedProductId: nextProductId,
+                              category: matchedCategory ?? current.category,
+                            };
+                          })
                         }
                         className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
                       >
@@ -232,6 +250,37 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
                             value={catalogProduct.id}
                           >
                             {catalogProduct.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="space-y-2">
+                      <span className="text-xs font-semibold text-zinc-500">
+                        カテゴリ
+                      </span>
+                      <select
+                        value={product.category}
+                        disabled={isApplying}
+                        onChange={(event) =>
+                          handleProductChange(product.lineId, (current) => {
+                            const nextCategory = event.target.value;
+
+                            if (!isProductCategory(nextCategory)) {
+                              return current;
+                            }
+
+                            return {
+                              ...current,
+                              category: nextCategory,
+                            };
+                          })
+                        }
+                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
+                      >
+                        {PRODUCT_CATEGORIES.map((category) => (
+                          <option key={category} value={category}>
+                            {PRODUCT_CATEGORY_LABELS[category]}
                           </option>
                         ))}
                       </select>
