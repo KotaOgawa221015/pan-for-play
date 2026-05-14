@@ -1,4 +1,6 @@
+import { createClient } from '@libsql/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
+import { PrismaLibSQL } from '@prisma/adapter-libsql';
 import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
@@ -13,9 +15,28 @@ if (!databaseUrl) {
 
 export const prisma =
   globalForPrisma.prisma ??
-  new PrismaClient({
-    adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
-  });
+  (() => {
+    if (databaseUrl.startsWith('file:') || databaseUrl.startsWith('sqlite:')) {
+      return new PrismaClient({
+        adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
+      });
+    }
+
+    const authToken = process.env.TURSO_AUTH_TOKEN;
+
+    if (!authToken) {
+      throw new Error('TURSO_AUTH_TOKEN is required for Turso database connection.');
+    }
+
+    const libsql = createClient({
+      url: databaseUrl,
+      authToken,
+    });
+
+    return new PrismaClient({
+      adapter: new PrismaLibSQL(libsql),
+    });
+  })();
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
