@@ -10,6 +10,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
+        openssl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r appgroup && useradd -r -g appgroup -d /home/appuser -m appuser
@@ -24,9 +25,6 @@ ENV NODE_ENV=development
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
-        python3 \
-        make \
-        g++ \
     && rm -rf /var/lib/apt/lists/*
 
 COPY package.json pnpm-lock.yaml ./

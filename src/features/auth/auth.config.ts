@@ -2,6 +2,7 @@ import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
 
 export const authConfig = {
+  trustHost: true,
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID,
@@ -13,6 +14,17 @@ export const authConfig = {
     signIn: '/login',
   },
   callbacks: {
+    authorized({ auth, request: { nextUrl } }) {
+      const isLoggedIn = !!auth?.user;
+      const isOnLoginPage = nextUrl.pathname === '/login';
+
+      if (isOnLoginPage) {
+        if (isLoggedIn) return Response.redirect(new URL('/', nextUrl));
+        return true;
+      }
+
+      return isLoggedIn;
+    },
     async signIn({ user }) {
       if (user.deletedAt) {
         return false;
