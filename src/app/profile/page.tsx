@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/features/auth/account-access';
+import { getSessionStatus } from '@/features/auth/account-access';
 import { redirect } from 'next/navigation';
 import { ProfileForm } from './profile-form';
 import Link from 'next/link';
@@ -10,11 +10,17 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-  const user = await getCurrentUser();
+  const session = await getSessionStatus();
 
-  if (!user) {
+  if (session.status === 'invalid') {
+    redirect('/session/clear');
+  }
+
+  if (session.status !== 'authenticated') {
     redirect('/login');
   }
+
+  const user = session.user;
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">

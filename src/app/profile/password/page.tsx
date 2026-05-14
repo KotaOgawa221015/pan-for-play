@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getCurrentUser } from '@/features/auth/account-access';
+import { getSessionStatus } from '@/features/auth/account-access';
 
 export const metadata: Metadata = {
   title: 'パスワード変更 | パンコレ',
@@ -9,9 +9,13 @@ export const metadata: Metadata = {
 };
 
 export default async function PasswordChangePage() {
-  const user = await getCurrentUser();
+  const session = await getSessionStatus();
 
-  if (!user) {
+  if (session.status === 'invalid') {
+    redirect('/session/clear');
+  }
+
+  if (session.status !== 'authenticated') {
     redirect('/login');
   }
 

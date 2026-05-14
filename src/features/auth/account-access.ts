@@ -5,8 +5,7 @@ import type { UserRole } from '@prisma/client';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/prisma';
-
-const SESSION_COOKIE_NAME = 'pancolle_session';
+import { SESSION_COOKIE_NAME } from './session-cookie';
 
 export type AuthenticatedUser = {
   id: string;
@@ -14,6 +13,11 @@ export type AuthenticatedUser = {
   name: string;
   role: UserRole;
 };
+
+export type SessionStatus =
+  | { status: 'anonymous' }
+  | { status: 'invalid' }
+  | { status: 'authenticated'; user: AuthenticatedUser };
 
 async function setSessionCookie(userId: string) {
   const cookieStore = await cookies();
@@ -96,11 +100,13 @@ export async function logoutAction() {
   redirect('/login?msg=logout_success');
 }
 
-export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
+export async function getSessionStatus(): Promise<SessionStatus> {
   const cookieStore = await cookies();
   const userId = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
-  if (!userId) return null;
+  if (!userId) {
+    return { status: 'anonymous' };
+  }
 
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -113,11 +119,20 @@ export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
   });
 
   if (!user) {
-    cookieStore.delete(SESSION_COOKIE_NAME);
+    return { status: 'invalid' };
+  }
+
+  return { status: 'authenticated', user };
+}
+
+export async function getCurrentUser(): Promise<AuthenticatedUser | null> {
+  const session = await getSessionStatus();
+
+  if (session.status !== 'authenticated') {
     return null;
   }
 
-  return user;
+  return session.user;
 }
 
 export async function getCurrentUserId() {
