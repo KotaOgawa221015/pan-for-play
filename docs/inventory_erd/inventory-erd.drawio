@@ -1,6 +1,6 @@
 <mxfile host="app.diagrams.net" agent="Codex">
   <diagram id="inventory-erd" name="Inventory ERD">
-    <mxGraphModel dx="1548" dy="1014" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1320" math="0" shadow="0">
+    <mxGraphModel dx="1006" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1200" pageHeight="1320" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -26,7 +26,7 @@
           <mxGeometry height="190" width="300" x="490" y="430" as="geometry" />
         </mxCell>
         <mxCell id="uploadBatchLine" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=14;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;b&gt;UploadBatchLine&lt;/b&gt;&lt;hr/&gt;PK id&lt;br/&gt;FK uploadBatchId -&gt; UploadBatch.id&lt;br/&gt;lineNumber&lt;br/&gt;rawText&lt;br/&gt;count&lt;br/&gt;FK matchedProductId -&gt; Product.id NULL&lt;br/&gt;matchStatus&lt;br/&gt;createdAt" vertex="1">
-          <mxGeometry height="210" width="300" x="770" y="700" as="geometry" />
+          <mxGeometry height="210" width="300" x="700" y="730" as="geometry" />
         </mxCell>
         <mxCell id="inventoryPublication" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=14;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="&lt;b&gt;InventoryPublication&lt;/b&gt;&lt;hr/&gt;Apply event for one UploadBatch&lt;br/&gt;PK id&lt;br/&gt;FK uploadBatchId -&gt; UploadBatch.id&lt;br/&gt;FK publishedByUserId -&gt; User.id&lt;br/&gt;publishedAt&lt;br/&gt;createdAt" vertex="1">
           <mxGeometry height="150" width="300" x="490" y="960" as="geometry" />
@@ -38,7 +38,7 @@
           <mxGeometry height="46" width="240" y="680" as="geometry" />
         </mxCell>
         <mxCell id="publicationLabel" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=center;verticalAlign=middle;fontSize=12;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Delivery-note apply writes only changed statuses" vertex="1">
-          <mxGeometry height="46" width="280" x="90" y="840" as="geometry" />
+          <mxGeometry height="46" width="280" x="280" y="840" as="geometry" />
         </mxCell>
         <mxCell id="account" parent="1" style="rounded=0;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacingLeft=10;spacingTop=8;fontSize=13;fillColor=#f5f5f5;strokeColor=#999999;" value="&lt;b&gt;Account&lt;/b&gt;&lt;hr/&gt;PK id&lt;br/&gt;FK userId&lt;br/&gt;provider&lt;br/&gt;providerAccountId&lt;br/&gt;tokens / scope" vertex="1">
           <mxGeometry height="150" width="240" x="890" y="170" as="geometry" />
