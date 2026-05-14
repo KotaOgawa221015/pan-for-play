@@ -116,55 +116,56 @@ export async function applyReceivingReview(input: ReviewInput) {
       );
     }
 
-    await Promise.all(
-      reviewedProducts.map(async (product) => {
-        if (!product.selectedProductId) {
-          return;
-        }
+    const productCategoryUpdates = reviewedProducts.map(async (product) => {
+      if (!product.selectedProductId) {
+        return;
+      }
 
-        const selectedProduct = catalogById.get(product.selectedProductId);
+      const selectedProduct = catalogById.get(product.selectedProductId);
 
-        if (!selectedProduct) {
-          throw new Error(`選択された商品が存在しません: ${product.name}`);
-        }
+      if (!selectedProduct) {
+        throw new Error(`選択された商品が存在しません: ${product.name}`);
+      }
 
-        if (selectedProduct.category === product.category) {
-          return;
-        }
+      if (selectedProduct.category === product.category) {
+        return;
+      }
 
-        await tx.product.update({
-          where: { id: selectedProduct.id },
-          data: { category: product.category },
-        });
-      }),
-    );
+      await tx.product.update({
+        where: { id: selectedProduct.id },
+        data: { category: product.category },
+      });
+    });
 
-    await Promise.all(
-      reviewedProducts.map(async (product) => {
-        const matchedProductId =
-          product.selectedProductId ??
-          createdProductIdByNormalizedName.get(
-            normalizeProductName(product.name),
-          );
+    const batchLineUpdates = reviewedProducts.map(async (product) => {
+      const matchedProductId =
+        product.selectedProductId ??
+        createdProductIdByNormalizedName.get(
+          normalizeProductName(product.name),
+        );
 
-        if (!matchedProductId) {
-          throw new Error(`商品の紐付けに失敗しました: ${product.name}`);
-        }
+      if (!matchedProductId) {
+        throw new Error(`商品の紐付けに失敗しました: ${product.name}`);
+      }
 
-        const status = getProductStatusFromCount(product.count);
+      const status = getProductStatusFromCount(product.count);
 
-        await tx.uploadBatchLine.update({
-          where: { id: product.lineId },
-          data: {
-            rawText: product.name,
-            count: product.count,
-            matchedProductId,
-            matchStatus: 'MATCHED',
-            appliedStatus: status,
-          },
-        });
-      }),
-    );
+      await tx.uploadBatchLine.update({
+        where: { id: product.lineId },
+        data: {
+          rawText: product.name,
+          count: product.count,
+          matchedProductId,
+          matchStatus: 'MATCHED',
+          appliedStatus: status,
+        },
+      });
+    });
+
+    await Promise.all([
+      Promise.all(productCategoryUpdates),
+      Promise.all(batchLineUpdates),
+    ]);
 
     await tx.uploadBatch.update({
       where: { id: batch.id },

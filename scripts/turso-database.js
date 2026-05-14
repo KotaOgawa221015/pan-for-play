@@ -47,26 +47,30 @@ function createTursoClient() {
 }
 
 function listMigrationEntries() {
-  return fs
-    .readdirSync(migrationsDir, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => {
-      const filePath = path.join(migrationsDir, entry.name, 'migration.sql');
+  const entries = [];
 
-      if (!fs.existsSync(filePath)) {
-        throw new Error(`Migration file is missing: ${filePath}`);
-      }
+  for (const entry of fs.readdirSync(migrationsDir, { withFileTypes: true })) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
 
-      const sql = fs.readFileSync(filePath, 'utf8');
+    const filePath = path.join(migrationsDir, entry.name, 'migration.sql');
 
-      return {
-        name: entry.name,
-        filePath,
-        sql,
-        checksum: crypto.createHash('sha256').update(sql).digest('hex'),
-      };
-    })
-    .sort((left, right) => left.name.localeCompare(right.name));
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Migration file is missing: ${filePath}`);
+    }
+
+    const sql = fs.readFileSync(filePath, 'utf8');
+
+    entries.push({
+      name: entry.name,
+      filePath,
+      sql,
+      checksum: crypto.createHash('sha256').update(sql).digest('hex'),
+    });
+  }
+
+  return entries.sort((left, right) => left.name.localeCompare(right.name));
 }
 
 async function ensureMigrationsTable(client) {
@@ -80,8 +84,6 @@ async function ensureMigrationsTable(client) {
 }
 
 async function listAppliedMigrations(client) {
-  await ensureMigrationsTable(client);
-
   const result = await client.execute(
     `SELECT "name", "checksum" FROM "${migrationsTableName}" ORDER BY "name" ASC`,
   );
@@ -105,8 +107,11 @@ async function listUserTables(client) {
 
 async function applyPendingMigrations(client) {
   const migrationEntries = listMigrationEntries();
-  const appliedMigrations = await listAppliedMigrations(client);
-  const userTables = await listUserTables(client);
+  await ensureMigrationsTable(client);
+  const [appliedMigrations, userTables] = await Promise.all([
+    listAppliedMigrations(client),
+    listUserTables(client),
+  ]);
 
   if (appliedMigrations.size === 0 && userTables.length > 1) {
     throw new Error(
@@ -114,7 +119,9 @@ async function applyPendingMigrations(client) {
     );
   }
 
-  for (const entry of migrationEntries) {
+  await migrationEntries.reduce(async (previous, entry) => {
+    await previous;
+
     const appliedChecksum = appliedMigrations.get(entry.name);
 
     if (appliedChecksum) {
@@ -125,7 +132,7 @@ async function applyPendingMigrations(client) {
       }
 
       console.log(`skip ${entry.name}`);
-      continue;
+      return;
     }
 
     console.log(`apply ${entry.name}`);
@@ -134,7 +141,7 @@ async function applyPendingMigrations(client) {
       sql: `INSERT INTO "${migrationsTableName}" ("name", "checksum") VALUES (?, ?)`,
       args: [entry.name, entry.checksum],
     });
-  }
+  }, Promise.resolve());
 }
 
 module.exports = {
