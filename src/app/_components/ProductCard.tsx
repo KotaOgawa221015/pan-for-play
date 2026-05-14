@@ -2,7 +2,15 @@
 
 import { ProductCategory } from '@prisma/client';
 import Image from 'next/image';
-import { STATUS_LABELS, STATUS_STYLES, type Product } from '@/types/inventory';
+import { useOptimistic, useTransition } from 'react';
+import { updateProductStatus } from '@/features/inventory/actions';
+import {
+  PRODUCT_STATUSES,
+  STATUS_LABELS,
+  STATUS_STYLES,
+  type Product,
+  type ProductStatus,
+} from '@/types/inventory';
 
 type Props = {
   product: Product;
@@ -34,10 +42,33 @@ function formatRelativeTime(value: string): string {
 }
 
 export function ProductCard({ product }: Props) {
-  const updatedLabel = formatRelativeTime(product.updatedAt);
+  const [optimisticStatus, setOptimisticStatus] = useOptimistic(
+    product.status,
+    (_current, next: ProductStatus) => next,
+  );
+  const [isPending, startTransition] = useTransition();
+  const changedLabel = product.lastStatusChangedAt
+    ? formatRelativeTime(product.lastStatusChangedAt)
+    : null;
 
   const iconSrc =
     product.category === ProductCategory.SOUP ? '/soup.png' : '/bread.png';
+
+  const handleStatusChange = (nextStatus: ProductStatus) => {
+    if (nextStatus === optimisticStatus) {
+      return;
+    }
+
+    startTransition(async () => {
+      setOptimisticStatus(nextStatus);
+
+      try {
+        await updateProductStatus(product.id, nextStatus);
+      } catch (error) {
+        console.error('Failed to update product status:', error);
+      }
+    });
+  };
 
   return (
     <div className="flex flex-col h-full p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
@@ -58,17 +89,45 @@ export function ProductCard({ product }: Props) {
       <div className="flex flex-wrap items-start justify-center gap-x-3 gap-y-1 min-h-10 mb-2">
         <span
           className={`px-3 py-0.5 rounded-full text-[11px] font-bold tracking-wider shrink-0 ${
-            STATUS_STYLES[product.status].badge
+            STATUS_STYLES[optimisticStatus].badge
           }`}
         >
-          {STATUS_LABELS[product.status]}
+          {STATUS_LABELS[optimisticStatus]}
         </span>
         <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-0.5 text-[11px] font-bold tracking-wider text-zinc-600 dark:text-zinc-300">
           {product.count} 個
         </span>
-        <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
-          最終更新 {updatedLabel}
-        </span>
+        {changedLabel && product.lastStatusChangedByName ? (
+          <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
+            状態変更 {product.lastStatusChangedByName}・{changedLabel}
+          </span>
+        ) : isPending ? (
+          <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
+            更新中...
+          </span>
+        ) : null}
+      </div>
+
+      <div className="mt-4 flex gap-2">
+        {PRODUCT_STATUSES.map((status) => {
+          const isActive = optimisticStatus === status;
+          const styles = STATUS_STYLES[status];
+
+          return (
+            <button
+              key={status}
+              type="button"
+              onClick={() => handleStatusChange(status)}
+              disabled={isPending}
+              aria-pressed={isActive}
+              className={`flex-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition ${
+                isActive ? styles.active : styles.inactive
+              } ${isPending ? 'opacity-70' : ''}`}
+            >
+              {STATUS_LABELS[status]}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

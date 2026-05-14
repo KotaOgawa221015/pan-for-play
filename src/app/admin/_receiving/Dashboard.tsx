@@ -61,7 +61,7 @@ export function Dashboard({ recentHistory }: Props) {
     try {
       await applyReceivingReview(input);
       setDraft(null);
-      setNotice('納品書の内容を在庫へ反映しました。');
+      setNotice('納品書の内容を現在在庫として公開しました。');
     } catch (error) {
       setErrorMessage(
         error instanceof Error ? error.message : '納品書の反映に失敗しました。',

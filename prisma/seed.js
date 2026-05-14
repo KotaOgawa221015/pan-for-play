@@ -53,9 +53,48 @@ function minutesAgo(now, minutes) {
   return new Date(now.getTime() - minutes * 60000);
 }
 
+function getStatusByProduct(lines) {
+  const statuses = new Map();
+
+  for (const line of lines) {
+    statuses.set(line.productId, statusFromCount(line.count));
+  }
+
+  return statuses;
+}
+
+function buildStatusChanges(previousLines, nextLines) {
+  const previousStatuses = getStatusByProduct(previousLines);
+  const nextStatuses = getStatusByProduct(nextLines);
+
+  const changes = [];
+
+  for (const productId of nextStatuses.keys()) {
+    const previousStatus = previousStatuses.get(productId) ?? null;
+    const nextStatus = nextStatuses.get(productId);
+
+    if (!nextStatus) {
+      continue;
+    }
+
+    if (previousStatus === nextStatus) {
+      continue;
+    }
+
+    changes.push({
+      productId,
+      previousStatus,
+      nextStatus,
+    });
+  }
+
+  return changes;
+}
+
 async function main() {
   await prisma.$transaction([
-    prisma.inventoryCheck.deleteMany(),
+    prisma.inventoryStatusChange.deleteMany(),
+    prisma.inventoryPublication.deleteMany(),
     prisma.uploadBatchLine.deleteMany(),
     prisma.uploadBatch.deleteMany(),
     prisma.account.deleteMany(),
@@ -103,61 +142,98 @@ async function main() {
     products.map((product) => [product.name, product]),
   );
   const now = new Date();
+  const publications = [];
 
-  const appliedBatches = receivingHistoryFixture.batches.filter(
-    (batch) => batch.processingStatus === 'APPLIED',
-  );
+  for (const history of receivingHistoryFixture.batches) {
+    const processedAt = minutesAgo(now, history.processedMinutesAgo);
 
-  if (appliedBatches.length !== 1) {
-    throw new Error(
-      'Receiving history fixture must contain exactly one APPLIED batch.',
-    );
-  }
+    const batch = await prisma.uploadBatch.create({
+      data: {
+        uploadedByUserId: adminUser.id,
+        originalFileName: history.originalFileName,
+        storagePath: null,
+        processingStatus: 'PROCESSED',
+        processedAt,
+      },
+    });
 
-  await Promise.all(
-    receivingHistoryFixture.batches.map(async (history) => {
-      const processedAt = minutesAgo(now, history.processedMinutesAgo);
-      const appliedAt = minutesAgo(now, history.appliedMinutesAgo);
-      const revertedAt = minutesAgo(now, history.revertedMinutesAgo);
+    const publicationLines = [];
 
-      const batch = await prisma.uploadBatch.create({
+    for (const [index, product] of history.products.entries()) {
+      const matchedProduct = productByName.get(product.name);
+
+      if (!matchedProduct) {
+        throw new Error(
+          `Seed receiving product is missing from catalog: ${product.name}`,
+        );
+      }
+
+      await prisma.uploadBatchLine.create({
         data: {
-          uploadedByUserId: adminUser.id,
-          originalFileName: history.originalFileName,
-          storagePath: null,
-          processingStatus: history.processingStatus,
-          processedAt,
-          appliedAt,
-          revertedAt,
+          uploadBatchId: batch.id,
+          lineNumber: index + 1,
+          rawText: product.name,
+          count: product.count,
+          matchedProductId: matchedProduct.id,
+          matchStatus: 'MATCHED',
         },
       });
 
-      await Promise.all(
-        history.products.map(async (product, index) => {
-          const matchedProduct = productByName.get(product.name);
-          if (!matchedProduct) {
-            throw new Error(
-              `Seed receiving product is missing: ${product.name}`,
-            );
-          }
+      publicationLines.push({
+        productId: matchedProduct.id,
+        count: product.count,
+      });
+    }
 
-          const status = statusFromCount(product.count);
-
-          await prisma.uploadBatchLine.create({
-            data: {
-              uploadBatchId: batch.id,
-              lineNumber: index + 1,
-              rawText: product.name,
-              count: product.count,
-              matchedProductId: matchedProduct.id,
-              matchStatus: 'MATCHED',
-              appliedStatus: status,
-            },
-          });
-        }),
+    const publishedAt = minutesAgo(now, history.publishedMinutesAgo);
+    if (!publishedAt) {
+      throw new Error(
+        `Seed receiving publication time is required: ${history.originalFileName}`,
       );
-    }),
-  );
+    }
+
+    publications.push({
+      batchId: batch.id,
+      publishedAt,
+      publicationLines,
+    });
+  }
+
+  publications.sort((left, right) => left.publishedAt - right.publishedAt);
+
+  let previousPublicationLines = [];
+
+  for (const publication of publications) {
+    const createdPublication = await prisma.inventoryPublication.create({
+      data: {
+        uploadBatchId: publication.batchId,
+        publishedByUserId: adminUser.id,
+        publishedAt: publication.publishedAt,
+        createdAt: publication.publishedAt,
+      },
+    });
+
+    const statusChanges = buildStatusChanges(
+      previousPublicationLines,
+      publication.publicationLines,
+    );
+
+    for (const change of statusChanges) {
+      await prisma.inventoryStatusChange.create({
+        data: {
+          publicationId: createdPublication.id,
+          productId: change.productId,
+          changedByUserId: adminUser.id,
+          previousStatus: change.previousStatus,
+          nextStatus: change.nextStatus,
+          changedAt: publication.publishedAt,
+          createdAt: publication.publishedAt,
+        },
+      });
+    }
+
+    previousPublicationLines = publication.publicationLines;
+  }
 
   console.log('Seed data created successfully.');
 }

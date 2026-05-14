@@ -31,7 +31,6 @@ export async function createReviewBatch(input: {
             count: line.count,
             matchedProductId: line.selectedProductId,
             matchStatus: line.matchStatus,
-            appliedStatus: line.appliedStatus,
           },
         }),
       ),
@@ -57,7 +56,6 @@ export async function createReviewBatch(input: {
           count: createdLine.count,
           selectedProductId: createdLine.matchedProductId,
           matchStatus: createdLine.matchStatus,
-          appliedStatus: createdLine.appliedStatus,
         };
       });
 
@@ -80,22 +78,44 @@ export async function createReviewBatch(input: {
 }
 
 export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
-  const batches = await prisma.uploadBatch.findMany({
-    orderBy: { createdAt: 'desc' },
-    take: 10,
-    include: {
-      lines: {
-        orderBy: { lineNumber: 'asc' },
-        include: {
-          matchedProduct: {
-            select: {
-              name: true,
+  const [currentPublication, batches] = await Promise.all([
+    prisma.inventoryPublication.findFirst({
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+      select: {
+        uploadBatchId: true,
+      },
+    }),
+    prisma.uploadBatch.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      include: {
+        lines: {
+          orderBy: { lineNumber: 'asc' },
+          include: {
+            matchedProduct: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+        inventoryPublications: {
+          orderBy: [
+            { publishedAt: 'desc' },
+            { createdAt: 'desc' },
+            { id: 'desc' },
+          ],
+          include: {
+            publishedByUser: {
+              select: {
+                name: true,
+              },
             },
           },
         },
       },
-    },
-  });
+    }),
+  ]);
 
   return batches.map((batch) => ({
     id: batch.id,
@@ -103,11 +123,13 @@ export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
     processingStatus: batch.processingStatus,
     createdAt: batch.createdAt.toISOString(),
     processedAt: batch.processedAt?.toISOString() ?? null,
-    appliedAt: batch.appliedAt?.toISOString() ?? null,
-    revertedAt: batch.revertedAt?.toISOString() ?? null,
     lineCount: batch.lines.length,
-    appliedLineCount:
-      batch.processingStatus === 'APPLIED' ? batch.lines.length : 0,
+    publicationCount: batch.inventoryPublications.length,
+    lastPublishedAt:
+      batch.inventoryPublications[0]?.publishedAt.toISOString() ?? null,
+    lastPublishedByName:
+      batch.inventoryPublications[0]?.publishedByUser.name ?? null,
+    isCurrent: currentPublication?.uploadBatchId === batch.id,
     lines: batch.lines.map((line) => ({
       id: line.id,
       name: line.rawText,

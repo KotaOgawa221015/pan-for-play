@@ -21,6 +21,175 @@ async function requireCurrentUserId() {
   return (await requireAdminUser()).id;
 }
 
+type PublicationLine = {
+  matchedProductId: string;
+  count: number;
+};
+
+function getLineStatuses(lines: PublicationLine[]) {
+  return new Map(
+    lines.map((line) => [
+      line.matchedProductId,
+      getProductStatusFromCount(line.count),
+    ]),
+  );
+}
+
+function buildStatusChanges(input: {
+  currentStatuses: Map<string, ReturnType<typeof getProductStatusFromCount>>;
+  nextLines: PublicationLine[];
+  changedByUserId: string;
+  changedAt: Date;
+}): Array<{
+  productId: string;
+  changedByUserId: string;
+  previousStatus: ReturnType<typeof getProductStatusFromCount> | null;
+  nextStatus: ReturnType<typeof getProductStatusFromCount>;
+  changedAt: Date;
+}> {
+  const nextStatuses = getLineStatuses(input.nextLines);
+
+  return [...nextStatuses.keys()].flatMap((productId) => {
+    const previousStatus = input.currentStatuses.get(productId) ?? null;
+    const nextStatus = nextStatuses.get(productId);
+
+    if (!nextStatus) {
+      return [];
+    }
+
+    if (previousStatus === nextStatus) {
+      return [];
+    }
+
+    return [
+      {
+        productId,
+        changedByUserId: input.changedByUserId,
+        previousStatus,
+        nextStatus,
+        changedAt: input.changedAt,
+      },
+    ];
+  });
+}
+
+async function createInventoryPublication(
+  tx: {
+    inventoryPublication: {
+      create(args: {
+        data: {
+          uploadBatchId: string;
+          publishedByUserId: string;
+          publishedAt: Date;
+        };
+      }): Promise<{ id: string }>;
+    };
+    inventoryStatusChange: {
+      findMany(args: {
+        where: {
+          productId: {
+            in: string[];
+          };
+        };
+        orderBy: Array<
+          | { changedAt: 'asc' | 'desc' }
+          | { createdAt: 'asc' | 'desc' }
+          | { id: 'asc' | 'desc' }
+        >;
+        select: {
+          productId: true;
+          nextStatus: true;
+        };
+      }): Promise<
+        Array<{
+          productId: string;
+          nextStatus: ReturnType<typeof getProductStatusFromCount>;
+        }>
+      >;
+      create(args: {
+        data: {
+          publicationId: string;
+          productId: string;
+          changedByUserId: string;
+          previousStatus: ReturnType<typeof getProductStatusFromCount> | null;
+          nextStatus: ReturnType<typeof getProductStatusFromCount>;
+          changedAt: Date;
+        };
+      }): Promise<unknown>;
+    };
+  },
+  input: {
+    uploadBatchId: string;
+    publishedByUserId: string;
+    publishedAt: Date;
+    previousLines: PublicationLine[];
+    nextLines: PublicationLine[];
+  },
+) {
+  const publication = await tx.inventoryPublication.create({
+    data: {
+      uploadBatchId: input.uploadBatchId,
+      publishedByUserId: input.publishedByUserId,
+      publishedAt: input.publishedAt,
+    },
+  });
+
+  const previousPublishedStatuses = getLineStatuses(input.previousLines);
+  const productIds = [
+    ...new Set(input.nextLines.map((line) => line.matchedProductId)),
+  ];
+  const latestStatusChanges = productIds.length
+    ? await tx.inventoryStatusChange.findMany({
+        where: {
+          productId: {
+            in: productIds,
+          },
+        },
+        orderBy: [{ changedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+        select: {
+          productId: true,
+          nextStatus: true,
+        },
+      })
+    : [];
+
+  const currentStatuses = new Map(previousPublishedStatuses);
+  const changedProductIds = new Set<string>();
+  for (const change of latestStatusChanges) {
+    if (
+      !previousPublishedStatuses.has(change.productId) ||
+      changedProductIds.has(change.productId)
+    ) {
+      continue;
+    }
+
+    currentStatuses.set(change.productId, change.nextStatus);
+    changedProductIds.add(change.productId);
+  }
+
+  const statusChanges = buildStatusChanges({
+    currentStatuses,
+    nextLines: input.nextLines,
+    changedByUserId: input.publishedByUserId,
+    changedAt: input.publishedAt,
+  });
+
+  await Promise.all(
+    statusChanges.map((change) =>
+      tx.inventoryStatusChange.create({
+        data: {
+          publicationId: publication.id,
+          productId: change.productId,
+          changedByUserId: change.changedByUserId,
+          previousStatus: change.previousStatus,
+          nextStatus: change.nextStatus,
+          changedAt: change.changedAt,
+        },
+      }),
+    ),
+  );
+}
+
 export async function startReceivingReview(fileName: string) {
   await requireCurrentUserId();
   const draft = await prepareReviewDraft(fileName, {
@@ -37,21 +206,42 @@ export async function startReceivingReview(fileName: string) {
 }
 
 export async function applyReceivingReview(input: ReviewInput) {
-  await requireCurrentUserId();
+  const currentUserId = await requireCurrentUserId();
   const catalog = await listCatalogProducts();
   const reviewedProducts = validateReviewProducts(input.products, catalog);
   const catalogById = new Map(catalog.map((product) => [product.id, product]));
-  const appliedAt = new Date();
+  const publishedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
-    const batch = await tx.uploadBatch.findUnique({
-      where: { id: input.batchId },
-      include: {
-        lines: {
-          orderBy: { lineNumber: 'asc' },
+    const [batch, currentPublication] = await Promise.all([
+      tx.uploadBatch.findUnique({
+        where: { id: input.batchId },
+        include: {
+          lines: {
+            orderBy: { lineNumber: 'asc' },
+          },
         },
-      },
-    });
+      }),
+      tx.inventoryPublication.findFirst({
+        orderBy: [
+          { publishedAt: 'desc' },
+          { createdAt: 'desc' },
+          { id: 'desc' },
+        ],
+        include: {
+          uploadBatch: {
+            include: {
+              lines: {
+                select: {
+                  count: true,
+                  matchedProductId: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
 
     if (!batch) {
       throw new Error('対象の納品書履歴が存在しません。');
@@ -60,16 +250,6 @@ export async function applyReceivingReview(input: ReviewInput) {
     if (batch.processingStatus !== 'PROCESSED') {
       throw new Error('レビュー待ちの納品書だけを適用できます。');
     }
-
-    await tx.uploadBatch.updateMany({
-      where: {
-        processingStatus: 'APPLIED',
-      },
-      data: {
-        processingStatus: 'REVERTED',
-        revertedAt: appliedAt,
-      },
-    });
 
     const batchLineIds = new Set(batch.lines.map((line) => line.id));
     const missingLine = reviewedProducts.find(
@@ -116,6 +296,8 @@ export async function applyReceivingReview(input: ReviewInput) {
       );
     }
 
+    const nextPublicationLines: PublicationLine[] = [];
+
     const productCategoryUpdates = reviewedProducts.map(async (product) => {
       if (!product.selectedProductId) {
         return;
@@ -148,7 +330,10 @@ export async function applyReceivingReview(input: ReviewInput) {
         throw new Error(`商品の紐付けに失敗しました: ${product.name}`);
       }
 
-      const status = getProductStatusFromCount(product.count);
+      nextPublicationLines.push({
+        matchedProductId,
+        count: product.count,
+      });
 
       await tx.uploadBatchLine.update({
         where: { id: product.lineId },
@@ -157,7 +342,6 @@ export async function applyReceivingReview(input: ReviewInput) {
           count: product.count,
           matchedProductId,
           matchStatus: 'MATCHED',
-          appliedStatus: status,
         },
       });
     });
@@ -167,13 +351,22 @@ export async function applyReceivingReview(input: ReviewInput) {
       Promise.all(batchLineUpdates),
     ]);
 
-    await tx.uploadBatch.update({
-      where: { id: batch.id },
-      data: {
-        processingStatus: 'APPLIED',
-        appliedAt,
-        revertedAt: null,
-      },
+    await createInventoryPublication(tx, {
+      uploadBatchId: batch.id,
+      publishedByUserId: currentUserId,
+      publishedAt,
+      previousLines:
+        currentPublication?.uploadBatch.lines.flatMap((line) =>
+          line.matchedProductId
+            ? [
+                {
+                  matchedProductId: line.matchedProductId,
+                  count: line.count,
+                },
+              ]
+            : [],
+        ) ?? [],
+      nextLines: nextPublicationLines,
     });
   });
 
@@ -182,38 +375,51 @@ export async function applyReceivingReview(input: ReviewInput) {
 }
 
 export async function reapplyReceivingBatch(batchId: string) {
-  await requireCurrentUserId();
-  const appliedAt = new Date();
+  const currentUserId = await requireCurrentUserId();
+  const publishedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
-    const batch = await tx.uploadBatch.findUnique({
-      where: { id: batchId },
-      include: {
-        lines: {
-          orderBy: { lineNumber: 'asc' },
+    const [batch, currentPublication] = await Promise.all([
+      tx.uploadBatch.findUnique({
+        where: { id: batchId },
+        include: {
+          lines: {
+            orderBy: { lineNumber: 'asc' },
+          },
         },
-      },
-    });
+      }),
+      tx.inventoryPublication.findFirst({
+        orderBy: [
+          { publishedAt: 'desc' },
+          { createdAt: 'desc' },
+          { id: 'desc' },
+        ],
+        include: {
+          uploadBatch: {
+            include: {
+              lines: {
+                select: {
+                  count: true,
+                  matchedProductId: true,
+                },
+              },
+            },
+          },
+        },
+      }),
+    ]);
 
     if (!batch) {
       throw new Error('対象の納品書履歴が存在しません。');
     }
 
-    if (batch.processingStatus !== 'REVERTED') {
-      throw new Error(
-        '入れ替えできるのは過去の反映として残っている納品書だけです。',
-      );
+    if (batch.processingStatus !== 'PROCESSED') {
+      throw new Error('公開できるのはレビュー済みの納品書だけです。');
     }
 
-    await tx.uploadBatch.updateMany({
-      where: {
-        processingStatus: 'APPLIED',
-      },
-      data: {
-        processingStatus: 'REVERTED',
-        revertedAt: appliedAt,
-      },
-    });
+    if (currentPublication?.uploadBatchId === batch.id) {
+      throw new Error('この納品書はすでに現在の在庫として公開されています。');
+    }
 
     for (const line of batch.lines) {
       if (!line.matchedProductId) {
@@ -221,13 +427,31 @@ export async function reapplyReceivingBatch(batchId: string) {
       }
     }
 
-    await tx.uploadBatch.update({
-      where: { id: batch.id },
-      data: {
-        processingStatus: 'APPLIED',
-        appliedAt,
-        revertedAt: null,
-      },
+    await createInventoryPublication(tx, {
+      uploadBatchId: batch.id,
+      publishedByUserId: currentUserId,
+      publishedAt,
+      previousLines:
+        currentPublication?.uploadBatch.lines.flatMap((line) =>
+          line.matchedProductId
+            ? [
+                {
+                  matchedProductId: line.matchedProductId,
+                  count: line.count,
+                },
+              ]
+            : [],
+        ) ?? [],
+      nextLines: batch.lines.flatMap((line) =>
+        line.matchedProductId
+          ? [
+              {
+                matchedProductId: line.matchedProductId,
+                count: line.count,
+              },
+            ]
+          : [],
+      ),
     });
   });
 
@@ -241,16 +465,21 @@ export async function deleteReceivingBatch(batchId: string) {
   await prisma.$transaction(async (tx) => {
     const batch = await tx.uploadBatch.findUnique({
       where: { id: batchId },
+      include: {
+        _count: {
+          select: {
+            inventoryPublications: true,
+          },
+        },
+      },
     });
 
     if (!batch) {
       throw new Error('対象の納品書履歴が存在しません。');
     }
 
-    if (batch.processingStatus === 'APPLIED') {
-      throw new Error(
-        '現在反映中の納品書は削除できません。別の納品書を適用してください。',
-      );
+    if (batch._count.inventoryPublications > 0) {
+      throw new Error('公開履歴から参照されている納品書は削除できません。');
     }
 
     await tx.uploadBatchLine.deleteMany({

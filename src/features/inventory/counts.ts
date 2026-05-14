@@ -15,14 +15,3 @@ export function getProductStatusFromCount(count: number): ProductStatus {
 
   return 'PLENTIFUL';
 }
-
-export function getRepresentativeCountForStatus(status: ProductStatus): number {
-  switch (status) {
-    case 'SOLD_OUT':
-      return 0;
-    case 'FEW_LEFT':
-      return 5;
-    case 'PLENTIFUL':
-      return 6;
-  }
-}

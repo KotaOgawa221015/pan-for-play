@@ -3,7 +3,6 @@ import type {
   UploadBatchLineMatchStatus,
   UploadBatchProcessingStatus,
 } from '@prisma/client';
-import type { ProductStatus } from '@/types/inventory';
 import type { CatalogProduct } from '@/features/product-catalog/products';
 
 export type ReviewLine = {
@@ -13,7 +12,6 @@ export type ReviewLine = {
   count: number;
   selectedProductId: string | null;
   matchStatus: UploadBatchLineMatchStatus;
-  appliedStatus: ProductStatus;
 };
 
 export type ReviewDraft = {
@@ -48,9 +46,10 @@ export type HistoryEntry = {
   processingStatus: UploadBatchProcessingStatus;
   createdAt: string;
   processedAt: string | null;
-  appliedAt: string | null;
-  revertedAt: string | null;
   lineCount: number;
-  appliedLineCount: number;
+  publicationCount: number;
+  lastPublishedAt: string | null;
+  lastPublishedByName: string | null;
+  isCurrent: boolean;
   lines: HistoryLine[];
 };

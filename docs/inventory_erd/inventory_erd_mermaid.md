@@ -1,6 +1,6 @@
 # Inventory ERD in Mermaid
 
-This document provides the same inventory model as a Mermaid `erDiagram`.
+This document provides the current inventory model as a Mermaid `erDiagram`.
 
 Nullable columns are marked with a `"NULL"` comment. Required columns omit nullability.
 
@@ -10,18 +10,23 @@ Nullable columns are marked with a `"NULL"` comment. Required columns omit nulla
 erDiagram
     direction LR
 
-    PRODUCT ||--o{ INVENTORY_CHECK : has
-    USER ||--o{ INVENTORY_CHECK : creates
     USER ||--o{ UPLOAD_BATCH : uploads
+    USER ||--o{ INVENTORY_PUBLICATION : publishes
+    USER ||--o{ INVENTORY_STATUS_CHANGE : changes
     USER ||--o{ ACCOUNT : links
     USER ||--o{ SESSION : owns
+
+    PRODUCT ||--o{ UPLOAD_BATCH_LINE : matched_by
+    PRODUCT ||--o{ INVENTORY_STATUS_CHANGE : changes
+
     UPLOAD_BATCH ||--|{ UPLOAD_BATCH_LINE : contains
-    UPLOAD_BATCH ||--o{ INVENTORY_CHECK : sources
-    PRODUCT ||--o{ UPLOAD_BATCH_LINE : matches
+    UPLOAD_BATCH ||--o{ INVENTORY_PUBLICATION : published_as
+    INVENTORY_PUBLICATION ||--|{ INVENTORY_STATUS_CHANGE : records
 
     PRODUCT {
         string id PK
         string name UK
+        string category
         boolean isActive
         datetime createdAt
         datetime updatedAt
@@ -62,23 +67,9 @@ erDiagram
     }
 
     VERIFICATION_TOKEN {
-        string identifier
-        string token
+        string identifier PK
+        string token PK
         datetime expires
-    }
-
-    INVENTORY_CHECK {
-        string id PK
-        string productId FK
-        string checkedByUserId FK
-        string uploadBatchId FK "NULL"
-        string status
-        int count
-        string sourceType
-        boolean isActive
-        datetime checkedAt
-        string note "NULL"
-        datetime createdAt
     }
 
     UPLOAD_BATCH {
@@ -88,8 +79,6 @@ erDiagram
         string storagePath "NULL"
         string processingStatus
         datetime processedAt "NULL"
-        datetime appliedAt "NULL"
-        datetime revertedAt "NULL"
         datetime createdAt
         datetime updatedAt
     }
@@ -102,15 +91,34 @@ erDiagram
         int count
         string matchedProductId FK "NULL"
         string matchStatus
-        string appliedStatus
+        datetime createdAt
+    }
+
+    INVENTORY_PUBLICATION {
+        string id PK
+        string uploadBatchId FK
+        string publishedByUserId FK
+        datetime publishedAt
+        datetime createdAt
+    }
+
+    INVENTORY_STATUS_CHANGE {
+        string id PK
+        string publicationId FK "NULL"
+        string productId FK
+        string changedByUserId FK
+        string previousStatus "NULL"
+        string nextStatus
+        datetime changedAt
         datetime createdAt
     }
 ```
 
 Notes:
 
-- Current inventory is derived from the latest active `INVENTORY_CHECK` for each `PRODUCT`.
-- `FEW_LEFT` means 1 to 5 items remaining.
-- `UPLOAD_BATCH_LINE` represents extracted product candidates from one upload, not a persistent property of `PRODUCT`.
-- Credentials + JWT uses `USER` for authentication state. OAuth uses `ACCOUNT`, database sessions use `SESSION`, and email-token flows use `VERIFICATION_TOKEN`.
+- Current inventory uses the latest `INVENTORY_PUBLICATION` to select the applied delivery note and its reviewed lines.
+- `UPLOAD_BATCH` represents a reviewed delivery note, not the currently active inventory by itself.
+- `INVENTORY_PUBLICATION` is append-only. Re-publishing an old batch creates a new publication row.
+- `INVENTORY_STATUS_CHANGE` records only user-visible status transitions. Quantity-only movement is not a change log event.
+- Product status is derived from `count`; `FEW_LEFT` means 1 to 5 items remaining.
 - `VERIFICATION_TOKEN` is an independent token table and does not reference `USER`.

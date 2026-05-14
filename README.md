@@ -1,6 +1,6 @@
 # Pancolle
 
-Pancolle is a simple inventory status board for frozen bread and soup. Each product has three status levels: plentiful, few left, and sold out. Users can update status with a single tap and the change is shared immediately.
+Pancolle is a simple inventory status board for frozen bread and soup. Each product has three status levels: plentiful, few left, and sold out. Users can update status from the top-page cards with a single tap, and reviewed delivery notes can refresh the current board in bulk.
 
 ## Requirements
 

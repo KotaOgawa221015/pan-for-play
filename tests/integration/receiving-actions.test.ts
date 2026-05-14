@@ -4,12 +4,15 @@ const {
   transaction,
   uploadBatchCreate,
   uploadBatchUpdate,
-  uploadBatchUpdateMany,
   uploadBatchFindUnique,
   uploadBatchDelete,
   uploadBatchLineCreate,
   uploadBatchLineUpdate,
   uploadBatchLineDeleteMany,
+  inventoryPublicationFindFirst,
+  inventoryPublicationCreate,
+  inventoryStatusChangeFindMany,
+  inventoryStatusChangeCreate,
   productCreate,
   productUpdate,
   revalidatePath,
@@ -20,12 +23,15 @@ const {
   transaction: vi.fn(),
   uploadBatchCreate: vi.fn(),
   uploadBatchUpdate: vi.fn(),
-  uploadBatchUpdateMany: vi.fn(),
   uploadBatchFindUnique: vi.fn(),
   uploadBatchDelete: vi.fn(),
   uploadBatchLineCreate: vi.fn(),
   uploadBatchLineUpdate: vi.fn(),
   uploadBatchLineDeleteMany: vi.fn(),
+  inventoryPublicationFindFirst: vi.fn(),
+  inventoryPublicationCreate: vi.fn(),
+  inventoryStatusChangeFindMany: vi.fn(),
+  inventoryStatusChangeCreate: vi.fn(),
   productCreate: vi.fn(),
   productUpdate: vi.fn(),
   revalidatePath: vi.fn(),
@@ -40,7 +46,6 @@ vi.mock('@/lib/prisma', () => ({
     uploadBatch: {
       create: uploadBatchCreate,
       update: uploadBatchUpdate,
-      updateMany: uploadBatchUpdateMany,
       findUnique: uploadBatchFindUnique,
       delete: uploadBatchDelete,
     },
@@ -48,6 +53,14 @@ vi.mock('@/lib/prisma', () => ({
       create: uploadBatchLineCreate,
       update: uploadBatchLineUpdate,
       deleteMany: uploadBatchLineDeleteMany,
+    },
+    inventoryPublication: {
+      findFirst: inventoryPublicationFindFirst,
+      create: inventoryPublicationCreate,
+    },
+    inventoryStatusChange: {
+      findMany: inventoryStatusChangeFindMany,
+      create: inventoryStatusChangeCreate,
     },
     product: {
       create: productCreate,
@@ -92,12 +105,15 @@ describe('receiving actions', () => {
     transaction.mockReset();
     uploadBatchCreate.mockReset();
     uploadBatchUpdate.mockReset();
-    uploadBatchUpdateMany.mockReset();
     uploadBatchFindUnique.mockReset();
     uploadBatchDelete.mockReset();
     uploadBatchLineCreate.mockReset();
     uploadBatchLineUpdate.mockReset();
     uploadBatchLineDeleteMany.mockReset();
+    inventoryPublicationFindFirst.mockReset();
+    inventoryPublicationCreate.mockReset();
+    inventoryStatusChangeFindMany.mockReset();
+    inventoryStatusChangeCreate.mockReset();
     productCreate.mockReset();
     productUpdate.mockReset();
     revalidatePath.mockReset();
@@ -110,7 +126,6 @@ describe('receiving actions', () => {
         uploadBatch: {
           create: uploadBatchCreate,
           update: uploadBatchUpdate,
-          updateMany: uploadBatchUpdateMany,
           findUnique: uploadBatchFindUnique,
           delete: uploadBatchDelete,
         },
@@ -118,6 +133,14 @@ describe('receiving actions', () => {
           create: uploadBatchLineCreate,
           update: uploadBatchLineUpdate,
           deleteMany: uploadBatchLineDeleteMany,
+        },
+        inventoryPublication: {
+          findFirst: inventoryPublicationFindFirst,
+          create: inventoryPublicationCreate,
+        },
+        inventoryStatusChange: {
+          findMany: inventoryStatusChangeFindMany,
+          create: inventoryStatusChangeCreate,
         },
         product: {
           create: productCreate,
@@ -147,7 +170,6 @@ describe('receiving actions', () => {
       count: data.count,
       matchedProductId: data.matchedProductId ?? null,
       matchStatus: data.matchStatus,
-      appliedStatus: data.appliedStatus,
     }));
     uploadBatchUpdate.mockResolvedValue({});
 
@@ -177,7 +199,7 @@ describe('receiving actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/admin');
   });
 
-  it('applies reviewed lines and updates current receiving batch', async () => {
+  it('applies reviewed lines and creates a publication with status changes', async () => {
     requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
     listCatalogProducts.mockResolvedValue([
       { id: 'existing-1', name: 'クラムチャウダー', category: 'BREAD' },
@@ -190,14 +212,27 @@ describe('receiving actions', () => {
         { id: 'line-2', lineNumber: 2 },
       ],
     });
+    inventoryPublicationFindFirst.mockResolvedValue({
+      uploadBatch: {
+        lines: [
+          {
+            matchedProductId: 'existing-1',
+            count: 8,
+          },
+        ],
+      },
+    });
+    inventoryPublicationCreate.mockResolvedValue({
+      id: 'publication-1',
+    });
+    inventoryStatusChangeFindMany.mockResolvedValue([]);
     productCreate.mockResolvedValue({
       id: 'created-1',
       name: '新作パン',
       category: 'BREAD',
     });
     uploadBatchLineUpdate.mockResolvedValue({});
-    uploadBatchUpdate.mockResolvedValue({});
-    uploadBatchUpdateMany.mockResolvedValue({});
+    inventoryStatusChangeCreate.mockResolvedValue({});
 
     await applyReceivingReview({
       batchId: 'batch-1',
@@ -236,7 +271,6 @@ describe('receiving actions', () => {
         count: 4,
         matchedProductId: 'existing-1',
         matchStatus: 'MATCHED',
-        appliedStatus: 'FEW_LEFT',
       }),
     });
     expect(uploadBatchLineUpdate).toHaveBeenNthCalledWith(2, {
@@ -246,28 +280,152 @@ describe('receiving actions', () => {
         count: 9,
         matchedProductId: 'created-1',
         matchStatus: 'MATCHED',
-        appliedStatus: 'PLENTIFUL',
       }),
     });
-    expect(uploadBatchUpdate).toHaveBeenCalledWith({
-      where: { id: 'batch-1' },
-      data: expect.objectContaining({
-        processingStatus: 'APPLIED',
-        appliedAt: expect.any(Date),
-        revertedAt: null,
-      }),
-    });
-    expect(uploadBatchUpdateMany).toHaveBeenCalledWith({
-      where: {
-        processingStatus: 'APPLIED',
-      },
+    expect(inventoryPublicationCreate).toHaveBeenCalledWith({
       data: {
-        processingStatus: 'REVERTED',
-        revertedAt: expect.any(Date),
+        uploadBatchId: 'batch-1',
+        publishedByUserId: 'user-1',
+        publishedAt: expect.any(Date),
+      },
+    });
+    expect(inventoryStatusChangeCreate).toHaveBeenNthCalledWith(1, {
+      data: {
+        publicationId: 'publication-1',
+        productId: 'existing-1',
+        changedByUserId: 'user-1',
+        previousStatus: 'PLENTIFUL',
+        nextStatus: 'FEW_LEFT',
+        changedAt: expect.any(Date),
+      },
+    });
+    expect(inventoryStatusChangeCreate).toHaveBeenNthCalledWith(2, {
+      data: {
+        publicationId: 'publication-1',
+        productId: 'created-1',
+        changedByUserId: 'user-1',
+        previousStatus: null,
+        nextStatus: 'PLENTIFUL',
+        changedAt: expect.any(Date),
       },
     });
     expect(revalidatePath).toHaveBeenCalledWith('/');
     expect(revalidatePath).toHaveBeenCalledWith('/admin');
+  });
+
+  it('does not mark missing previous products as sold out during publication', async () => {
+    requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
+    listCatalogProducts.mockResolvedValue([
+      { id: 'existing-1', name: 'クラムチャウダー', category: 'SOUP' },
+    ]);
+    uploadBatchFindUnique.mockResolvedValue({
+      id: 'batch-1',
+      processingStatus: 'PROCESSED',
+      lines: [{ id: 'line-1', lineNumber: 1 }],
+    });
+    inventoryPublicationFindFirst.mockResolvedValue({
+      uploadBatch: {
+        lines: [
+          {
+            matchedProductId: 'missing-from-next-invoice',
+            count: 3,
+          },
+        ],
+      },
+    });
+    inventoryPublicationCreate.mockResolvedValue({
+      id: 'publication-1',
+    });
+    inventoryStatusChangeFindMany.mockResolvedValue([]);
+    uploadBatchLineUpdate.mockResolvedValue({});
+    inventoryStatusChangeCreate.mockResolvedValue({});
+
+    await applyReceivingReview({
+      batchId: 'batch-1',
+      products: [
+        {
+          lineId: 'line-1',
+          name: 'クラムチャウダー',
+          category: 'SOUP',
+          count: 4,
+          selectedProductId: 'existing-1',
+        },
+      ],
+    });
+
+    expect(inventoryStatusChangeCreate).toHaveBeenCalledTimes(1);
+    expect(inventoryStatusChangeCreate).toHaveBeenCalledWith({
+      data: {
+        publicationId: 'publication-1',
+        productId: 'existing-1',
+        changedByUserId: 'user-1',
+        previousStatus: null,
+        nextStatus: 'FEW_LEFT',
+        changedAt: expect.any(Date),
+      },
+    });
+  });
+
+  it('compares publication-derived status with the latest visible manual status', async () => {
+    requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
+    listCatalogProducts.mockResolvedValue([
+      { id: 'existing-1', name: '食パン', category: 'BREAD' },
+    ]);
+    uploadBatchFindUnique.mockResolvedValue({
+      id: 'batch-1',
+      processingStatus: 'PROCESSED',
+      lines: [{ id: 'line-1', lineNumber: 1 }],
+    });
+    inventoryPublicationFindFirst.mockResolvedValue({
+      uploadBatch: {
+        lines: [
+          {
+            matchedProductId: 'existing-1',
+            count: 8,
+          },
+        ],
+      },
+    });
+    inventoryPublicationCreate.mockResolvedValue({
+      id: 'publication-1',
+    });
+    inventoryStatusChangeFindMany.mockResolvedValue([
+      {
+        productId: 'existing-1',
+        nextStatus: 'SOLD_OUT',
+      },
+      {
+        productId: 'existing-1',
+        nextStatus: 'FEW_LEFT',
+      },
+    ]);
+    uploadBatchLineUpdate.mockResolvedValue({});
+    inventoryStatusChangeCreate.mockResolvedValue({});
+
+    await applyReceivingReview({
+      batchId: 'batch-1',
+      products: [
+        {
+          lineId: 'line-1',
+          name: '食パン',
+          category: 'BREAD',
+          count: 8,
+          selectedProductId: 'existing-1',
+        },
+      ],
+    });
+
+    expect(inventoryStatusChangeCreate).toHaveBeenCalledTimes(1);
+    expect(inventoryStatusChangeCreate).toHaveBeenCalledWith({
+      data: {
+        publicationId: 'publication-1',
+        productId: 'existing-1',
+        changedByUserId: 'user-1',
+        previousStatus: 'SOLD_OUT',
+        nextStatus: 'PLENTIFUL',
+        changedAt: expect.any(Date),
+      },
+    });
   });
 
   it('rejects duplicate reviewed products before persistence', async () => {
@@ -305,37 +463,53 @@ describe('receiving actions', () => {
 
   it('reapplies and deletes batches through history actions', async () => {
     requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
+    inventoryPublicationFindFirst
+      .mockResolvedValueOnce({
+        uploadBatchId: 'batch-2',
+        uploadBatch: {
+          lines: [
+            {
+              matchedProductId: 'product-2',
+              count: 9,
+            },
+          ],
+        },
+      })
+      .mockResolvedValueOnce(null);
+    inventoryPublicationCreate.mockResolvedValue({
+      id: 'publication-2',
+    });
+    inventoryStatusChangeFindMany.mockResolvedValue([]);
+    inventoryStatusChangeCreate.mockResolvedValue({});
     uploadBatchFindUnique
       .mockResolvedValueOnce({
         id: 'batch-1',
-        processingStatus: 'REVERTED',
+        processingStatus: 'PROCESSED',
         lines: [
           {
             matchedProductId: 'product-1',
-            appliedStatus: 'FEW_LEFT',
             count: 3,
           },
         ],
       })
       .mockResolvedValueOnce({
         id: 'batch-1',
-        processingStatus: 'REVERTED',
+        processingStatus: 'PROCESSED',
+        _count: {
+          inventoryPublications: 0,
+        },
       });
-    uploadBatchUpdate.mockResolvedValue({});
-    uploadBatchUpdateMany.mockResolvedValue({});
     uploadBatchLineDeleteMany.mockResolvedValue({});
     uploadBatchDelete.mockResolvedValue({});
 
     await reapplyReceivingBatch('batch-1');
     await deleteReceivingBatch('batch-1');
 
-    expect(uploadBatchUpdateMany).toHaveBeenCalledWith({
-      where: {
-        processingStatus: 'APPLIED',
-      },
+    expect(inventoryPublicationCreate).toHaveBeenCalledWith({
       data: {
-        processingStatus: 'REVERTED',
-        revertedAt: expect.any(Date),
+        uploadBatchId: 'batch-1',
+        publishedByUserId: 'user-1',
+        publishedAt: expect.any(Date),
       },
     });
     expect(uploadBatchLineDeleteMany).toHaveBeenCalledWith({

@@ -12,7 +12,25 @@ export type Product = {
   category: ProductCategory;
   count: number;
   status: ProductStatus;
-  updatedAt: string;
+  lastStatusChangedAt: string | null;
+  lastStatusChangedByName: string | null;
+};
+
+export type InventoryPublicationChange = {
+  productId: string;
+  productName: string;
+  previousStatus: ProductStatus | null;
+  nextStatus: ProductStatus;
+  changedAt: string;
+  changedByName: string;
+};
+
+export type InventoryPublicationSummary = {
+  originalFileName: string;
+  publishedAt: string;
+  publishedByName: string;
+  publicationChanges: InventoryPublicationChange[];
+  manualChangesAfterPublication: InventoryPublicationChange[];
 };
 
 const STATUS_CATALOG: Record<
