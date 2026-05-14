@@ -15,15 +15,31 @@ export const authConfig = {
   },
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
-      const isLoggedIn = !!auth?.user;
+      const user = auth?.user;
       const isOnLoginPage = nextUrl.pathname === '/login';
+      const isOnSessionClearPage = nextUrl.pathname === '/session/clear';
+      const isOnAdminRoute =
+        nextUrl.pathname === '/admin' || nextUrl.pathname.startsWith('/admin/');
+
+      if (user?.deletedAt) {
+        if (isOnSessionClearPage) return true;
+        return Response.redirect(new URL('/session/clear', nextUrl));
+      }
 
       if (isOnLoginPage) {
-        if (isLoggedIn) return Response.redirect(new URL('/', nextUrl));
+        if (user) return Response.redirect(new URL('/', nextUrl));
         return true;
       }
 
-      return isLoggedIn;
+      if (!user) {
+        return Response.redirect(new URL('/login', nextUrl));
+      }
+
+      if (isOnAdminRoute && user.role !== 'ADMIN') {
+        return Response.redirect(new URL('/', nextUrl));
+      }
+
+      return true;
     },
     async signIn({ user }) {
       if (user.deletedAt) {

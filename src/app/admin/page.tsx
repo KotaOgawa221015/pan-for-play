@@ -1,26 +1,8 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
-import { getSessionStatus } from '@/features/auth/account-access';
 import { getRecentReceivingHistory } from '@/features/receiving/records';
 import { Dashboard } from './_receiving/Dashboard';
 
 export default async function UploadPage() {
-  const session = await getSessionStatus();
-
-  if (session.status === 'invalid') {
-    redirect('/session/clear');
-  }
-
-  if (session.status !== 'authenticated') {
-    redirect('/login');
-  }
-
-  const user = session.user;
-
-  if (user.role !== 'ADMIN') {
-    redirect('/');
-  }
-
   const recentHistory = await getRecentReceivingHistory();
 
   return (
