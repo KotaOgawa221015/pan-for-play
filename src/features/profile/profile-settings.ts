@@ -47,8 +47,8 @@ export async function deleteAccountAction() {
     const googleAccount = user.accounts.find(
       (acc) => acc.provider === 'google',
     );
-    // access_token または refresh_token を使用
-    const token = googleAccount?.access_token || googleAccount?.refresh_token;
+    // accessToken または refreshToken を使用
+    const token = googleAccount?.accessToken || googleAccount?.refreshToken;
 
     if (token) {
       try {
