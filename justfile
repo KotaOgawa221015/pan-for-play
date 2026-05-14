@@ -116,7 +116,7 @@ db-seed:
 
 # Reset the database (caution: deletes all data)
 db-reset:
-    mkdir -p data
+    rm -f data/dev.db data/dev.db-wal data/dev.db-shm
     pnpm db:reset
 
 # Open Prisma Studio to browse/edit data
