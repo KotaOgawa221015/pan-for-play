@@ -1,5 +1,7 @@
 import type { NextAuthConfig } from 'next-auth';
 import Google from 'next-auth/providers/google';
+import Credentials from 'next-auth/providers/credentials'; // 追加
+import { prisma } from '@/lib/prisma'; // 追加（モデル取得用）
 
 export const authConfig = {
   providers: [

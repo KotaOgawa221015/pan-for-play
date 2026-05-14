@@ -80,3 +80,10 @@ export async function requireAdminUser() {
 
   return user;
 }
+
+export async function loginAsAdminAction() {
+  // 開発環境のみ実行可能にする
+  if (process.env.NODE_ENV === 'development') {
+    await signIn('dev-admin', { redirectTo: '/' });
+  }
+}
