@@ -48,13 +48,11 @@ const seedUsers = [
   {
     name: 'admin',
     email: 'admin@example.com',
-    password: 'password123',
     role: 'ADMIN',
   },
   {
     name: 'user',
     email: 'user@example.com',
-    password: 'password456',
     role: 'MEMBER',
   },
 ];
@@ -63,23 +61,13 @@ function statusFromCount(count) {
   if (!Number.isInteger(count) || count < 0) {
     throw new Error(`Invalid inventory count in seed fixture: ${count}`);
   }
-
-  if (count === 0) {
-    return 'SOLD_OUT';
-  }
-
-  if (count <= 5) {
-    return 'FEW_LEFT';
-  }
-
+  if (count === 0) return 'SOLD_OUT';
+  if (count <= 5) return 'FEW_LEFT';
   return 'PLENTIFUL';
 }
 
 function minutesAgo(now, minutes) {
-  if (minutes === null || minutes === undefined) {
-    return null;
-  }
-
+  if (minutes === null || minutes === undefined) return null;
   return new Date(now.getTime() - minutes * 60000);
 }
 
@@ -95,20 +83,12 @@ async function main() {
     prisma.user.deleteMany(),
   ]);
 
-  const usersWithHashes = await Promise.all(
-    seedUsers.map(async (user) => ({
-      ...user,
-      passwordHash: await bcrypt.hash(user.password, 10),
-    })),
-  );
-
   const createdUsers = await Promise.all(
-    usersWithHashes.map((user) =>
+    seedUsers.map((user) =>
       prisma.user.create({
         data: {
           name: user.name,
           email: user.email,
-          passwordHash: user.passwordHash,
           role: user.role,
         },
       }),
@@ -122,14 +102,9 @@ async function main() {
 
   const products = await Promise.all(
     catalogFixture.products.map((product) => {
-      if (!product.name) {
-        throw new Error('Seed product name is required.');
-      }
-
+      if (!product.name) throw new Error('Seed product name is required.');
       if (!productCategories.has(product.category)) {
-        throw new Error(
-          `Seed product category is invalid: ${product.name} (${product.category})`,
-        );
+        throw new Error(`Seed product category is invalid: ${product.name}`);
       }
 
       return prisma.product.create({
@@ -152,9 +127,7 @@ async function main() {
   );
 
   if (appliedBatches.length !== 1) {
-    throw new Error(
-      'Receiving history fixture must contain exactly one APPLIED batch.',
-    );
+    throw new Error('Receiving history fixture must contain exactly one APPLIED batch.');
   }
 
   await Promise.all(
@@ -178,11 +151,8 @@ async function main() {
       await Promise.all(
         history.products.map(async (product, index) => {
           const matchedProduct = productByName.get(product.name);
-
           if (!matchedProduct) {
-            throw new Error(
-              `Seed receiving product is missing from catalog: ${product.name}`,
-            );
+            throw new Error(`Seed receiving product is missing: ${product.name}`);
           }
 
           const status = statusFromCount(product.count);
@@ -202,6 +172,8 @@ async function main() {
       );
     }),
   );
+
+  console.log('Seed data created successfully.');
 }
 
 main()
