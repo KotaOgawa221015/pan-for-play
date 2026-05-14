@@ -1,5 +1,6 @@
 require('dotenv/config');
 const bcrypt = require('bcryptjs');
+const Database = require('better-sqlite3');
 
 const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
 const { PrismaClient, ProductCategory } = require('@prisma/client');
@@ -11,6 +12,11 @@ const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
   throw new Error('DATABASE_URL is required to run the seed script.');
 }
+
+const dbPath = databaseUrl.replace(/^(file:|sqlite:)/, '');
+const sqlite = new Database(dbPath);
+sqlite.pragma('journal_mode = WAL');
+sqlite.close();
 
 const prisma = new PrismaClient({
   adapter: new PrismaBetterSqlite3({ url: databaseUrl }),

@@ -1,6 +1,6 @@
-import { createClient } from '@libsql/client';
+import Database from 'better-sqlite3';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import { PrismaLibSQL } from '@prisma/adapter-libsql';
+import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
@@ -17,6 +17,12 @@ export const prisma =
   globalForPrisma.prisma ??
   (() => {
     if (databaseUrl.startsWith('file:') || databaseUrl.startsWith('sqlite:')) {
+      const dbPath = databaseUrl.replace(/^(file:|sqlite:)/, '');
+      // Set WAL mode via a temporary connection (persistent in DB file)
+      const sqlite = new Database(dbPath);
+      sqlite.pragma('journal_mode = WAL');
+      sqlite.close();
+
       return new PrismaClient({
         adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
       });
@@ -30,13 +36,11 @@ export const prisma =
       );
     }
 
-    const libsql = createClient({
-      url: databaseUrl,
-      authToken,
-    });
-
     return new PrismaClient({
-      adapter: new PrismaLibSQL(libsql),
+      adapter: new PrismaLibSql({
+        url: databaseUrl,
+        authToken,
+      }),
     });
   })();
 
