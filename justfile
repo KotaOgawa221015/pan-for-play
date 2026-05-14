@@ -27,8 +27,7 @@ setup:
         echo "Created .env from .env.example"; \
     fi
     pnpm install
-    mkdir -p data
-    pnpm db:setup
+    node scripts/db.js setup
 
 # ==============================================================================
 # Code Quality
@@ -107,22 +106,18 @@ build-prod:
 
 # Run Prisma migrate dev with optional arguments
 db-migrate *args:
-    mkdir -p data
-    pnpm db:migrate {{ args }}
+    node scripts/db.js migrate {{ args }}
 
 db-seed:
-    mkdir -p data
-    pnpm db:seed
+    node scripts/db.js seed
 
 # Reset the database (caution: deletes all data)
-db-reset:
-    rm -f data/dev.db data/dev.db-wal data/dev.db-shm
-    pnpm db:reset
+db-reset *args:
+    node scripts/db.js reset {{ args }}
 
 # Open Prisma Studio to browse/edit data
 db-studio:
-    mkdir -p data
-    pnpm exec prisma studio
+    node scripts/db.js studio
 
 # ==============================================================================
 # Testing

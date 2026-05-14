@@ -43,14 +43,20 @@ such as Next.js runtime APIs or Prisma mocked explicitly.
 
 ## Prisma and database
 
-The project uses Prisma 7 with the better-sqlite3 driver adapter. SQLite databases are stored under `./data` and selected by `DATABASE_URL`.
-The default development value lives in `.env`, and production-like operation updates `DATABASE_URL` there or overrides it from CI/CD.
+The `just db-*` recipes target local SQLite only.
 
 - just setup
+- just db-migrate
 - just db-seed
-- just db-migrate name=init
 - just db-reset
 - just db-studio
+
+Turso schema changes are explicit scripts. `scripts/turso-migrate.js` applies existing migration SQL to the configured Turso database. `scripts/turso-recreate.js --force` destroys and recreates the Turso database, applies migrations, seeds data, and prints a fresh database token for runtime secrets. `DATABASE_URL`, `TURSO_DATABASE_NAME`, and `TURSO_AUTH_TOKEN_EXPIRATION` must be present in `.env`.
+
+```bash
+node scripts/turso-migrate.js
+node scripts/turso-recreate.js --force
+```
 
 ## Docker
 
@@ -61,24 +67,21 @@ just setup
 just up
 ```
 
-For a production-like stack, set `DATABASE_URL` to the production database, then run setup and startup.
+When `.env` points at Turso, override `DATABASE_URL` to use local SQLite recipes.
 
 ```bash
-DATABASE_URL="file:./data/prod.db" just setup
+DATABASE_URL="file:./data/dev.db" just db-reset
+DATABASE_URL="file:./data/dev.db" just db-seed
 just up-prod
 ```
 
-The same `DATABASE_URL` selects the database for Prisma commands and Docker Compose.
-In CI/CD, the process environment variable `DATABASE_URL` is the source of truth and overrides values from local `.env` files.
+For Turso, the migration script applies the SQL files under `prisma/migrations/` in order and records applied checksums. If the remote database already has tables but no migration records, the command stops and requires database recreation or manual baseline.
 
-```bash
-DATABASE_URL="file:./data/prod.db" just db-seed
-DATABASE_URL="file:./data/prod.db" just up-prod
-```
+The same `DATABASE_URL` selects the database for Prisma commands and Docker Compose. In CI/CD, the process environment variable `DATABASE_URL` is the source of truth and overrides values from local `.env` files.
 
-To run a separate staging instance side-by-side, change the project name and database path.
+To run a separate local SQLite instance side-by-side, change the database path.
 
 ```bash
 DATABASE_URL="file:./data/staging.db" just setup
-COMPOSE_PROJECT_NAME=pancolle-staging DATABASE_URL="file:./data/staging.db" just up-prod
+COMPOSE_PROJECT_NAME=pancolle-staging DATABASE_URL="file:./data/staging.db" just up
 ```
