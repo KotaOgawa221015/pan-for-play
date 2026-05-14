@@ -17,6 +17,11 @@ enum InventorySourceType {
   UPLOAD
 }
 
+enum ProductCategory {
+  BREAD
+  SOUP
+}
+
 enum UploadBatchProcessingStatus {
   PENDING
   PROCESSED
@@ -40,6 +45,7 @@ enum UserRole {
 model Product {
   id        String   @id @default(cuid())
   name      String   @unique
+  category  ProductCategory @default(BREAD)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

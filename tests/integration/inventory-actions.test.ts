@@ -35,11 +35,11 @@ describe('inventory server actions', () => {
       lines: [
         {
           count: 8,
-          matchedProduct: { id: 'bread', name: '食パン' },
+          matchedProduct: { id: 'bread', name: '食パン', category: 'BREAD' },
         },
         {
           count: 4,
-          matchedProduct: { id: 'soup', name: 'スープ' },
+          matchedProduct: { id: 'soup', name: 'スープ', category: 'SOUP' },
         },
       ],
     });
@@ -48,6 +48,7 @@ describe('inventory server actions', () => {
       {
         id: 'soup',
         name: 'スープ',
+        category: 'SOUP',
         count: 4,
         status: 'FEW_LEFT',
         updatedAt: '2026-05-12T12:00:00.000Z',
@@ -55,6 +56,7 @@ describe('inventory server actions', () => {
       {
         id: 'bread',
         name: '食パン',
+        category: 'BREAD',
         count: 8,
         status: 'PLENTIFUL',
         updatedAt: '2026-05-12T12:00:00.000Z',
@@ -78,6 +80,7 @@ describe('inventory server actions', () => {
               select: {
                 id: true,
                 name: true,
+                category: true,
               },
             },
           },
@@ -94,7 +97,7 @@ describe('inventory server actions', () => {
       lines: [
         {
           count: 0,
-          matchedProduct: { id: 'bread', name: '食パン' },
+          matchedProduct: { id: 'bread', name: '食パン', category: 'BREAD' },
         },
       ],
     });

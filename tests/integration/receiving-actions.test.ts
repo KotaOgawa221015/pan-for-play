@@ -11,6 +11,7 @@ const {
   uploadBatchLineUpdate,
   uploadBatchLineDeleteMany,
   productCreate,
+  productUpdate,
   revalidatePath,
   requireAdminUser,
   listCatalogProducts,
@@ -26,6 +27,7 @@ const {
   uploadBatchLineUpdate: vi.fn(),
   uploadBatchLineDeleteMany: vi.fn(),
   productCreate: vi.fn(),
+  productUpdate: vi.fn(),
   revalidatePath: vi.fn(),
   requireAdminUser: vi.fn(),
   listCatalogProducts: vi.fn(),
@@ -49,6 +51,7 @@ vi.mock('@/lib/prisma', () => ({
     },
     product: {
       create: productCreate,
+      update: productUpdate,
     },
   },
 }));
@@ -59,10 +62,11 @@ vi.mock('@/features/auth/account-access', () => ({
 
 vi.mock('@/features/product-catalog/products', () => ({
   listCatalogProducts,
-  createCatalogProduct: vi.fn(async (_writer, name: string) =>
+  createCatalogProduct: vi.fn(async (_writer, name: string, category: string) =>
     productCreate({
       data: {
         name,
+        category,
       },
     }),
   ),
@@ -95,6 +99,7 @@ describe('receiving actions', () => {
     uploadBatchLineUpdate.mockReset();
     uploadBatchLineDeleteMany.mockReset();
     productCreate.mockReset();
+    productUpdate.mockReset();
     revalidatePath.mockReset();
     requireAdminUser.mockReset();
     listCatalogProducts.mockReset();
@@ -116,6 +121,7 @@ describe('receiving actions', () => {
         },
         product: {
           create: productCreate,
+          update: productUpdate,
         },
       }),
     );
@@ -124,7 +130,7 @@ describe('receiving actions', () => {
   it('creates a review draft from extracted products', async () => {
     requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
     listCatalogProducts.mockResolvedValue([
-      { id: 'product-1', name: 'クラムチャウダー' },
+      { id: 'product-1', name: 'クラムチャウダー', category: 'SOUP' },
     ]);
     extractProductsFromMock.mockResolvedValue([
       { name: 'クラムチャウダー', count: 4 },
@@ -136,6 +142,7 @@ describe('receiving actions', () => {
     });
     uploadBatchLineCreate.mockImplementation(async ({ data }) => ({
       id: `line-${data.lineNumber}`,
+      lineNumber: data.lineNumber,
       rawText: data.rawText,
       count: data.count,
       matchedProductId: data.matchedProductId ?? null,
@@ -149,11 +156,15 @@ describe('receiving actions', () => {
     expect(draft.batchId).toBe('batch-1');
     expect(draft.originalFileName).toBe('invoice.jpg');
     expect(draft.catalog).toEqual([
-      { id: 'product-1', name: 'クラムチャウダー' },
+      { id: 'product-1', name: 'クラムチャウダー', category: 'SOUP' },
     ]);
     expect(draft.products.map((product) => product.name)).toEqual([
       'クラムチャウダー',
       '新作パン',
+    ]);
+    expect(draft.products.map((product) => product.category)).toEqual([
+      'SOUP',
+      'BREAD',
     ]);
     expect(uploadBatchCreate).toHaveBeenCalledWith({
       data: {
@@ -169,7 +180,7 @@ describe('receiving actions', () => {
   it('applies reviewed lines and updates current receiving batch', async () => {
     requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
     listCatalogProducts.mockResolvedValue([
-      { id: 'existing-1', name: 'クラムチャウダー' },
+      { id: 'existing-1', name: 'クラムチャウダー', category: 'BREAD' },
     ]);
     uploadBatchFindUnique.mockResolvedValue({
       id: 'batch-1',
@@ -182,6 +193,7 @@ describe('receiving actions', () => {
     productCreate.mockResolvedValue({
       id: 'created-1',
       name: '新作パン',
+      category: 'BREAD',
     });
     uploadBatchLineUpdate.mockResolvedValue({});
     uploadBatchUpdate.mockResolvedValue({});
@@ -193,12 +205,14 @@ describe('receiving actions', () => {
         {
           lineId: 'line-1',
           name: 'クラムチャウダー',
+          category: 'SOUP',
           count: 4,
           selectedProductId: 'existing-1',
         },
         {
           lineId: 'line-2',
           name: '新作パン',
+          category: 'BREAD',
           count: 9,
           selectedProductId: null,
         },
@@ -208,7 +222,12 @@ describe('receiving actions', () => {
     expect(productCreate).toHaveBeenCalledWith({
       data: {
         name: '新作パン',
+        category: 'BREAD',
       },
+    });
+    expect(productUpdate).toHaveBeenCalledWith({
+      where: { id: 'existing-1' },
+      data: { category: 'SOUP' },
     });
     expect(uploadBatchLineUpdate).toHaveBeenNthCalledWith(1, {
       where: { id: 'line-1' },
@@ -254,7 +273,7 @@ describe('receiving actions', () => {
   it('rejects duplicate reviewed products before persistence', async () => {
     requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
     listCatalogProducts.mockResolvedValue([
-      { id: 'existing-1', name: 'クラムチャウダー' },
+      { id: 'existing-1', name: 'クラムチャウダー', category: 'SOUP' },
     ]);
 
     await expect(
@@ -264,12 +283,14 @@ describe('receiving actions', () => {
           {
             lineId: 'line-1',
             name: 'クラムチャウダー',
+            category: 'SOUP',
             count: 4,
             selectedProductId: 'existing-1',
           },
           {
             lineId: 'line-2',
             name: 'クラムチャウダー',
+            category: 'BREAD',
             count: 2,
             selectedProductId: null,
           },

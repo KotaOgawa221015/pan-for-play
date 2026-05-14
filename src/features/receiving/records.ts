@@ -37,16 +37,29 @@ export async function createReviewBatch(input: {
       ),
     );
 
+    const categoryByLineNumber = new Map(
+      input.lines.map((line, index) => [index + 1, line.category]),
+    );
+
     const products: ReviewLine[] = createdLines
       .toSorted((left, right) => left.lineNumber - right.lineNumber)
-      .map((createdLine) => ({
-        lineId: createdLine.id,
-        name: createdLine.rawText,
-        count: createdLine.count,
-        selectedProductId: createdLine.matchedProductId,
-        matchStatus: createdLine.matchStatus,
-        appliedStatus: createdLine.appliedStatus,
-      }));
+      .map((createdLine) => {
+        const category = categoryByLineNumber.get(createdLine.lineNumber);
+
+        if (!category) {
+          throw new Error('レビュー行のカテゴリを取得できませんでした。');
+        }
+
+        return {
+          lineId: createdLine.id,
+          name: createdLine.rawText,
+          category,
+          count: createdLine.count,
+          selectedProductId: createdLine.matchedProductId,
+          matchStatus: createdLine.matchStatus,
+          appliedStatus: createdLine.appliedStatus,
+        };
+      });
 
     await tx.uploadBatch.update({
       where: { id: batch.id },

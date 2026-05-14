@@ -40,6 +40,7 @@ export async function applyReceivingReview(input: ReviewInput) {
   await requireCurrentUserId();
   const catalog = await listCatalogProducts();
   const reviewedProducts = validateReviewProducts(input.products, catalog);
+  const catalogById = new Map(catalog.map((product) => [product.id, product]));
   const appliedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
@@ -78,20 +79,32 @@ export async function applyReceivingReview(input: ReviewInput) {
       throw new Error('別の納品書行が混在しています。');
     }
 
-    const newProductNameByNormalizedName = new Map<string, string>();
+    const newProductByNormalizedName = new Map<
+      string,
+      { name: string; category: (typeof reviewedProducts)[number]['category'] }
+    >();
     for (const product of reviewedProducts) {
       if (product.selectedProductId) {
         continue;
       }
       const normalizedProductName = normalizeProductName(product.name);
-      if (!newProductNameByNormalizedName.has(normalizedProductName)) {
-        newProductNameByNormalizedName.set(normalizedProductName, product.name);
+      const existing = newProductByNormalizedName.get(normalizedProductName);
+
+      if (existing && existing.category !== product.category) {
+        throw new Error(`同名の商品でカテゴリが一致しません: ${product.name}`);
+      }
+
+      if (!existing) {
+        newProductByNormalizedName.set(normalizedProductName, {
+          name: product.name,
+          category: product.category,
+        });
       }
     }
 
     const createdProducts = await Promise.all(
-      [...newProductNameByNormalizedName.values()].map((productName) =>
-        createCatalogProduct(tx, productName),
+      [...newProductByNormalizedName.values()].map((product) =>
+        createCatalogProduct(tx, product.name, product.category),
       ),
     );
 
@@ -102,6 +115,29 @@ export async function applyReceivingReview(input: ReviewInput) {
         createdProduct.id,
       );
     }
+
+    await Promise.all(
+      reviewedProducts.map(async (product) => {
+        if (!product.selectedProductId) {
+          return;
+        }
+
+        const selectedProduct = catalogById.get(product.selectedProductId);
+
+        if (!selectedProduct) {
+          throw new Error(`選択された商品が存在しません: ${product.name}`);
+        }
+
+        if (selectedProduct.category === product.category) {
+          return;
+        }
+
+        await tx.product.update({
+          where: { id: selectedProduct.id },
+          data: { category: product.category },
+        });
+      }),
+    );
 
     await Promise.all(
       reviewedProducts.map(async (product) => {

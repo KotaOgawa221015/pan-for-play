@@ -1,4 +1,5 @@
 import type {
+  ProductCategory,
   UploadBatchLineMatchStatus,
   UploadBatchProcessingStatus,
 } from '@prisma/client';
@@ -8,6 +9,7 @@ import type { CatalogProduct } from '@/features/product-catalog/products';
 export type ReviewLine = {
   lineId: string;
   name: string;
+  category: ProductCategory;
   count: number;
   selectedProductId: string | null;
   matchStatus: UploadBatchLineMatchStatus;
@@ -27,6 +29,7 @@ export type ReviewInput = {
   products: Array<{
     lineId: string;
     name: string;
+    category: ProductCategory;
     count: number;
     selectedProductId: string | null;
   }>;

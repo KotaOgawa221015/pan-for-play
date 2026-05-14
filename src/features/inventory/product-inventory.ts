@@ -22,6 +22,7 @@ export async function getInventoryProducts(): Promise<Product[]> {
             select: {
               id: true,
               name: true,
+              category: true,
             },
           },
         },
@@ -48,6 +49,7 @@ export async function getInventoryProducts(): Promise<Product[]> {
     products.push({
       id: product.id,
       name: product.name,
+      category: product.category,
       count: line.count,
       status: getProductStatusFromCount(line.count),
       updatedAt,
