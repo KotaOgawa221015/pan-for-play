@@ -1,7 +1,9 @@
 require('dotenv/config');
 const bcrypt = require('bcryptjs');
+const Database = require('better-sqlite3');
 
 const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
+const { PrismaLibSql } = require('@prisma/adapter-libsql');
 const { PrismaClient, ProductCategory } = require('@prisma/client');
 const catalogFixture = require('./fixtures/catalog-products.json');
 const receivingHistoryFixture = require('./fixtures/receiving-history.json');
@@ -12,9 +14,33 @@ if (!databaseUrl) {
   throw new Error('DATABASE_URL is required to run the seed script.');
 }
 
-const prisma = new PrismaClient({
-  adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
-});
+function createPrismaClient() {
+  if (databaseUrl.startsWith('file:') || databaseUrl.startsWith('sqlite:')) {
+    const dbPath = databaseUrl.replace(/^(file:|sqlite:)/, '');
+    const sqlite = new Database(dbPath);
+    sqlite.pragma('journal_mode = WAL');
+    sqlite.close();
+
+    return new PrismaClient({
+      adapter: new PrismaBetterSqlite3({ url: databaseUrl }),
+    });
+  }
+
+  const authToken = process.env.TURSO_AUTH_TOKEN;
+
+  if (!authToken) {
+    throw new Error('TURSO_AUTH_TOKEN is required for Turso seed runs.');
+  }
+
+  return new PrismaClient({
+    adapter: new PrismaLibSql({
+      url: databaseUrl,
+      authToken,
+    }),
+  });
+}
+
+const prisma = createPrismaClient();
 
 const productCategories = new Set(Object.values(ProductCategory));
 

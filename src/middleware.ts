@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { SESSION_COOKIE_NAME } from './features/auth/session-cookie';
 
 export function middleware(request: NextRequest) {
-  const session = request.cookies.get('pancolle_session');
+  const session = request.cookies.get(SESSION_COOKIE_NAME);
   const { pathname } = request.nextUrl;
 
   if (!session && pathname !== '/login' && pathname !== '/signup') {

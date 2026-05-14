@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { UserMenu } from '@/app/_components/UserMenu';
 import type { Metadata } from 'next';
 import { FlashMessage } from '@/app/_components/FlashMessage';
-import { getCurrentUser } from '@/features/auth/account-access';
+import { getSessionStatus } from '@/features/auth/account-access';
 
 export const metadata: Metadata = {
   title: 'パンコレ',
@@ -17,13 +17,17 @@ export default async function Page({
 }: {
   searchParams: Promise<{ msg?: string }>;
 }) {
-  const [{ msg }, user, products] = await Promise.all([
+  const [{ msg }, session, products] = await Promise.all([
     searchParams,
-    getCurrentUser(),
+    getSessionStatus(),
     getInventoryProducts(),
   ]);
 
-  if (!user) {
+  if (session.status === 'invalid') {
+    redirect('/session/clear');
+  }
+
+  if (session.status !== 'authenticated') {
     redirect('/login');
   }
 

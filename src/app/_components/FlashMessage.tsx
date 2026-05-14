@@ -6,7 +6,12 @@ import { usePathname } from 'next/navigation';
 export function FlashMessage({ msg }: { msg?: string }) {
   const [isExiting, setIsExiting] = useState(false);
   const pathname = usePathname();
-  const validMessages = ['login_success', 'signup_success', 'logout_success'];
+  const validMessages = [
+    'login_success',
+    'signup_success',
+    'logout_success',
+    'session_invalid',
+  ];
   const isVisible = Boolean(msg && validMessages.includes(msg));
 
   useEffect(() => {
@@ -33,9 +38,9 @@ export function FlashMessage({ msg }: { msg?: string }) {
 
   if (!isVisible || !msg) return null;
 
-  const isLogout = msg === 'logout_success';
+  const isAlert = msg === 'logout_success' || msg === 'session_invalid';
 
-  const styles = isLogout
+  const styles = isAlert
     ? 'bg-rose-50 border-rose-100 text-rose-700 dark:bg-rose-950/40 dark:border-rose-900/50 dark:text-rose-400'
     : 'bg-emerald-50 border-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:border-emerald-900/50 dark:text-emerald-400';
 
@@ -43,6 +48,7 @@ export function FlashMessage({ msg }: { msg?: string }) {
     login_success: 'ログインしました',
     signup_success: 'アカウントを作成しました',
     logout_success: 'ログアウトしました',
+    session_invalid: 'セッションが無効です。再ログインしてください。',
   };
 
   return (
