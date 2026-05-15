@@ -2,12 +2,10 @@ import { ProductCard } from '@/app/_components/ProductCard';
 import { getInventoryProducts } from '@/features/inventory/product-inventory';
 import { getCurrentInventoryPublicationSummary } from '@/features/inventory/publication-summary';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { UserMenu } from '@/app/_components/UserMenu';
 import type { Metadata } from 'next';
 import { FlashMessage } from '@/app/_components/FlashMessage';
 import { InventoryPublicationPanel } from '@/app/_components/InventoryPublicationPanel';
-import { getSessionStatus } from '@/features/auth/account-access';
 
 export const metadata: Metadata = {
   title: 'パンコレ',
@@ -19,20 +17,11 @@ export default async function Page({
 }: {
   searchParams: Promise<{ msg?: string }>;
 }) {
-  const [{ msg }, session, products, publicationSummary] = await Promise.all([
+  const [{ msg }, products, publicationSummary] = await Promise.all([
     searchParams,
-    getSessionStatus(),
     getInventoryProducts(),
     getCurrentInventoryPublicationSummary(),
   ]);
-
-  if (session.status === 'invalid') {
-    redirect('/session/clear');
-  }
-
-  if (session.status !== 'authenticated') {
-    redirect('/login');
-  }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
