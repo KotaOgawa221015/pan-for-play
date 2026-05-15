@@ -7,6 +7,7 @@ import {
   shallowRef,
   watch
 } from "./chunk-6H5N64UZ.js";
+import "./chunk-DC5AMYBS.js";
 
 // node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.52.1_@types+node@20.19.41_@types+react@19.2.14_d8fddd4dd43126eab0afb6a27e2c8874/node_modules/vitepress/dist/client/theme-default/index.js
 import "/Users/kota.ogawa/Team_Development/pancolle/node_modules/.pnpm/vitepress@1.6.4_@algolia+client-search@5.52.1_@types+node@20.19.41_@types+react@19.2.14_d8fddd4dd43126eab0afb6a27e2c8874/node_modules/vitepress/dist/client/theme-default/styles/fonts.css";

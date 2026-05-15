@@ -1,6 +1,8 @@
 import { defineConfig } from 'vitepress'
 import { withMermaid } from 'vitepress-plugin-mermaid'
 
+
+
 // withMermaid でラップして defineConfig を呼び出します
 export default withMermaid(
   defineConfig({
@@ -35,6 +37,11 @@ export default withMermaid(
       // 検索機能を有効化する場合
       search: {
         provider: 'local'
+      }
+    },
+    vite: {
+      optimizeDeps: {
+        include: ['dayjs', 'mermaid']
       }
     }
   })
