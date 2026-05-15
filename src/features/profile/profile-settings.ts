@@ -39,33 +39,26 @@ export async function deleteAccountAction() {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      include: { accounts: true }, // Account情報を取得
+      include: { accounts: true },
     });
     if (!user) return { error: 'ユーザーが見つかりません' };
 
-    // --- Google側の承認を解除する処理を追加 ---
     const googleAccount = user.accounts.find(
       (acc) => acc.provider === 'google',
     );
-    // accessToken または refreshToken を使用
-    const token = googleAccount?.accessToken || googleAccount?.refreshToken;
-
+    const token = googleAccount?.access_token || googleAccount?.refresh_token;
     if (token) {
       try {
-        // GoogleのRevoke APIを呼び出す
         await fetch(`https://oauth2.googleapis.com/revoke?token=${token}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         });
       } catch (err) {
         console.error('Google token revocation failed:', err);
-        // 失敗してもDB削除は進める（アプリ側の退会を優先）
       }
     }
-    // ----------------------------------------
 
     await prisma.$transaction([
-      // 既存の削除ロジック
       prisma.user.update({
         where: { id: userId },
         data: {

@@ -62,7 +62,7 @@ model User {
   accounts               Account[]
   sessions               Session[]
 }
-
+//Googleから返される値がスネークケースのため、スネークケースのままにしておく
 model Account {
   id                String  @id @default(cuid())
   userId            String
