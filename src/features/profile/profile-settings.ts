@@ -9,7 +9,10 @@ export async function updateProfileAction(
   _prevState: unknown,
   formData: FormData,
 ) {
+  const session = await auth();
+  if (!session) throw new Error('Unauthorized');
   const user = await requireCurrentUser();
+
   const userId = user.id;
   const email = user.email;
 

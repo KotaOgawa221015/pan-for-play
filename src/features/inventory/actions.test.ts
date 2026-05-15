@@ -7,6 +7,7 @@ const {
   inventoryStatusChangeCreate,
   revalidatePath,
   requireCurrentUser,
+  auth,
 } = vi.hoisted(() => ({
   transaction: vi.fn(),
   inventoryPublicationFindFirst: vi.fn(),
@@ -14,12 +15,17 @@ const {
   inventoryStatusChangeCreate: vi.fn(),
   revalidatePath: vi.fn(),
   requireCurrentUser: vi.fn(),
+  auth: vi.fn(),
 }));
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
     $transaction: transaction,
   },
+}));
+
+vi.mock('@/features/auth/auth', () => ({
+  auth,
 }));
 
 vi.mock('@/features/auth/account-access', () => ({
@@ -40,6 +46,9 @@ describe('inventory actions', () => {
     inventoryStatusChangeCreate.mockReset();
     revalidatePath.mockReset();
     requireCurrentUser.mockReset();
+    auth.mockReset();
+
+    auth.mockResolvedValue({ user: { id: 'user-1' } });
 
     transaction.mockImplementation(async (callback: (tx: unknown) => unknown) =>
       callback({

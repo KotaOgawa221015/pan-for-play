@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { auth } from '@/features/auth/auth';
 import { requireAdminUser } from '@/features/auth/account-access';
 import { getProductStatusFromCount } from '@/features/inventory/counts';
 import { extractProductsFromMock } from '@/features/product-list-extraction/mock';
@@ -191,6 +192,8 @@ async function createInventoryPublication(
 }
 
 export async function startReceivingReview(fileName: string) {
+  const session = await auth();
+  if (!session) throw new Error('Unauthorized');
   await requireCurrentUserId();
   const draft = await prepareReviewDraft(fileName, {
     getCurrentUserId: requireCurrentUserId,
@@ -206,9 +209,14 @@ export async function startReceivingReview(fileName: string) {
 }
 
 export async function applyReceivingReview(input: ReviewInput) {
-  const currentUserId = await requireCurrentUserId();
-  const catalog = await listCatalogProducts();
+  const session = await auth();
+  if (!session) throw new Error('Unauthorized');
+  const [currentUserId, catalog] = await Promise.all([
+    requireCurrentUserId(),
+    listCatalogProducts(),
+  ]);
   const reviewedProducts = validateReviewProducts(input.products, catalog);
+
   const catalogById = new Map(catalog.map((product) => [product.id, product]));
   const publishedAt = new Date();
 
@@ -375,6 +383,8 @@ export async function applyReceivingReview(input: ReviewInput) {
 }
 
 export async function reapplyReceivingBatch(batchId: string) {
+  const session = await auth();
+  if (!session) throw new Error('Unauthorized');
   const currentUserId = await requireCurrentUserId();
   const publishedAt = new Date();
 
@@ -460,6 +470,8 @@ export async function reapplyReceivingBatch(batchId: string) {
 }
 
 export async function deleteReceivingBatch(batchId: string) {
+  const session = await auth();
+  if (!session) throw new Error('Unauthorized');
   await requireCurrentUserId();
 
   await prisma.$transaction(async (tx) => {

@@ -1,9 +1,14 @@
 'use server';
 
+import { auth } from '@/features/auth/auth';
 import { prisma } from '@/lib/prisma';
 import type { InventoryPublicationSummary } from '@/types/inventory';
+import { redirect } from 'next/navigation';
 
 export async function getCurrentInventoryPublicationSummary(): Promise<InventoryPublicationSummary | null> {
+  const session = await auth();
+  if (!session) redirect('/login');
+
   const publication = await prisma.inventoryPublication.findFirst({
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
