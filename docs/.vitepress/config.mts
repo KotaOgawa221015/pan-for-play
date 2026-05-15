@@ -12,12 +12,13 @@ export default withMermaid(
         text: '最終更新日',
         formatOptions: {
           dateStyle: 'full',
-          timeStyle: 'short'
-        }
+          timeStyle: 'short',
+        },
       },
       editLink: {
-        pattern: 'https://github.com/kotaogawa221015/pancolle/edit/main/docs/:path',
-        text: 'このページを編集する'
+        pattern:
+          'https://github.com/kotaogawa221015/pancolle/edit/main/docs/:path',
+        text: 'このページを編集する',
       },
       nav: [{ text: 'Home', link: '/' }],
       sidebar: [
