@@ -1,14 +1,10 @@
 'use server';
 
-import { auth } from '@/features/auth/auth';
 import { prisma } from '@/lib/prisma';
-import { redirect } from 'next/navigation';
 import { getProductStatusFromCount } from './counts';
 import type { Product } from '@/types/inventory';
 
 export async function getInventoryProducts(): Promise<Product[]> {
-  const session = await auth();
-  if (!session) redirect('/login');
 
   const currentPublication = await prisma.inventoryPublication.findFirst({
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],

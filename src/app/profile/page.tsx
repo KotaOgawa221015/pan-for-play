@@ -11,10 +11,6 @@ export const metadata: Metadata = {
 export default async function ProfilePage() {
   const user = await getCurrentUser();
 
-  if (!user) {
-    throw new Error('Authenticated user is required.');
-  }
-
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
       <div className="max-w-xl mx-auto space-y-6">

@@ -17,13 +17,22 @@ export const authConfig = {
     authorized({ auth, request: { nextUrl } }) {
       const user = auth?.user;
       const isOnLoginPage = nextUrl.pathname === '/login';
+      const isLoggedIn = !!auth?.user;
+      const { pathname } = nextUrl;
+      const isPublicPage = pathname === '/login';
       const isOnSessionClearPage = nextUrl.pathname === '/session/clear';
       const isOnAdminRoute =
         nextUrl.pathname === '/admin' || nextUrl.pathname.startsWith('/admin/');
 
+
+
       if (user?.deletedAt) {
         if (isOnSessionClearPage) return true;
         return Response.redirect(new URL('/session/clear', nextUrl));
+      }
+
+      if (isLoggedIn && isPublicPage) {
+        return Response.redirect(new URL('/', nextUrl)); // トップページへ
       }
 
       if (isOnLoginPage) {

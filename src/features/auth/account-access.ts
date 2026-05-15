@@ -50,8 +50,6 @@ export async function getCurrentUserId() {
 }
 
 export async function requireCurrentUser() {
-  const session = await auth();
-  if (!session) redirect('/login');
   const user = await getCurrentUser();
 
   if (!user) {
@@ -62,8 +60,6 @@ export async function requireCurrentUser() {
 }
 
 export async function requireAdminUser() {
-  const session = await auth();
-  if (!session) redirect('/login');
   const user = await requireCurrentUser();
 
   if (user.role !== 'ADMIN') {
