@@ -25,5 +25,21 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
         return admin ?? null;
       },
     }),
+
+    Credentials({
+      id: 'dev-user',
+      name: 'Development User',
+      credentials: {},
+      async authorize() {
+        if (process.env.NODE_ENV !== 'development') return null;
+
+        // シードスクリプトで作成される一般ユーザーをDBから取得
+        const user = await prisma.user.findFirst({
+          where: { email: 'user@example.com', role: 'MEMBER' },
+        });
+
+        return user ?? null;
+      },
+    }),
   ],
 });

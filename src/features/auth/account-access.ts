@@ -90,6 +90,12 @@ export async function requireAdminUser() {
   return user;
 }
 
+export async function loginAsUserAction() {
+  if (process.env.NODE_ENV === 'development') {
+    await signIn('dev-user', { redirectTo: '/' });
+  }
+}
+
 export async function loginAsAdminAction() {
   // 開発環境のみ実行可能にする
   if (process.env.NODE_ENV === 'development') {
