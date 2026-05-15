@@ -13,3 +13,5 @@ docker-compose*
 *.db-journal
 *.db-shm
 *.db-wal
+docs/.vitepress/cache
+docs/.vitepress/dist

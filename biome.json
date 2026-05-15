@@ -9,7 +9,9 @@
       "!node_modules",
       "!dist",
       "!package-lock.json",
-      "!references"
+      "!references",
+      "!docs/.vitepress/cache",
+      "!docs/.vitepress/dist"
     ]
   },
   "formatter": {

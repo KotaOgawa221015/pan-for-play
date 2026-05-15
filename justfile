@@ -142,3 +142,15 @@ clean:
         .next \
         coverage \
         node_modules
+
+# Start VitePress documentation dev server
+docs:
+    pnpm docs:dev
+
+# Build VitePress documentation
+docs-build:
+    pnpm docs:build
+
+# Preview VitePress documentation
+docs-preview:
+    pnpm docs:preview
