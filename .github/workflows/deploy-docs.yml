@@ -4,9 +4,11 @@ on:
   # mainブランチにプッシュされた時に実行
   push:
     branches: [main]
-    # docsディレクトリ内の変更があった場合のみ実行したい場合はコメントアウトを外す
-    # paths:
-    #   - 'docs/**'
+    paths:
+      - 'docs/**'
+      - '.github/workflows/deploy-docs.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
   
   # GitHubの画面から手動で実行できるようにする
   workflow_dispatch:

@@ -8,6 +8,17 @@ export default withMermaid(
     title: 'Pancolle Docs',
     description: 'パンコレの開発ドキュメント',
     themeConfig: {
+      lastUpdated: {
+        text: '最終更新日',
+        formatOptions: {
+          dateStyle: 'full',
+          timeStyle: 'short'
+        }
+      },
+      editLink: {
+        pattern: 'https://github.com/kotaogawa221015/pancolle/edit/main/docs/:path',
+        text: 'このページを編集する'
+      },
       nav: [{ text: 'Home', link: '/' }],
       sidebar: [
         {
