@@ -7,39 +7,39 @@ import {
   __name,
   createDefaultCoreModule,
   createDefaultSharedCoreModule,
-  inject
-} from "./chunk-7MUBAYHL.js";
+  inject,
+} from './chunk-7MUBAYHL.js';
 
 // node_modules/.pnpm/@mermaid-js+parser@1.1.1/node_modules/@mermaid-js/parser/dist/chunks/mermaid-parser.core/chunk-5DO6E6H7.mjs
 var _a;
-var InfoTokenBuilder = (_a = class extends AbstractMermaidTokenBuilder {
-  constructor() {
-    super(["info", "showInfo"]);
-  }
-}, __name(_a, "InfoTokenBuilder"), _a);
+var InfoTokenBuilder =
+  ((_a = class extends AbstractMermaidTokenBuilder {
+    constructor() {
+      super(['info', 'showInfo']);
+    }
+  }),
+  __name(_a, 'InfoTokenBuilder'),
+  _a);
 var InfoModule = {
   parser: {
-    TokenBuilder: __name(() => new InfoTokenBuilder(), "TokenBuilder"),
-    ValueConverter: __name(() => new CommonValueConverter(), "ValueConverter")
-  }
+    TokenBuilder: __name(() => new InfoTokenBuilder(), 'TokenBuilder'),
+    ValueConverter: __name(() => new CommonValueConverter(), 'ValueConverter'),
+  },
 };
 function createInfoServices(context = EmptyFileSystem) {
   const shared = inject(
     createDefaultSharedCoreModule(context),
-    MermaidGeneratedSharedModule
+    MermaidGeneratedSharedModule,
   );
   const Info = inject(
     createDefaultCoreModule({ shared }),
     InfoGrammarGeneratedModule,
-    InfoModule
+    InfoModule,
   );
   shared.ServiceRegistry.register(Info);
   return { shared, Info };
 }
-__name(createInfoServices, "createInfoServices");
+__name(createInfoServices, 'createInfoServices');
 
-export {
-  InfoModule,
-  createInfoServices
-};
+export { InfoModule, createInfoServices };
 //# sourceMappingURL=chunk-S6KOWPKD.js.map

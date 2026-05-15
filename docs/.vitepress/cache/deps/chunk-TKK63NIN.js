@@ -1,6 +1,4 @@
-import {
-  __name
-} from "./chunk-XXDMU5XJ.js";
+import { __name } from './chunk-XXDMU5XJ.js';
 
 // node_modules/.pnpm/mermaid@11.15.0/node_modules/mermaid/dist/chunks/mermaid.core/chunk-4BX2VUAB.mjs
 function populateCommonDb(ast, db) {
@@ -15,9 +13,7 @@ function populateCommonDb(ast, db) {
     (_c = db.setDiagramTitle) == null ? void 0 : _c.call(db, ast.title);
   }
 }
-__name(populateCommonDb, "populateCommonDb");
+__name(populateCommonDb, 'populateCommonDb');
 
-export {
-  populateCommonDb
-};
+export { populateCommonDb };
 //# sourceMappingURL=chunk-TKK63NIN.js.map

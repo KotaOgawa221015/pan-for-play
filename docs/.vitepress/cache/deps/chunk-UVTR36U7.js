@@ -7,39 +7,39 @@ import {
   __name,
   createDefaultCoreModule,
   createDefaultSharedCoreModule,
-  inject
-} from "./chunk-7MUBAYHL.js";
+  inject,
+} from './chunk-7MUBAYHL.js';
 
 // node_modules/.pnpm/@mermaid-js+parser@1.1.1/node_modules/@mermaid-js/parser/dist/chunks/mermaid-parser.core/chunk-MPE355IW.mjs
 var _a;
-var PacketTokenBuilder = (_a = class extends AbstractMermaidTokenBuilder {
-  constructor() {
-    super(["packet"]);
-  }
-}, __name(_a, "PacketTokenBuilder"), _a);
+var PacketTokenBuilder =
+  ((_a = class extends AbstractMermaidTokenBuilder {
+    constructor() {
+      super(['packet']);
+    }
+  }),
+  __name(_a, 'PacketTokenBuilder'),
+  _a);
 var PacketModule = {
   parser: {
-    TokenBuilder: __name(() => new PacketTokenBuilder(), "TokenBuilder"),
-    ValueConverter: __name(() => new CommonValueConverter(), "ValueConverter")
-  }
+    TokenBuilder: __name(() => new PacketTokenBuilder(), 'TokenBuilder'),
+    ValueConverter: __name(() => new CommonValueConverter(), 'ValueConverter'),
+  },
 };
 function createPacketServices(context = EmptyFileSystem) {
   const shared = inject(
     createDefaultSharedCoreModule(context),
-    MermaidGeneratedSharedModule
+    MermaidGeneratedSharedModule,
   );
   const Packet = inject(
     createDefaultCoreModule({ shared }),
     PacketGrammarGeneratedModule,
-    PacketModule
+    PacketModule,
   );
   shared.ServiceRegistry.register(Packet);
   return { shared, Packet };
 }
-__name(createPacketServices, "createPacketServices");
+__name(createPacketServices, 'createPacketServices');
 
-export {
-  PacketModule,
-  createPacketServices
-};
+export { PacketModule, createPacketServices };
 //# sourceMappingURL=chunk-UVTR36U7.js.map

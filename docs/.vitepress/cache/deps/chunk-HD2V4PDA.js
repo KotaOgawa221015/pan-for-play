@@ -7,48 +7,51 @@ import {
   __name,
   createDefaultCoreModule,
   createDefaultSharedCoreModule,
-  inject
-} from "./chunk-7MUBAYHL.js";
+  inject,
+} from './chunk-7MUBAYHL.js';
 
 // node_modules/.pnpm/@mermaid-js+parser@1.1.1/node_modules/@mermaid-js/parser/dist/chunks/mermaid-parser.core/chunk-MZUSXYTE.mjs
 var _a;
-var PieTokenBuilder = (_a = class extends AbstractMermaidTokenBuilder {
-  constructor() {
-    super(["pie", "showData"]);
-  }
-}, __name(_a, "PieTokenBuilder"), _a);
-var _a2;
-var PieValueConverter = (_a2 = class extends AbstractMermaidValueConverter {
-  runCustomConverter(rule, input, _cstNode) {
-    if (rule.name !== "PIE_SECTION_LABEL") {
-      return void 0;
+var PieTokenBuilder =
+  ((_a = class extends AbstractMermaidTokenBuilder {
+    constructor() {
+      super(['pie', 'showData']);
     }
-    return input.replace(/"/g, "").trim();
-  }
-}, __name(_a2, "PieValueConverter"), _a2);
+  }),
+  __name(_a, 'PieTokenBuilder'),
+  _a);
+var _a2;
+var PieValueConverter =
+  ((_a2 = class extends AbstractMermaidValueConverter {
+    runCustomConverter(rule, input, _cstNode) {
+      if (rule.name !== 'PIE_SECTION_LABEL') {
+        return void 0;
+      }
+      return input.replace(/"/g, '').trim();
+    }
+  }),
+  __name(_a2, 'PieValueConverter'),
+  _a2);
 var PieModule = {
   parser: {
-    TokenBuilder: __name(() => new PieTokenBuilder(), "TokenBuilder"),
-    ValueConverter: __name(() => new PieValueConverter(), "ValueConverter")
-  }
+    TokenBuilder: __name(() => new PieTokenBuilder(), 'TokenBuilder'),
+    ValueConverter: __name(() => new PieValueConverter(), 'ValueConverter'),
+  },
 };
 function createPieServices(context = EmptyFileSystem) {
   const shared = inject(
     createDefaultSharedCoreModule(context),
-    MermaidGeneratedSharedModule
+    MermaidGeneratedSharedModule,
   );
   const Pie = inject(
     createDefaultCoreModule({ shared }),
     PieGrammarGeneratedModule,
-    PieModule
+    PieModule,
   );
   shared.ServiceRegistry.register(Pie);
   return { shared, Pie };
 }
-__name(createPieServices, "createPieServices");
+__name(createPieServices, 'createPieServices');
 
-export {
-  PieModule,
-  createPieServices
-};
+export { PieModule, createPieServices };
 //# sourceMappingURL=chunk-HD2V4PDA.js.map
