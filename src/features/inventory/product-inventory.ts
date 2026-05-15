@@ -5,7 +5,6 @@ import { getProductStatusFromCount } from './counts';
 import type { Product } from '@/types/inventory';
 
 export async function getInventoryProducts(): Promise<Product[]> {
-
   const currentPublication = await prisma.inventoryPublication.findFirst({
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {

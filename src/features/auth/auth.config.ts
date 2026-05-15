@@ -24,8 +24,6 @@ export const authConfig = {
       const isOnAdminRoute =
         nextUrl.pathname === '/admin' || nextUrl.pathname.startsWith('/admin/');
 
-
-
       if (user?.deletedAt) {
         if (isOnSessionClearPage) return true;
         return Response.redirect(new URL('/session/clear', nextUrl));
