@@ -91,14 +91,19 @@ export async function requireAdminUser() {
 }
 
 export async function loginAsUserAction() {
-  if (process.env.NODE_ENV === 'development') {
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === 'true'
+  ) {
     await signIn('dev-user', { redirectTo: '/' });
   }
 }
 
 export async function loginAsAdminAction() {
-  // 開発環境のみ実行可能にする
-  if (process.env.NODE_ENV === 'development') {
+  if (
+    process.env.NODE_ENV === 'development' ||
+    process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === 'true'
+  ) {
     await signIn('dev-admin', { redirectTo: '/' });
   }
 }
