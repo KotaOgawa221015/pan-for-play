@@ -21,6 +21,7 @@ export default function QRPrintPage() {
           &larr; 管理画面トップに戻る
         </Link>
         <button
+          type="button"
           onClick={() => window.print()}
           className="bg-emerald-600 text-white px-6 py-2 rounded-xl font-bold hover:bg-emerald-700 shadow-sm transition"
         >
@@ -30,10 +31,14 @@ export default function QRPrintPage() {
 
       {/* 印刷されるメインコンテンツ */}
       <div className="flex flex-col items-center justify-center mt-20 space-y-8">
-        <h1 className="text-4xl font-bold text-zinc-900 tracking-wider">Pancolle</h1>
+        <h1 className="text-4xl font-bold text-zinc-900 tracking-wider">
+          Pancolle
+        </h1>
         <p className="text-xl text-zinc-600">在庫ステータスボード</p>
 
-        <p className="text-zinc-500">以下のQRコードをスキャンしてアクセスしてください</p>
+        <p className="text-zinc-500">
+          以下のQRコードをスキャンしてアクセスしてください
+        </p>
 
         {/* QRコード本体 */}
         <div className="p-8 border-4 border-zinc-200 rounded-[2rem]">
