@@ -7,9 +7,7 @@ import {
 } from '@/features/auth/account-access';
 
 export function LoginPageClient() {
-  const showDemoLogin =
-    process.env.NODE_ENV === 'development' ||
-    process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === 'true';
+  const showDemoLogin = process.env.NODE_ENV === 'development';
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm space-y-6 text-center">

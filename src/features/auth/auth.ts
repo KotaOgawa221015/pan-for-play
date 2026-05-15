@@ -19,12 +19,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       name: 'Development Admin',
       credentials: {},
       async authorize() {
-        // NEXT_PUBLIC_ENABLE_DEMO_LOGIN が "true" なら本番/プレビューでも許可する
-        if (
-          process.env.NODE_ENV !== 'development' &&
-          process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN !== 'true'
-        )
-          return null;
+        if (process.env.NODE_ENV !== 'development') return null;
 
         const admin = await prisma.user.findFirst({
           where: { email: 'admin@example.com', role: 'ADMIN' },
@@ -37,11 +32,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
       name: 'Development User',
       credentials: {},
       async authorize() {
-        if (
-          process.env.NODE_ENV !== 'development' &&
-          process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN !== 'true'
-        )
-          return null;
+        if (process.env.NODE_ENV !== 'development') return null;
 
         const user = await prisma.user.findFirst({
           where: { email: 'user@example.com', role: 'MEMBER' },

@@ -91,19 +91,13 @@ export async function requireAdminUser() {
 }
 
 export async function loginAsUserAction() {
-  if (
-    process.env.NODE_ENV === 'development' ||
-    process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === 'true'
-  ) {
+  if (process.env.NODE_ENV === 'development') {
     await signIn('dev-user', { redirectTo: '/' });
   }
 }
 
 export async function loginAsAdminAction() {
-  if (
-    process.env.NODE_ENV === 'development' ||
-    process.env.NEXT_PUBLIC_ENABLE_DEMO_LOGIN === 'true'
-  ) {
+  if (process.env.NODE_ENV === 'development') {
     await signIn('dev-admin', { redirectTo: '/' });
   }
 }
