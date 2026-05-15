@@ -97,7 +97,6 @@ export async function loginAsUserAction() {
 }
 
 export async function loginAsAdminAction() {
-  // 開発環境のみ実行可能にする
   if (process.env.NODE_ENV === 'development') {
     await signIn('dev-admin', { redirectTo: '/' });
   }

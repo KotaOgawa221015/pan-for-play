@@ -7,7 +7,7 @@ import {
 } from '@/features/auth/account-access';
 
 export function LoginPageClient() {
-  const isDev = process.env.NODE_ENV === 'development';
+  const showDemoLogin = process.env.NODE_ENV === 'development';
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6">
       <div className="w-full max-w-md bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm space-y-6 text-center">
@@ -25,7 +25,7 @@ export function LoginPageClient() {
         >
           Googleでログイン
         </button>
-        {isDev && (
+        {showDemoLogin && (
           <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">
             <div className="mb-4 text-center">
               <span className="px-2 bg-white dark:bg-zinc-900 text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em]">
