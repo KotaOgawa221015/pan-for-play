@@ -6,6 +6,7 @@ import { withMermaid } from 'vitepress-plugin-mermaid'
 // withMermaid でラップして defineConfig を呼び出します
 export default withMermaid(
   defineConfig({
+    base: '/pancolle/',
     title: "Pancolle Docs",
     description: "パンコレの開発ドキュメント",
     themeConfig: {
