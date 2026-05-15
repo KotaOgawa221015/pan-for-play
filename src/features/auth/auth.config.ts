@@ -32,7 +32,7 @@ export const authConfig = {
       }
 
       if (isLoggedIn && isPublicPage) {
-        return Response.redirect(new URL('/', nextUrl)); // トップページへ
+        return Response.redirect(new URL('/', nextUrl));
       }
 
       if (isOnLoginPage) {
