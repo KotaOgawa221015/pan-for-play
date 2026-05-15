@@ -10,7 +10,8 @@
       "!dist",
       "!package-lock.json",
       "!references",
-      "!docs/.vitepress/cache"
+      "!docs/.vitepress/cache",
+      "!docs/.vitepress/dist"
     ]
   },
   "formatter": {

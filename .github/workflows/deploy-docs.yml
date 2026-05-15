@@ -1,7 +1,6 @@
 name: Deploy VitePress site to Pages
 
 on:
-  # mainブランチにプッシュされた時に実行
   push:
     branches: [main]
     paths:
@@ -9,30 +8,25 @@ on:
       - '.github/workflows/deploy-docs.yml'
       - 'package.json'
       - 'pnpm-lock.yaml'
-  
-  # GitHubの画面から手動で実行できるようにする
   workflow_dispatch:
 
-# GitHub Pagesへのデプロイに必要な権限
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 同時実行を制御（古いデプロイをキャンセルする）
 concurrency:
   group: pages
   cancel-in-progress: false
 
 jobs:
-  # 1. ビルドジョブ
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # 最終更新日（Last Updated）を表示する場合に必要
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
@@ -56,7 +50,6 @@ jobs:
         with:
           path: docs/.vitepress/dist
 
-  # 2. デプロイジョブ
   deploy:
     environment:
       name: github-pages
