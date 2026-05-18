@@ -53,7 +53,7 @@ describe('seed script', () => {
     databaseUrl = `file:${path.join(testDir, 'seed.db')}`;
 
     runPrisma(['migrate', 'deploy']);
-    runNode(['prisma/seed.js']);
+    runNode(['--experimental-strip-types', 'prisma/seed.mts']);
 
     prisma = new PrismaClient({
       log: ['error'],

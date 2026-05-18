@@ -1,4 +1,6 @@
-require('dotenv/config');
+const loadEnvFile = process.loadEnvFile;
+
+loadEnvFile?.();
 
 const { createTursoClient } = require('./turso-database');
 
