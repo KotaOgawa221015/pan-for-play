@@ -1,19 +1,6 @@
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import type { NextRequest } from 'next/server';
-
-const { googleProvider } = vi.hoisted(() => ({
-  googleProvider: vi.fn(() => ({
-    id: 'google',
-    name: 'Google',
-    type: 'oauth',
-  })),
-}));
-
-vi.mock('next-auth/providers/google', () => ({
-  default: googleProvider,
-}));
-
-import { authConfig } from './auth.config';
+import { authorizeRouteAccess } from './route-access';
 
 function createRequest(
   pathname: string,
@@ -31,9 +18,9 @@ function createRequest(
   } as unknown as NextRequest;
 }
 
-describe('auth config authorized callback', () => {
+describe('authorizeRouteAccess', () => {
   it('redirects unauthenticated navigation requests to login', () => {
-    const result = authConfig.callbacks.authorized({
+    const result = authorizeRouteAccess({
       auth: null,
       request: createRequest('/'),
     });
@@ -45,7 +32,7 @@ describe('auth config authorized callback', () => {
   });
 
   it('allows server action requests to continue to action-level authorization', () => {
-    const result = authConfig.callbacks.authorized({
+    const result = authorizeRouteAccess({
       auth: null,
       request: createRequest('/', {
         method: 'POST',

@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/features/auth/auth';
-import { requireAdminUser } from '@/features/auth/account-access';
+import { requireAdminUser } from '@/features/auth/session-user';
 import {
   createCatalogProduct,
   listCatalogProducts,

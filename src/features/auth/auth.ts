@@ -1,8 +1,14 @@
 import NextAuth from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
+import Google from 'next-auth/providers/google';
 import { prisma } from '@/lib/prisma';
-import { authConfig } from './auth.config';
-import Credentials from 'next-auth/providers/credentials';
+import { createDevelopmentSignInProviders } from './development-sign-in';
+import { authorizeRouteAccess } from './route-access';
+import {
+  addSessionClaimsToToken,
+  allowActiveUserSignIn,
+  exposeSessionClaims,
+} from './session-claims';
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -11,34 +17,31 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
     (process.env.NODE_ENV === 'development'
       ? 'development-only-secret'
       : undefined),
-  ...authConfig,
+  trustHost: true,
   providers: [
-    ...authConfig.providers,
-    Credentials({
-      id: 'dev-admin',
-      name: 'Development Admin',
-      credentials: {},
-      async authorize() {
-        if (process.env.NODE_ENV !== 'development') return null;
-
-        const admin = await prisma.user.findFirst({
-          where: { email: 'admin@example.com', role: 'ADMIN' },
-        });
-        return admin ?? null;
-      },
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
     }),
-    Credentials({
-      id: 'dev-user',
-      name: 'Development User',
-      credentials: {},
-      async authorize() {
-        if (process.env.NODE_ENV !== 'development') return null;
-
-        const user = await prisma.user.findFirst({
+    ...createDevelopmentSignInProviders(process.env.NODE_ENV, {
+      findDevelopmentAdmin: () =>
+        prisma.user.findFirst({
+          where: { email: 'admin@example.com', role: 'ADMIN' },
+        }),
+      findDevelopmentUser: () =>
+        prisma.user.findFirst({
           where: { email: 'user@example.com', role: 'MEMBER' },
-        });
-        return user ?? null;
-      },
+        }),
     }),
   ],
+  session: { strategy: 'jwt' },
+  pages: {
+    signIn: '/login',
+  },
+  callbacks: {
+    authorized: authorizeRouteAccess,
+    signIn: allowActiveUserSignIn,
+    jwt: addSessionClaimsToToken,
+    session: exposeSessionClaims,
+  },
 });
