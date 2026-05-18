@@ -1,8 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/features/auth/auth';
-import { requireAdminUser } from '@/features/auth/session-user';
 import {
   createCatalogProduct,
   listCatalogProducts,
@@ -12,16 +10,14 @@ import type { ReviewInput } from '../types';
 import { normalizeProductName } from '../review-draft/normalize-product-name';
 import { validateReviewProducts } from '../review-draft/validate-products';
 import { createInventoryPublication } from './create-publication';
+import { adminAction } from '@/features/auth/safe-actions';
 
-export async function applyReceivingReview(input: ReviewInput) {
-  const session = await auth();
-  if (!session) throw new Error('Unauthorized');
-  const [currentUserId, catalog] = await Promise.all([
-    requireAdminUser().then((user) => user.id),
-    listCatalogProducts(),
-  ]);
+async function applyReceivingReviewInternal(
+  admin: { id: string },
+  input: ReviewInput,
+) {
+  const catalog = await listCatalogProducts();
   const reviewedProducts = validateReviewProducts(input.products);
-
   const catalogByName = new Map(
     catalog.map((product) => [normalizeProductName(product.name), product]),
   );
@@ -170,7 +166,7 @@ export async function applyReceivingReview(input: ReviewInput) {
 
     await createInventoryPublication(tx, {
       uploadBatchId: batch.id,
-      publishedByUserId: currentUserId,
+      publishedByUserId: admin.id,
       publishedAt,
       previousLines:
         currentPublication?.uploadBatch.lines.flatMap((line) =>
@@ -190,3 +186,4 @@ export async function applyReceivingReview(input: ReviewInput) {
   revalidatePath('/');
   revalidatePath('/admin');
 }
+export const applyReceivingReview = adminAction(applyReceivingReviewInternal);

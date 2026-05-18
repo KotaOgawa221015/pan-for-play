@@ -55,5 +55,5 @@ docs/.vitepress/dist
 docs/.vitepress/cache/deps
 
 # Playwright
-/playwright-report/
-/test-results/
+playwright-report/
+test-results/

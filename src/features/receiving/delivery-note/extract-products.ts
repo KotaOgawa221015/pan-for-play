@@ -8,7 +8,7 @@ import {
 } from './extract-recognized-lines';
 import { UnreadableDeliveryNoteImageError } from './unreadable-image-error';
 
-export type ExtractedDeliveryNoteProduct = {
+type ExtractedDeliveryNoteProduct = {
   name: string;
   count: number;
 };

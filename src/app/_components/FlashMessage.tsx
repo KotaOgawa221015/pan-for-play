@@ -1,42 +1,66 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
+import { useReducer, useEffect } from 'react';
+
+type MessagePhase = 'idle' | 'visible' | 'exiting';
+
+type State = {
+  phase: MessagePhase;
+};
+
+type Action = { type: 'SHOW' } | { type: 'EXIT' } | { type: 'RESET' };
+
+function flashMessageReducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'SHOW':
+      return { phase: 'visible' };
+    case 'EXIT':
+      return { phase: 'exiting' };
+    case 'RESET':
+      return { phase: 'idle' };
+    default:
+      return state;
+  }
+}
 
 export function FlashMessage({ msg }: { msg?: string }) {
-  const [isExiting, setIsExiting] = useState(false);
-  const pathname = usePathname();
   const validMessages = [
     'login_success',
     'signup_success',
     'logout_success',
     'session_invalid',
   ];
-  const isVisible = Boolean(msg && validMessages.includes(msg));
+  const isTriggered = Boolean(msg && validMessages.includes(msg));
+
+  const [state, dispatch] = useReducer(flashMessageReducer, { phase: 'idle' });
 
   useEffect(() => {
-    if (!isVisible) {
-      setIsExiting(false);
+    if (!isTriggered) {
+      dispatch({ type: 'RESET' });
       return;
     }
 
-    setIsExiting(false);
+    dispatch({ type: 'SHOW' });
 
     const exitTimer = setTimeout(() => {
-      setIsExiting(true);
+      dispatch({ type: 'EXIT' });
     }, 2400);
 
     const removeTimer = setTimeout(() => {
-      window.history.replaceState(window.history.state, '', pathname);
+      window.history.replaceState(
+        window.history.state,
+        '',
+        window.location.pathname,
+      );
     }, 2900);
 
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(removeTimer);
     };
-  }, [isVisible, pathname]);
+  }, [isTriggered]);
 
-  if (!isVisible || !msg) return null;
+  if (state.phase === 'idle' || !msg) return null;
 
   const isAlert = msg === 'logout_success' || msg === 'session_invalid';
 
@@ -58,7 +82,8 @@ export function FlashMessage({ msg }: { msg?: string }) {
         text-center py-2 text-xs font-medium 
         transition-all duration-500 ease-in-out
         ${styles}
-        ${isExiting ? 'opacity-0 -translate-y-full' : 'opacity-100 translate-y-0'}
+        /* 💡 state.phase に応じてアニメーションクラスを切り替え */
+        ${state.phase === 'exiting' ? 'opacity-0 -translate-y-full' : 'opacity-100 translate-y-0'}
       `}
     >
       {messageMap[msg]}

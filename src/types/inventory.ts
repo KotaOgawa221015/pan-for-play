@@ -4,12 +4,11 @@ import type {
 } from '@prisma/client';
 
 export type ProductStatus = PrismaInventoryStatus;
-export type ProductCategory = PrismaProductCategory;
 
 export type Product = {
   id: string;
   name: string;
-  category: ProductCategory;
+  category: PrismaProductCategory;
   count: number;
   status: ProductStatus;
   lastStatusChangedAt: string | null;

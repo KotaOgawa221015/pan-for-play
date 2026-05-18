@@ -15,5 +15,7 @@ docker-compose*
 *.db-wal
 docs/.vitepress/cache
 docs/.vitepress/dist
-playwright-report
-test-results
+playwright-report/
+test-results/
+coverage/
+references/

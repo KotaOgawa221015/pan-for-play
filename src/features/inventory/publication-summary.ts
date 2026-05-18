@@ -1,5 +1,3 @@
-'use server';
-
 import { prisma } from '@/lib/prisma';
 import type { InventoryPublicationSummary } from '@/types/inventory';
 

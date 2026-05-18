@@ -1,5 +1,3 @@
-'use server';
-
 import { prisma } from '@/lib/prisma';
 import { getProductStatusFromCount } from './counts';
 import type { Product } from '@/types/inventory';
