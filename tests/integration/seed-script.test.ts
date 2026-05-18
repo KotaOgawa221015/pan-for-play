@@ -14,6 +14,10 @@ const prismaBinary =
   process.platform === 'win32'
     ? path.join(rootDir, 'node_modules', '.bin', 'prisma.cmd')
     : path.join(rootDir, 'node_modules', '.bin', 'prisma');
+const tsxBinary =
+  process.platform === 'win32'
+    ? path.join(rootDir, 'node_modules', '.bin', 'tsx.cmd')
+    : path.join(rootDir, 'node_modules', '.bin', 'tsx');
 
 let databaseUrl: string;
 
@@ -35,8 +39,8 @@ function runPrisma(args: string[]) {
   });
 }
 
-function runNode(args: string[]) {
-  execFileSync(process.execPath, args, {
+function runTsx(args: string[]) {
+  execFileSync(tsxBinary, args, {
     cwd: rootDir,
     env: commandEnv(),
     stdio: 'pipe',
@@ -53,7 +57,7 @@ describe('seed script', () => {
     databaseUrl = `file:${path.join(testDir, 'seed.db')}`;
 
     runPrisma(['migrate', 'deploy']);
-    runNode(['prisma/seed.js']);
+    runTsx(['prisma/seed.mts']);
 
     prisma = new PrismaClient({
       log: ['error'],
