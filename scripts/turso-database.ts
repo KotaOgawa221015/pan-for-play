@@ -1,13 +1,26 @@
-const crypto = require('node:crypto');
-const fs = require('node:fs');
-const path = require('node:path');
-const { createClient } = require('@libsql/client');
+import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { createClient } from '@libsql/client';
 
-const projectRoot = path.resolve(__dirname, '..');
+type TursoClient = ReturnType<typeof createClient>;
+
+type MigrationEntry = {
+  name: string;
+  filePath: string;
+  sql: string;
+  checksum: string;
+};
+
+const projectRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..',
+);
 const migrationsDir = path.join(projectRoot, 'prisma', 'migrations');
 const migrationsTableName = '__pancolle_migrations';
 
-function getDatabaseUrl() {
+function getDatabaseUrl(): string {
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
@@ -17,7 +30,7 @@ function getDatabaseUrl() {
   return databaseUrl;
 }
 
-function assertTursoDatabaseUrl() {
+export function assertTursoDatabaseUrl(): string {
   const databaseUrl = getDatabaseUrl();
 
   if (databaseUrl.startsWith('file:') || databaseUrl.startsWith('sqlite:')) {
@@ -29,7 +42,7 @@ function assertTursoDatabaseUrl() {
   return databaseUrl;
 }
 
-function getTursoAuthToken() {
+export function getTursoAuthToken(): string {
   const authToken = process.env.TURSO_AUTH_TOKEN;
 
   if (!authToken) {
@@ -39,15 +52,15 @@ function getTursoAuthToken() {
   return authToken;
 }
 
-function createTursoClient() {
+export function createTursoClient(): TursoClient {
   return createClient({
     url: assertTursoDatabaseUrl(),
     authToken: getTursoAuthToken(),
   });
 }
 
-function listMigrationEntries() {
-  const entries = [];
+function listMigrationEntries(): MigrationEntry[] {
+  const entries: MigrationEntry[] = [];
 
   for (const entry of fs.readdirSync(migrationsDir, { withFileTypes: true })) {
     if (!entry.isDirectory()) {
@@ -73,7 +86,7 @@ function listMigrationEntries() {
   return entries.sort((left, right) => left.name.localeCompare(right.name));
 }
 
-async function ensureMigrationsTable(client) {
+async function ensureMigrationsTable(client: TursoClient): Promise<void> {
   await client.execute(`
     CREATE TABLE IF NOT EXISTS "${migrationsTableName}" (
       "name" TEXT NOT NULL PRIMARY KEY,
@@ -83,7 +96,9 @@ async function ensureMigrationsTable(client) {
   `);
 }
 
-async function listAppliedMigrations(client) {
+async function listAppliedMigrations(
+  client: TursoClient,
+): Promise<Map<string, string>> {
   const result = await client.execute(
     `SELECT "name", "checksum" FROM "${migrationsTableName}" ORDER BY "name" ASC`,
   );
@@ -93,7 +108,7 @@ async function listAppliedMigrations(client) {
   );
 }
 
-async function listUserTables(client) {
+async function listUserTables(client: TursoClient): Promise<string[]> {
   const result = await client.execute(`
     SELECT "name"
     FROM "sqlite_master"
@@ -105,7 +120,9 @@ async function listUserTables(client) {
   return result.rows.map((row) => String(row.name));
 }
 
-async function applyPendingMigrations(client) {
+export async function applyPendingMigrations(
+  client: TursoClient,
+): Promise<void> {
   const migrationEntries = listMigrationEntries();
   await ensureMigrationsTable(client);
   const [appliedMigrations, userTables] = await Promise.all([
@@ -143,10 +160,3 @@ async function applyPendingMigrations(client) {
     });
   }, Promise.resolve());
 }
-
-module.exports = {
-  applyPendingMigrations,
-  assertTursoDatabaseUrl,
-  createTursoClient,
-  getTursoAuthToken,
-};

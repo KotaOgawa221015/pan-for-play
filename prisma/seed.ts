@@ -1,11 +1,11 @@
 import { existsSync } from 'node:fs';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '@prisma/client';
-import { cleanDatabase } from './seeds/clean.mts';
-import { seedUsersData } from './seeds/users.mts';
-import { seedProductsData } from './seeds/products.mts';
-import { seedReceivingHistory } from './seeds/receiving.mts';
-import { seedPublications } from './seeds/publications.mts';
+import { cleanDatabase } from './seeds/clean.ts';
+import { seedUsersData } from './seeds/users.ts';
+import { seedProductsData } from './seeds/products.ts';
+import { seedReceivingHistory } from './seeds/receiving.ts';
+import { seedPublications } from './seeds/publications.ts';
 
 const loadEnvFile = (
   process as typeof process & {

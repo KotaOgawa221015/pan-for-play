@@ -1,14 +1,19 @@
-const loadEnvFile = process.loadEnvFile;
+import { spawnSync } from 'node:child_process';
+import { applyPendingMigrations, createTursoClient } from './turso-database.ts';
+
+const loadEnvFile = (
+  process as typeof process & {
+    loadEnvFile?: () => void;
+  }
+).loadEnvFile;
 
 loadEnvFile?.();
 
-const { spawnSync } = require('node:child_process');
-const {
-  applyPendingMigrations,
-  createTursoClient,
-} = require('./turso-database');
+type RunCommandOptions = {
+  captureStdout?: boolean;
+};
 
-function getDatabaseUrl() {
+function getDatabaseUrl(): string {
   const databaseUrl = process.env.DATABASE_URL;
 
   if (!databaseUrl) {
@@ -18,7 +23,7 @@ function getDatabaseUrl() {
   return databaseUrl;
 }
 
-function requireEnv(name) {
+function requireEnv(name: string): string {
   const value = process.env[name];
 
   if (!value) {
@@ -28,13 +33,17 @@ function requireEnv(name) {
   return value;
 }
 
-function hasForceFlag() {
+function hasForceFlag(): boolean {
   return process.argv.slice(2).some((arg) => {
     return arg === '--force' || arg === '--force=1' || arg === 'force=1';
   });
 }
 
-function runCommand(command, args, options = {}) {
+function runCommand(
+  command: string,
+  args: string[],
+  options: RunCommandOptions = {},
+): string {
   const result = spawnSync(command, args, {
     cwd: process.cwd(),
     env: process.env,
@@ -50,20 +59,20 @@ function runCommand(command, args, options = {}) {
     throw new Error(`${command} ${args.join(' ')} failed.`);
   }
 
-  return result.stdout?.trim() ?? '';
+  return result.stdout ? String(result.stdout).trim() : '';
 }
 
-function runPnpm(args) {
+function runPnpm(args: string[]): void {
   const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
   runCommand(command, args);
 }
 
-function runTurso(args, options) {
+function runTurso(args: string[], options?: RunCommandOptions): string {
   const command = process.platform === 'win32' ? 'turso.cmd' : 'turso';
   return runCommand(command, args, options);
 }
 
-function recreateDatabase(databaseName) {
+function recreateDatabase(databaseName: string): void {
   const createArgs = ['db', 'create', databaseName, '--wait'];
 
   if (process.env.TURSO_DATABASE_GROUP) {
@@ -74,7 +83,7 @@ function recreateDatabase(databaseName) {
   runTurso(createArgs);
 }
 
-function createDatabaseToken(databaseName) {
+function createDatabaseToken(databaseName: string): string {
   const expiration = requireEnv('TURSO_AUTH_TOKEN_EXPIRATION');
 
   return runTurso(
@@ -83,7 +92,7 @@ function createDatabaseToken(databaseName) {
   );
 }
 
-async function migrateAndSeed(authToken) {
+async function migrateAndSeed(authToken: string): Promise<void> {
   process.env.TURSO_AUTH_TOKEN = authToken;
 
   const client = createTursoClient();
@@ -96,7 +105,7 @@ async function migrateAndSeed(authToken) {
   runPnpm(['db:seed']);
 }
 
-async function main() {
+async function main(): Promise<void> {
   if (!hasForceFlag()) {
     throw new Error(
       'Turso database recreation is destructive. Re-run with --force.',
