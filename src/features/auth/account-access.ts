@@ -2,7 +2,6 @@
 
 import { redirect } from 'next/navigation';
 import type { UserRole } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
 import { auth, signIn, signOut } from './auth';
 
 export type AuthenticatedUser = {

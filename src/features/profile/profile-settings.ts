@@ -14,7 +14,6 @@ export async function updateProfileAction(
   const user = await requireCurrentUser();
 
   const userId = user.id;
-  const email = user.email;
 
   const name = formData.get('name') as string;
 
@@ -25,7 +24,7 @@ export async function updateProfileAction(
   try {
     await prisma.user.update({
       where: { id: userId },
-      data: { name: name.trim(), email },
+      data: { name: name.trim() },
     });
     revalidatePath('/profile');
     return { success: 'プロフィールを更新しました' };

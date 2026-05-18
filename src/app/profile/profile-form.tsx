@@ -7,7 +7,7 @@ import {
   deleteAccountAction,
 } from '@/features/profile/profile-settings';
 
-export function ProfileForm({ user }: { user: { name: string | null } }) {
+export function ProfileForm({ user }: { user: { name?: string | null } }) {
   const [state, pAction, pPending] = useActionState(updateProfileAction, null);
 
   const { update } = useSession();
