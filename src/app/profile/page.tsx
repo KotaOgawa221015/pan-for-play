@@ -2,6 +2,7 @@ import { requireCurrentUser } from '@/features/auth/account-access';
 import { ProfileForm } from './profile-form';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
   title: 'マイページ | パンコレ',
@@ -14,7 +15,6 @@ export default async function ProfilePage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
       <div className="max-w-xl mx-auto space-y-6">
-        {/* 在庫管理（トップページ）へ戻るボタン */}
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
@@ -41,7 +41,9 @@ export default async function ProfilePage() {
           <p className="text-zinc-500">アカウント情報の管理</p>
         </header>
 
-        <ProfileForm user={user} />
+        <SessionProvider>
+          <ProfileForm user={user} />
+        </SessionProvider>
       </div>
     </div>
   );

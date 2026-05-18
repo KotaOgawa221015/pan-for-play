@@ -1,16 +1,23 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   updateProfileAction,
   deleteAccountAction,
 } from '@/features/profile/profile-settings';
 
-export function ProfileForm({ user }: { user: { name: string | null } }) {
-  const [_pState, pAction, pPending] = useActionState(
-    updateProfileAction,
-    null,
-  );
+export function ProfileForm({ user }: { user: { name?: string | null } }) {
+  const [state, pAction, pPending] = useActionState(updateProfileAction, null);
+
+  const { update } = useSession();
+  const [name, setName] = useState(user.name || '');
+
+  useEffect(() => {
+    if (state?.success) {
+      update({ name: name.trim() });
+    }
+  }, [state, update, name]);
 
   const handleDeleteAccount = async () => {
     if (confirm('本当に退会しますか？この操作は取り消せません。')) {
@@ -33,7 +40,8 @@ export function ProfileForm({ user }: { user: { name: string | null } }) {
             <input
               id="name"
               name="name"
-              defaultValue={user.name || ''}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
               className="w-full p-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
             />
           </div>
