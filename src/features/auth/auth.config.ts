@@ -61,7 +61,7 @@ export const authConfig = {
         token.deletedAt = user.deletedAt;
       }
 
-      if (trigger === "update" && session?.name) {
+      if (trigger === 'update' && session?.name) {
         token.name = session.name;
       }
 

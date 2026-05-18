@@ -44,7 +44,6 @@ export default async function ProfilePage() {
         <SessionProvider>
           <ProfileForm user={user} />
         </SessionProvider>
-
       </div>
     </div>
   );

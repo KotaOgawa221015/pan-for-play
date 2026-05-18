@@ -8,10 +8,7 @@ import {
 } from '@/features/profile/profile-settings';
 
 export function ProfileForm({ user }: { user: { name: string | null } }) {
-  const [state, pAction, pPending] = useActionState(
-    updateProfileAction,
-    null,
-  );
+  const [state, pAction, pPending] = useActionState(updateProfileAction, null);
 
   const { update } = useSession();
   const [name, setName] = useState(user.name || '');
@@ -42,7 +39,8 @@ export function ProfileForm({ user }: { user: { name: string | null } }) {
             </label>
             <input
               id="name"
-              name="name" value={name}
+              name="name"
+              value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full p-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
             />
