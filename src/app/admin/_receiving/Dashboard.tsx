@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { startTransition, useState } from 'react';
+import { useReducer, startTransition } from 'react';
 import {
   applyReceivingReview,
   deleteReceivingBatch,
@@ -17,76 +17,144 @@ import { HistoryList } from './HistoryList';
 import { ReviewModal } from './ReviewModal';
 import { UploadPanel } from './UploadPanel';
 
+type State = {
+  draft: ReviewDraft | null;
+  notice: string | null;
+  errorMessage: string | null;
+  isReading: boolean;
+  isApplying: boolean;
+  busyBatchId: string | null;
+};
+
+type Action =
+  | { type: 'START_READING' }
+  | { type: 'READ_SUCCESS'; draft: ReviewDraft }
+  | { type: 'READ_ERROR'; error: string }
+  | { type: 'START_APPLYING' }
+  | { type: 'APPLY_SUCCESS'; notice: string }
+  | { type: 'APPLY_ERROR'; error: string }
+  | { type: 'START_BATCH_ACTION'; batchId: string }
+  | { type: 'BATCH_ACTION_FINISH' }
+  | { type: 'BATCH_ACTION_ERROR'; error: string }
+  | { type: 'CLOSE_DRAFT' };
+
+function reducer(state: State, action: Action): State {
+  switch (action.type) {
+    case 'START_READING':
+      return { ...state, isReading: true, notice: null, errorMessage: null };
+    case 'READ_SUCCESS':
+      return { ...state, isReading: false, draft: action.draft };
+    case 'READ_ERROR':
+      return { ...state, isReading: false, errorMessage: action.error };
+    case 'START_APPLYING':
+      return { ...state, isApplying: true, errorMessage: null };
+    case 'APPLY_SUCCESS':
+      return {
+        ...state,
+        isApplying: false,
+        draft: null,
+        notice: action.notice,
+      };
+    case 'APPLY_ERROR':
+      return { ...state, isApplying: false, errorMessage: action.error };
+    case 'START_BATCH_ACTION':
+      return {
+        ...state,
+        busyBatchId: action.batchId,
+        notice: null,
+        errorMessage: null,
+      };
+    case 'BATCH_ACTION_FINISH':
+      return { ...state, busyBatchId: null };
+    case 'BATCH_ACTION_ERROR':
+      return { ...state, busyBatchId: null, errorMessage: action.error };
+    case 'CLOSE_DRAFT':
+      return { ...state, draft: null };
+    default:
+      return state;
+  }
+}
+
 type Props = {
   recentHistory: HistoryEntry[];
 };
 
 export function Dashboard({ recentHistory }: Props) {
   const { refresh } = useRouter();
-  const [draft, setDraft] = useState<ReviewDraft | null>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [isReading, setIsReading] = useState(false);
-  const [isApplying, setIsApplying] = useState(false);
-  const [busyBatchId, setBusyBatchId] = useState<string | null>(null);
+  const [state, dispatch] = useReducer(reducer, {
+    draft: null,
+    notice: null,
+    errorMessage: null,
+    isReading: false,
+    isApplying: false,
+    busyBatchId: null,
+  });
+
+  const { draft, notice, errorMessage, isReading, isApplying, busyBatchId } =
+    state;
 
   const refreshPage = () => {
     refresh();
   };
 
   const handleRead = async (fileName: string) => {
-    setNotice(null);
-    setErrorMessage(null);
-    setIsReading(true);
+    dispatch({ type: 'START_READING' });
 
     try {
       const nextDraft = await startReceivingReview(fileName);
-      setDraft(nextDraft);
+      dispatch({ type: 'READ_SUCCESS', draft: nextDraft });
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : '納品書の読み取りに失敗しました。',
-      );
+      dispatch({
+        type: 'READ_ERROR',
+        error:
+          error instanceof Error
+            ? error.message
+            : '納品書の読み取りに失敗しました。',
+      });
     } finally {
-      setIsReading(false);
       refreshPage();
     }
   };
 
   const handleApply = async (input: ReviewInput) => {
-    setIsApplying(true);
-    setErrorMessage(null);
+    dispatch({ type: 'START_APPLYING' });
 
     try {
       await applyReceivingReview(input);
-      setDraft(null);
-      setNotice('納品書の内容を現在在庫として公開しました。');
+      dispatch({
+        type: 'APPLY_SUCCESS',
+        notice: '納品書の内容を現在在庫として公開しました。',
+      });
     } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : '納品書の反映に失敗しました。',
-      );
+      dispatch({
+        type: 'APPLY_ERROR',
+        error:
+          error instanceof Error
+            ? error.message
+            : '納品書の反映に失敗しました。',
+      });
       throw error;
     } finally {
-      setIsApplying(false);
       refreshPage();
     }
   };
 
   const runBatchAction = (batchId: string, action: () => Promise<void>) => {
-    setBusyBatchId(batchId);
-    setNotice(null);
-    setErrorMessage(null);
+    dispatch({ type: 'START_BATCH_ACTION', batchId });
 
     startTransition(async () => {
       try {
         await action();
+        dispatch({ type: 'BATCH_ACTION_FINISH' });
       } catch (error) {
-        setErrorMessage(
-          error instanceof Error ? error.message : '履歴の更新に失敗しました。',
-        );
+        dispatch({
+          type: 'BATCH_ACTION_ERROR',
+          error:
+            error instanceof Error
+              ? error.message
+              : '履歴の更新に失敗しました。',
+        });
       } finally {
-        setBusyBatchId(null);
         refreshPage();
       }
     });
@@ -122,7 +190,7 @@ export function Dashboard({ recentHistory }: Props) {
             return;
           }
 
-          setDraft(null);
+          dispatch({ type: 'CLOSE_DRAFT' });
         }}
       />
     </div>

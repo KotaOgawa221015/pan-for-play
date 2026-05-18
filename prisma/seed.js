@@ -159,31 +159,33 @@ async function main() {
 
     const publicationLines = [];
 
-    for (const [index, product] of history.products.entries()) {
-      const matchedProduct = productByName.get(product.name);
+    await Promise.all(
+      history.products.map(async (product, index) => {
+        const matchedProduct = productByName.get(product.name);
 
-      if (!matchedProduct) {
-        throw new Error(
-          `Seed receiving product is missing from catalog: ${product.name}`,
-        );
-      }
+        if (!matchedProduct) {
+          throw new Error(
+            `Seed receiving product is missing from catalog: ${product.name}`,
+          );
+        }
 
-      await prisma.uploadBatchLine.create({
-        data: {
-          uploadBatchId: batch.id,
-          lineNumber: index + 1,
-          rawText: product.name,
+        await prisma.uploadBatchLine.create({
+          data: {
+            uploadBatchId: batch.id,
+            lineNumber: index + 1,
+            rawText: product.name,
+            count: product.count,
+            matchedProductId: matchedProduct.id,
+            matchStatus: 'MATCHED',
+          },
+        });
+
+        publicationLines.push({
+          productId: matchedProduct.id,
           count: product.count,
-          matchedProductId: matchedProduct.id,
-          matchStatus: 'MATCHED',
-        },
-      });
-
-      publicationLines.push({
-        productId: matchedProduct.id,
-        count: product.count,
-      });
-    }
+        });
+      }),
+    );
 
     const publishedAt = minutesAgo(now, history.publishedMinutesAgo);
     if (!publishedAt) {
@@ -218,19 +220,21 @@ async function main() {
       publication.publicationLines,
     );
 
-    for (const change of statusChanges) {
-      await prisma.inventoryStatusChange.create({
-        data: {
-          publicationId: createdPublication.id,
-          productId: change.productId,
-          changedByUserId: adminUser.id,
-          previousStatus: change.previousStatus,
-          nextStatus: change.nextStatus,
-          changedAt: publication.publishedAt,
-          createdAt: publication.publishedAt,
-        },
-      });
-    }
+    await Promise.all(
+      statusChanges.map((change) =>
+        prisma.inventoryStatusChange.create({
+          data: {
+            publicationId: createdPublication.id,
+            productId: change.productId,
+            changedByUserId: adminUser.id,
+            previousStatus: change.previousStatus,
+            nextStatus: change.nextStatus,
+            changedAt: publication.publishedAt,
+            createdAt: publication.publishedAt,
+          },
+        }),
+      ),
+    );
 
     previousPublicationLines = publication.publicationLines;
   }

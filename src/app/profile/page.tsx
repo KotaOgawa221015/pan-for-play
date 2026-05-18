@@ -1,4 +1,4 @@
-import { getCurrentUser } from '@/features/auth/account-access';
+import { requireCurrentUser } from '@/features/auth/account-access';
 import { ProfileForm } from './profile-form';
 import Link from 'next/link';
 import type { Metadata } from 'next';
@@ -9,11 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ProfilePage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    throw new Error('Authenticated user is required.');
-  }
+  const user = await requireCurrentUser();
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">

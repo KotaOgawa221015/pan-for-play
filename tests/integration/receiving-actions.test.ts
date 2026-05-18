@@ -19,6 +19,7 @@ const {
   requireAdminUser,
   listCatalogProducts,
   extractProductsFromMock,
+  auth,
 } = vi.hoisted(() => ({
   transaction: vi.fn(),
   uploadBatchCreate: vi.fn(),
@@ -38,6 +39,7 @@ const {
   requireAdminUser: vi.fn(),
   listCatalogProducts: vi.fn(),
   extractProductsFromMock: vi.fn(),
+  auth: vi.fn(),
 }));
 
 vi.mock('@/lib/prisma', () => ({
@@ -67,6 +69,10 @@ vi.mock('@/lib/prisma', () => ({
       update: productUpdate,
     },
   },
+}));
+
+vi.mock('@/features/auth/auth', () => ({
+  auth,
 }));
 
 vi.mock('@/features/auth/account-access', () => ({
@@ -120,6 +126,9 @@ describe('receiving actions', () => {
     requireAdminUser.mockReset();
     listCatalogProducts.mockReset();
     extractProductsFromMock.mockReset();
+    auth.mockReset();
+
+    auth.mockResolvedValue({ user: { id: 'user-1', role: 'ADMIN' } });
 
     transaction.mockImplementation(async (callback: (tx: unknown) => unknown) =>
       callback({

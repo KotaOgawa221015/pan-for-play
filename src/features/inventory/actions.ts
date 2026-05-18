@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { auth } from '@/features/auth/auth';
 import { requireCurrentUser } from '@/features/auth/account-access';
 import { getProductStatusFromCount } from '@/features/inventory/counts';
 import { prisma } from '@/lib/prisma';
@@ -10,7 +11,10 @@ export async function updateProductStatus(
   productId: string,
   nextStatus: ProductStatus,
 ) {
+  const session = await auth();
+  if (!session) throw new Error('Unauthorized');
   const user = await requireCurrentUser();
+
   const changedAt = new Date();
 
   await prisma.$transaction(async (tx) => {

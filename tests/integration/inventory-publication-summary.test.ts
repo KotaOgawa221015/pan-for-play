@@ -1,10 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { inventoryPublicationFindFirst, inventoryStatusChangeFindMany } =
+const { inventoryPublicationFindFirst, inventoryStatusChangeFindMany, auth } =
   vi.hoisted(() => ({
     inventoryPublicationFindFirst: vi.fn(),
     inventoryStatusChangeFindMany: vi.fn(),
+    auth: vi.fn(),
   }));
+
+vi.mock('@/features/auth/auth', () => ({
+  auth,
+}));
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -23,6 +28,9 @@ describe('inventory publication summary', () => {
   beforeEach(() => {
     inventoryPublicationFindFirst.mockReset();
     inventoryStatusChangeFindMany.mockReset();
+    auth.mockReset();
+
+    auth.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
   });
 
   it('returns publication changes and manual changes after that publication', async () => {
