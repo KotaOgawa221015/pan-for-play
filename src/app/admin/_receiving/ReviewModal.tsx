@@ -7,6 +7,7 @@ import {
   PRODUCT_CATEGORIES,
   PRODUCT_CATEGORY_LABELS,
 } from '@/features/product-catalog/category';
+import type { ProductCategory } from '@prisma/client';
 import type {
   ReviewDraft,
   ReviewInput,
@@ -46,7 +47,10 @@ type LineItemProps = {
     lineId: string,
     updater: (current: ReviewLine) => ReviewLine,
   ) => void;
-  catalogByName: Map<string, { id: string; name: string; category: any }>;
+  catalogByName: Map<
+    string,
+    { id: string; name: string; category: ProductCategory }
+  >;
 };
 
 function ReviewLineItem({

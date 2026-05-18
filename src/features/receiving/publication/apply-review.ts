@@ -172,11 +172,11 @@ async function applyReceivingReviewInternal(
         currentPublication?.uploadBatch.lines.flatMap((line) =>
           line.matchedProductId
             ? [
-              {
-                matchedProductId: line.matchedProductId,
-                count: line.count,
-              },
-            ]
+                {
+                  matchedProductId: line.matchedProductId,
+                  count: line.count,
+                },
+              ]
             : [],
         ) ?? [],
       nextLines: nextPublicationLines,

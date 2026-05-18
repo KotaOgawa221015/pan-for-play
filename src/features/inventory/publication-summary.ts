@@ -1,10 +1,7 @@
-'use server';
-
 import { prisma } from '@/lib/prisma';
 import type { InventoryPublicationSummary } from '@/types/inventory';
-import { authenticatedAction } from '../auth/safe-actions';
 
-async function getCurrentInventoryPublicationSummaryInternal(): Promise<InventoryPublicationSummary | null> {
+export async function getCurrentInventoryPublicationSummary(): Promise<InventoryPublicationSummary | null> {
   const publication = await prisma.inventoryPublication.findFirst({
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
@@ -89,6 +86,3 @@ async function getCurrentInventoryPublicationSummaryInternal(): Promise<Inventor
     ),
   };
 }
-export const getCurrentInventoryPublicationSummary = authenticatedAction(
-  getCurrentInventoryPublicationSummaryInternal,
-);

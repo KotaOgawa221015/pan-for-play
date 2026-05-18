@@ -1,11 +1,8 @@
-'use server';
-
 import { prisma } from '@/lib/prisma';
 import { getProductStatusFromCount } from './counts';
 import type { Product } from '@/types/inventory';
-import { authenticatedAction } from '@/features/auth/safe-actions';
 
-async function getInventoryProductsInternal(): Promise<Product[]> {
+export async function getInventoryProducts(): Promise<Product[]> {
   const currentPublication = await prisma.inventoryPublication.findFirst({
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
@@ -92,7 +89,3 @@ async function getInventoryProductsInternal(): Promise<Product[]> {
     left.name.localeCompare(right.name, 'ja'),
   );
 }
-
-export const getInventoryProducts = authenticatedAction(
-  getInventoryProductsInternal,
-);

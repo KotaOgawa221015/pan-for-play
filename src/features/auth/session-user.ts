@@ -29,7 +29,6 @@ async function getCurrentUser() {
   };
 }
 
-
 export async function requireCurrentUser() {
   const user = await getCurrentUser();
 

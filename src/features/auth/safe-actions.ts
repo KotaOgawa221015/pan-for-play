@@ -2,7 +2,7 @@ import {
   requireCurrentUser,
   requireAdminUser,
   type AuthenticatedUser,
-} from './account-access';
+} from './session-user';
 
 export function authenticatedAction<Args extends unknown[], R>(
   action: (user: AuthenticatedUser, ...args: Args) => Promise<R>,
