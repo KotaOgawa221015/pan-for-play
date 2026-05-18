@@ -24,11 +24,3 @@ jobs:
 
       - name: Run System Tests
         run: mise exec -- just system-test
-
-      - name: Upload Playwright Report
-        if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 30
