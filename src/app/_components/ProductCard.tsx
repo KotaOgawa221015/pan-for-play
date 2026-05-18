@@ -52,7 +52,9 @@ export function ProductCard({ product }: Props) {
     : null;
 
   const iconSrc =
-    product.category === ProductCategory.SOUP ? '/soup.png' : '/bread.png';
+    product.category === ProductCategory.SOUP
+      ? '/category-icons/soup.png'
+      : '/category-icons/bread.png';
 
   const handleStatusChange = (nextStatus: ProductStatus) => {
     if (nextStatus === optimisticStatus) {
