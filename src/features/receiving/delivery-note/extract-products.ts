@@ -6,6 +6,7 @@ import {
   extractRecognizedCounts,
   extractRecognizedLines,
 } from './extract-recognized-lines';
+import { UnreadableDeliveryNoteImageError } from './unreadable-image-error';
 
 export type ExtractedDeliveryNoteProduct = {
   name: string;
@@ -71,15 +72,19 @@ export const extractProductsFromDeliveryNote: ExtractDeliveryNoteProducts =
       const counts = extractRecognizedCounts(countsResult.data.blocks);
 
       if (products.length === 0) {
-        throw new Error(`商品名を認識できませんでした: ${fileName}`);
+        throw new UnreadableDeliveryNoteImageError(
+          `商品名を認識できませんでした: ${fileName}`,
+        );
       }
 
       if (counts.length === 0) {
-        throw new Error(`数量を認識できませんでした: ${fileName}`);
+        throw new UnreadableDeliveryNoteImageError(
+          `数量を認識できませんでした: ${fileName}`,
+        );
       }
 
       if (products.length !== counts.length) {
-        throw new Error(
+        throw new UnreadableDeliveryNoteImageError(
           `商品名行数と数量行数が一致しません: ${fileName} (${products.length}件 / ${counts.length}件)`,
         );
       }

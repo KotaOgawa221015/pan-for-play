@@ -7,6 +7,7 @@ import { listCatalogProducts } from '@/features/product-catalog/products';
 import { extractProductsFromDeliveryNote } from './delivery-note/extract-products';
 import { readDeliveryNoteUpload } from './delivery-note/read-upload';
 import { storeDeliveryNoteImage } from './delivery-note/store-image';
+import { UnreadableDeliveryNoteImageError } from './delivery-note/unreadable-image-error';
 import { completeReviewBatch } from './review-draft/complete-batch';
 import { createPendingReviewBatch } from './review-draft/create-pending-batch';
 import { failReviewBatch } from './review-draft/fail-batch';
@@ -57,6 +58,12 @@ export async function startReceivingReview(formData: FormData) {
   } catch (error) {
     await failReviewBatch(batch.id);
     revalidatePath('/admin');
+
+    if (error instanceof UnreadableDeliveryNoteImageError) {
+      console.error('Failed to read delivery note image:', error);
+      throw new Error(error.userMessage);
+    }
+
     throw error;
   }
 }

@@ -115,6 +115,7 @@ import { deleteReceivingBatch } from '@/features/receiving/history/delete-batch'
 import { applyReceivingReview } from '@/features/receiving/publication/apply-review';
 import { reapplyReceivingBatch } from '@/features/receiving/publication/reapply-batch';
 import { startReceivingReview } from '@/features/receiving/start-review';
+import { UnreadableDeliveryNoteImageError } from '@/features/receiving/delivery-note/unreadable-image-error';
 
 describe('receiving actions', () => {
   beforeEach(() => {
@@ -254,14 +255,18 @@ describe('receiving actions', () => {
     expect(revalidatePath).toHaveBeenCalledWith('/admin');
   });
 
-  it('marks the batch as failed when OCR extraction fails', async () => {
+  it('returns a retake request when the delivery note image is unreadable', async () => {
     requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
     readDeliveryNoteUpload.mockResolvedValue({
       fileName: 'invoice.png',
       imageBuffer: Buffer.from('png'),
     });
     storeDeliveryNoteImage.mockResolvedValue('/tmp/project/.tmp/invoice.png');
-    extractProductsFromDeliveryNote.mockRejectedValue(new Error('OCR failed'));
+    extractProductsFromDeliveryNote.mockRejectedValue(
+      new UnreadableDeliveryNoteImageError(
+        '商品名行数と数量行数が一致しません: invoice.png (3件 / 7件)',
+      ),
+    );
     uploadBatchCreate.mockResolvedValue({
       id: 'batch-1',
       originalFileName: 'invoice.png',
@@ -275,7 +280,9 @@ describe('receiving actions', () => {
       new File(['png'], 'invoice.png', { type: 'image/png' }),
     );
 
-    await expect(startReceivingReview(formData)).rejects.toThrow('OCR failed');
+    await expect(startReceivingReview(formData)).rejects.toThrow(
+      '納品書を読み取れませんでした。見本のように納品書全体が写るよう撮影し直して、もう一度アップロードしてください。',
+    );
     expect(uploadBatchUpdate).toHaveBeenNthCalledWith(1, {
       where: { id: 'batch-1' },
       data: {
