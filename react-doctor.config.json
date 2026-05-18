@@ -1,11 +1,7 @@
 {
   "ignore": {
     "rules": [],
-    "files": [
-      "playwright-report/**",
-      "scripts/**",
-      "docs/.vitepress/**"
-    ],
+    "files": ["playwright-report/**", "scripts/**", "docs/.vitepress/**"],
     "overrides": []
   },
   "lint": true,

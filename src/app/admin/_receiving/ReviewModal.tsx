@@ -42,7 +42,10 @@ type LineItemProps = {
   product: ReviewLine;
   index: number;
   isApplying: boolean;
-  onProductChange: (lineId: string, updater: (current: ReviewLine) => ReviewLine) => void;
+  onProductChange: (
+    lineId: string,
+    updater: (current: ReviewLine) => ReviewLine,
+  ) => void;
   catalogByName: Map<string, { id: string; name: string; category: any }>;
 };
 
@@ -53,7 +56,8 @@ function ReviewLineItem({
   onProductChange,
   catalogByName,
 }: LineItemProps) {
-  const existingProductName = catalogByName.get(normalizeName(product.name))?.name ?? null;
+  const existingProductName =
+    catalogByName.get(normalizeName(product.name))?.name ?? null;
 
   return (
     <section
@@ -143,7 +147,9 @@ function ReviewLineItem({
 }
 
 export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
-  const [products, setProducts] = useState<ReviewLine[]>(() => draft?.products ?? []);
+  const [products, setProducts] = useState<ReviewLine[]>(
+    () => draft?.products ?? [],
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const catalogByName = useMemo(
@@ -190,7 +196,8 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
   }
 
   const summaryItems = products.map((product, index) => {
-    const existingProductName = catalogByName.get(normalizeName(product.name))?.name ?? null;
+    const existingProductName =
+      catalogByName.get(normalizeName(product.name))?.name ?? null;
 
     return {
       lineId: product.lineId,
@@ -200,7 +207,9 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
       existingProductName,
     };
   });
-  const existingProductCount = summaryItems.filter((item) => item.existingProductName).length;
+  const existingProductCount = summaryItems.filter(
+    (item) => item.existingProductName,
+  ).length;
   const newProductCount = summaryItems.length - existingProductCount;
 
   const handleProductChange = (

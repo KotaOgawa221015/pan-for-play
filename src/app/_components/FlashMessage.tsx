@@ -9,10 +9,7 @@ type State = {
   phase: MessagePhase;
 };
 
-type Action =
-  | { type: 'SHOW' }
-  | { type: 'EXIT' }
-  | { type: 'RESET' };
+type Action = { type: 'SHOW' } | { type: 'EXIT' } | { type: 'RESET' };
 
 function flashMessageReducer(state: State, action: Action): State {
   switch (action.type) {
