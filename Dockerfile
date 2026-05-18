@@ -67,7 +67,7 @@ ENV DATABASE_URL=${BUILD_DATABASE_URL}
 RUN pnpm db:setup && \
     pnpm db:seed && \
     pnpm build && \
-    pnpm prune --prod
+    pnpm prune --prod --ignore-scripts
 
 
 # ==============================================================================
