@@ -14,7 +14,15 @@ export const authConfig = {
     signIn: '/login',
   },
   callbacks: {
-    authorized({ auth, request: { nextUrl } }) {
+    authorized({ auth, request }) {
+      const isServerActionRequest =
+        request.method === 'POST' &&
+        request.headers.get('next-action') !== null;
+      if (isServerActionRequest) {
+        return true;
+      }
+
+      const { nextUrl } = request;
       const user = auth?.user;
       const isOnLoginPage = nextUrl.pathname === '/login';
       const isLoggedIn = !!auth?.user;

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import {
   isProductCategory,
@@ -35,14 +36,24 @@ function formatCountStatus(count: number) {
   return '十分に残っている';
 }
 
+function getReviewLineId(lineId: string) {
+  return `review-line-${lineId}`;
+}
+
 export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
   const [products, setProducts] = useState<ReviewLine[]>(
     () => draft?.products ?? [],
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const catalogById = useMemo(
-    () => new Map(draft?.catalog.map((product) => [product.id, product]) ?? []),
+  const catalogByName = useMemo(
+    () =>
+      new Map(
+        draft?.catalog.map((product) => [
+          normalizeName(product.name),
+          product,
+        ]) ?? [],
+      ),
     [draft],
   );
 
@@ -64,25 +75,36 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
         return `カテゴリが不正です: ${name}`;
       }
 
-      const resolvedName = product.selectedProductId
-        ? normalizeName(
-            catalogById.get(product.selectedProductId)?.name ?? product.name,
-          )
-        : name;
-
-      if (seen.has(resolvedName)) {
-        return `同じ商品が複数回含まれています: ${resolvedName}`;
+      if (seen.has(name)) {
+        return `同じ商品が複数回含まれています: ${name}`;
       }
 
-      seen.add(resolvedName);
+      seen.add(name);
     }
 
     return null;
-  }, [catalogById, products]);
+  }, [products]);
 
   if (!draft) {
     return null;
   }
+
+  const summaryItems = products.map((product, index) => {
+    const existingProductName =
+      catalogByName.get(normalizeName(product.name))?.name ?? null;
+
+    return {
+      lineId: product.lineId,
+      lineNumber: index + 1,
+      name: normalizeName(product.name) || '商品名未入力',
+      count: product.count,
+      existingProductName,
+    };
+  });
+  const existingProductCount = summaryItems.filter(
+    (item) => item.existingProductName,
+  ).length;
+  const newProductCount = summaryItems.length - existingProductCount;
 
   const handleProductChange = (
     lineId: string,
@@ -111,7 +133,6 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
           name: normalizeName(product.name),
           category: product.category,
           count: product.count,
-          selectedProductId: product.selectedProductId,
         })),
       });
     } catch (error) {
@@ -121,9 +142,15 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
     }
   };
 
+  const handleSummaryItemClick = (lineId: string) => {
+    document
+      .getElementById(getReviewLineId(lineId))
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/65 p-4">
-      <div className="flex h-[90vh] w-full max-w-5xl flex-col overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="flex h-[90vh] w-full max-w-6xl flex-col overflow-hidden rounded-[28px] border border-zinc-200 bg-white shadow-2xl dark:border-zinc-800 dark:bg-zinc-950">
         <div className="shrink-0 flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 px-6 py-5">
           <div>
             <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
@@ -143,152 +170,180 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
           </button>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-5">
-          <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 text-sm text-zinc-600 dark:text-zinc-300">
-            商品名と数量を確認して、既存商品への紐付けまたは新規商品登録を確定します。
-          </div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <div className="grid gap-5 lg:grid-cols-[minmax(0,3fr)_minmax(280px,2fr)]">
+            <div className="space-y-5">
+              <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 text-sm text-zinc-600 dark:text-zinc-300">
+                商品名と数量を確認します。既存の商品名ならその商品を更新し、未登録の商品名なら新しく登録します。
+              </div>
 
-          {validationMessage || errorMessage ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-              {errorMessage ?? validationMessage}
-            </div>
-          ) : null}
+              {validationMessage || errorMessage ? (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  {errorMessage ?? validationMessage}
+                </div>
+              ) : null}
 
-          <div className="space-y-4">
-            {products.map((product, index) => {
-              const selectedProductName = product.selectedProductId
-                ? (catalogById.get(product.selectedProductId)?.name ?? null)
-                : null;
+              <div className="space-y-4">
+                {products.map((product, index) => {
+                  const existingProductName =
+                    catalogByName.get(normalizeName(product.name))?.name ??
+                    null;
 
-              return (
-                <section
-                  key={product.lineId}
-                  className="rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4"
-                >
-                  <div className="mb-4 flex items-center justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
-                        Line {index + 1}
-                      </p>
-                      <p className="mt-1 text-sm text-zinc-500">
-                        状態: {formatCountStatus(product.count)}
-                      </p>
-                    </div>
-                    <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">
-                      {selectedProductName
-                        ? `既存商品: ${selectedProductName}`
-                        : '新しい商品として登録'}
-                    </span>
-                  </div>
+                  return (
+                    <section
+                      id={getReviewLineId(product.lineId)}
+                      key={product.lineId}
+                      className="scroll-m-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4"
+                    >
+                      <div className="mb-4 flex items-center justify-between">
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
+                            Line {index + 1}
+                          </p>
+                          <p className="mt-1 text-sm text-zinc-500">
+                            状態: {formatCountStatus(product.count)}
+                          </p>
+                        </div>
+                        <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">
+                          {existingProductName
+                            ? `既存商品: ${existingProductName}`
+                            : '新しい商品として登録'}
+                        </span>
+                      </div>
 
-                  <div className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_120px_minmax(0,1.1fr)_140px]">
-                    <label className="space-y-2">
-                      <span className="text-xs font-semibold text-zinc-500">
-                        商品名
-                      </span>
-                      <input
-                        type="text"
-                        value={product.name}
-                        disabled={isApplying}
-                        onChange={(event) =>
-                          handleProductChange(product.lineId, (current) => ({
-                            ...current,
-                            name: event.target.value,
-                          }))
-                        }
-                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
-                      />
-                    </label>
-
-                    <label className="space-y-2">
-                      <span className="text-xs font-semibold text-zinc-500">
-                        数量
-                      </span>
-                      <input
-                        type="number"
-                        min={1}
-                        step={1}
-                        value={product.count}
-                        disabled={isApplying}
-                        onChange={(event) =>
-                          handleProductChange(product.lineId, (current) => ({
-                            ...current,
-                            count: Number(event.target.value),
-                          }))
-                        }
-                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
-                      />
-                    </label>
-
-                    <label className="space-y-2">
-                      <span className="text-xs font-semibold text-zinc-500">
-                        紐付け先
-                      </span>
-                      <select
-                        value={product.selectedProductId ?? ''}
-                        disabled={isApplying}
-                        onChange={(event) =>
-                          handleProductChange(product.lineId, (current) => {
-                            const nextProductId = event.target.value || null;
-                            const matchedCategory = nextProductId
-                              ? catalogById.get(nextProductId)?.category
-                              : current.category;
-
-                            return {
-                              ...current,
-                              selectedProductId: nextProductId,
-                              category: matchedCategory ?? current.category,
-                            };
-                          })
-                        }
-                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
-                      >
-                        <option value="">新しい商品として登録</option>
-                        {draft.catalog.map((catalogProduct) => (
-                          <option
-                            key={catalogProduct.id}
-                            value={catalogProduct.id}
-                          >
-                            {catalogProduct.name}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    <label className="space-y-2">
-                      <span className="text-xs font-semibold text-zinc-500">
-                        カテゴリ
-                      </span>
-                      <select
-                        value={product.category}
-                        disabled={isApplying}
-                        onChange={(event) =>
-                          handleProductChange(product.lineId, (current) => {
-                            const nextCategory = event.target.value;
-
-                            if (!isProductCategory(nextCategory)) {
-                              return current;
+                      <div className="grid gap-4 md:grid-cols-[minmax(0,3fr)_120px_140px]">
+                        <label className="space-y-2">
+                          <span className="text-xs font-semibold text-zinc-500">
+                            商品名
+                          </span>
+                          <input
+                            type="text"
+                            value={product.name}
+                            disabled={isApplying}
+                            onChange={(event) =>
+                              handleProductChange(
+                                product.lineId,
+                                (current) => ({
+                                  ...current,
+                                  name: event.target.value,
+                                }),
+                              )
                             }
+                            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
+                          />
+                        </label>
 
-                            return {
-                              ...current,
-                              category: nextCategory,
-                            };
-                          })
-                        }
-                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
-                      >
-                        {PRODUCT_CATEGORIES.map((category) => (
-                          <option key={category} value={category}>
-                            {PRODUCT_CATEGORY_LABELS[category]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-                  </div>
-                </section>
-              );
-            })}
+                        <label className="space-y-2">
+                          <span className="text-xs font-semibold text-zinc-500">
+                            数量
+                          </span>
+                          <input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={product.count}
+                            disabled={isApplying}
+                            onChange={(event) =>
+                              handleProductChange(
+                                product.lineId,
+                                (current) => ({
+                                  ...current,
+                                  count: Number(event.target.value),
+                                }),
+                              )
+                            }
+                            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
+                          />
+                        </label>
+
+                        <label className="space-y-2">
+                          <span className="text-xs font-semibold text-zinc-500">
+                            カテゴリ
+                          </span>
+                          <select
+                            value={product.category}
+                            disabled={isApplying}
+                            onChange={(event) =>
+                              handleProductChange(product.lineId, (current) => {
+                                const nextCategory = event.target.value;
+
+                                if (!isProductCategory(nextCategory)) {
+                                  return current;
+                                }
+
+                                return {
+                                  ...current,
+                                  category: nextCategory,
+                                };
+                              })
+                            }
+                            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
+                          >
+                            {PRODUCT_CATEGORIES.map((category) => (
+                              <option key={category} value={category}>
+                                {PRODUCT_CATEGORY_LABELS[category]}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            </div>
+
+            <aside className="order-first self-start rounded-2xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900 lg:sticky lg:top-0 lg:order-none">
+              <div className="relative mb-3 h-36 overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-950">
+                <Image
+                  src={draft.sourceImageUrl}
+                  alt="アップロードした納品書"
+                  fill
+                  unoptimized
+                  sizes="(min-width: 1024px) 40vw, 100vw"
+                  className="object-contain"
+                />
+              </div>
+
+              <div className="mb-3 flex items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">
+                    読み取り一覧
+                  </p>
+                  <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+                    全 {products.length} 件
+                  </p>
+                </div>
+                <div className="text-right text-xs text-zinc-500">
+                  <p>既存 {existingProductCount} 件</p>
+                  <p>新規 {newProductCount} 件</p>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                {summaryItems.map((item) => (
+                  <button
+                    key={item.lineId}
+                    type="button"
+                    onClick={() => handleSummaryItemClick(item.lineId)}
+                    className="grid w-full grid-cols-[32px_minmax(0,1fr)_auto_auto] items-center gap-2 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-left hover:border-zinc-300 dark:border-zinc-700 dark:bg-zinc-950 dark:hover:border-zinc-600"
+                  >
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-zinc-400">
+                      {item.lineNumber}
+                    </span>
+                    <span className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-100">
+                      {item.name}
+                    </span>
+                    <span className="text-sm font-semibold text-zinc-700 dark:text-zinc-200">
+                      {item.count}
+                    </span>
+                    <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-500 dark:bg-zinc-800 dark:text-zinc-300">
+                      {item.existingProductName ? '既存' : '新規'}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </aside>
           </div>
         </div>
 

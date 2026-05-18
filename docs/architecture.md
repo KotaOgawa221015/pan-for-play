@@ -19,7 +19,6 @@ src/
     auth/
     inventory/
     product-catalog/
-    product-list-extraction/
     profile/
     receiving/
 
@@ -55,9 +54,7 @@ src/
 
 ## 受け入れフローの境界
 
-`features/product-list-extraction` は OCR/VLM 抽出インターフェースとモック抽出データを所有する。
-
-`features/receiving` はレビュー下書き作成、レビュー適用、履歴ステータス遷移を所有する。
+`features/receiving` は納品書画像の抽出、レビュー下書き作成、レビュー適用、履歴ステータス遷移を所有する。
 
 `features/product-catalog` は商品カタログの検索と新規登録を所有する。
 
@@ -72,4 +69,4 @@ src/
 
 `prisma/fixtures` は DB シード用 fixture のみを置く。
 
-OCR/VLM のモック抽出 fixture は `src/features/product-list-extraction` に置く。
+OCR/VLM のテスト fixture は `tests/fixtures` に置く。

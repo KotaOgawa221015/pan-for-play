@@ -5,6 +5,8 @@ const nextConfig: NextConfig = {
     '@prisma/adapter-better-sqlite3',
     '@prisma/adapter-libsql',
     '@libsql/client',
+    'jimp',
+    'tesseract.js',
   ],
 };
 

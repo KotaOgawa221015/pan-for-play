@@ -2,12 +2,10 @@
 
 import { useRouter } from 'next/navigation';
 import { useReducer, startTransition } from 'react';
-import {
-  applyReceivingReview,
-  deleteReceivingBatch,
-  reapplyReceivingBatch,
-  startReceivingReview,
-} from '@/features/receiving/actions';
+import { deleteReceivingBatch } from '@/features/receiving/history/delete-batch';
+import { applyReceivingReview } from '@/features/receiving/publication/apply-review';
+import { reapplyReceivingBatch } from '@/features/receiving/publication/reapply-batch';
+import { startReceivingReview } from '@/features/receiving/start-review';
 import type {
   HistoryEntry,
   ReviewDraft,
@@ -97,11 +95,11 @@ export function Dashboard({ recentHistory }: Props) {
     refresh();
   };
 
-  const handleRead = async (fileName: string) => {
+  const handleRead = async (formData: FormData) => {
     dispatch({ type: 'START_READING' });
 
     try {
-      const nextDraft = await startReceivingReview(fileName);
+      const nextDraft = await startReceivingReview(formData);
       dispatch({ type: 'READ_SUCCESS', draft: nextDraft });
     } catch (error) {
       dispatch({

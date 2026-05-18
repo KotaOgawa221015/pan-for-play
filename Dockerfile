@@ -27,16 +27,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         git \
     && rm -rf /var/lib/apt/lists/*
 
-COPY package.json pnpm-lock.yaml ./
-
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
-
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
+COPY package.json pnpm-lock.yaml ./
 
 ENV DATABASE_URL="file:/tmp/pancolle-generate.db"
 
-RUN npx prisma generate
+RUN npm install -g pnpm && pnpm install --frozen-lockfile
 
 
 # ==============================================================================
@@ -70,7 +67,7 @@ ENV DATABASE_URL=${BUILD_DATABASE_URL}
 RUN pnpm db:setup && \
     pnpm db:seed && \
     pnpm build && \
-    pnpm prune --prod
+    pnpm prune --prod --ignore-scripts
 
 
 # ==============================================================================
