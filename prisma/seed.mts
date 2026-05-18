@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '@prisma/client';
 import { cleanDatabase } from './seeds/clean.mts';
@@ -7,26 +6,33 @@ import { seedProductsData } from './seeds/products.mts';
 import { seedReceivingHistory } from './seeds/receiving.mts';
 import { seedPublications } from './seeds/publications.mts';
 
+const loadEnvFile = (
+  process as typeof process & {
+    loadEnvFile?: () => void;
+  }
+).loadEnvFile;
+
+loadEnvFile?.();
+
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
   throw new Error('DATABASE_URL is required to run the seed script.');
 }
-const resolvedDatabaseUrl = databaseUrl;
 
-function createPrismaClient() {
+function createPrismaClient(databaseUrl: string) {
   const authToken = process.env.TURSO_AUTH_TOKEN;
 
   return new PrismaClient({
     log: ['error'],
     adapter: new PrismaLibSql({
-      url: resolvedDatabaseUrl,
+      url: databaseUrl,
       authToken: authToken || undefined,
     }),
   });
 }
 
-const prisma = createPrismaClient();
+const prisma = createPrismaClient(databaseUrl);
 
 async function main() {
   await cleanDatabase(prisma);
