@@ -1,5 +1,5 @@
 import { InventoryStatus, type PrismaClient, type User } from '@prisma/client';
-import type { PublicationLine, PublicationSeed } from './receiving.mts';
+import type { PublicationLine, PublicationSeed } from './receiving.ts';
 
 type StatusChange = {
   productId: string;

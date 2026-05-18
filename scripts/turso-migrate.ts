@@ -1,13 +1,14 @@
-const loadEnvFile = process.loadEnvFile;
+import { applyPendingMigrations, createTursoClient } from './turso-database.ts';
+
+const loadEnvFile = (
+  process as typeof process & {
+    loadEnvFile?: () => void;
+  }
+).loadEnvFile;
 
 loadEnvFile?.();
 
-const {
-  applyPendingMigrations,
-  createTursoClient,
-} = require('./turso-database');
-
-async function main() {
+async function main(): Promise<void> {
   const client = createTursoClient();
 
   try {

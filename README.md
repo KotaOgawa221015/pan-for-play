@@ -51,11 +51,11 @@ The `just db-*` recipes target local SQLite only.
 - just db-reset
 - just db-studio
 
-Turso schema changes are explicit scripts. `scripts/turso-migrate.js` applies existing migration SQL to the configured Turso database. `scripts/turso-recreate.js --force` destroys and recreates the Turso database, applies migrations, seeds data, and prints a fresh database token for runtime secrets. `DATABASE_URL`, `TURSO_DATABASE_NAME`, and `TURSO_AUTH_TOKEN_EXPIRATION` must be present in `.env`.
+Turso schema changes are explicit scripts. `scripts/turso-migrate.ts` applies existing migration SQL to the configured Turso database. `scripts/turso-recreate.ts --force` destroys and recreates the Turso database, applies migrations, seeds data, and prints a fresh database token for runtime secrets. `DATABASE_URL`, `TURSO_DATABASE_NAME`, and `TURSO_AUTH_TOKEN_EXPIRATION` must be present in `.env`.
 
 ```bash
-node scripts/turso-migrate.js
-node scripts/turso-recreate.js --force
+pnpm exec tsx scripts/turso-migrate.ts
+pnpm exec tsx scripts/turso-recreate.ts --force
 ```
 
 ## Docker

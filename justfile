@@ -27,7 +27,7 @@ setup:
         echo "Created .env from .env.example"; \
     fi
     pnpm install
-    node scripts/db.js setup
+    pnpm exec tsx scripts/db.ts setup
 
 # ==============================================================================
 # Code Quality
@@ -106,18 +106,18 @@ build-prod:
 
 # Run Prisma migrate dev with optional arguments
 db-migrate *args:
-    node scripts/db.js migrate {{ args }}
+    pnpm exec tsx scripts/db.ts migrate {{ args }}
 
 db-seed:
-    node scripts/db.js seed
+    pnpm exec tsx scripts/db.ts seed
 
 # Reset the database (caution: deletes all data)
 db-reset *args:
-    node scripts/db.js reset {{ args }}
+    pnpm exec tsx scripts/db.ts reset {{ args }}
 
 # Open Prisma Studio to browse/edit data
 db-studio:
-    node scripts/db.js studio
+    pnpm exec tsx scripts/db.ts studio
 
 # ==============================================================================
 # Testing

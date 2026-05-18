@@ -1,8 +1,8 @@
-const fs = require('node:fs');
-const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+import * as fs from 'node:fs';
+import * as path from 'node:path';
+import { spawnSync } from 'node:child_process';
 
-function readDatabaseUrlFromEnvFile() {
+function readDatabaseUrlFromEnvFile(): string | null {
   const envFilePath = path.resolve(process.cwd(), '.env');
 
   if (!fs.existsSync(envFilePath)) {
@@ -19,7 +19,7 @@ function readDatabaseUrlFromEnvFile() {
   return match[1].trim().replace(/^"(.*)"$/, '$1');
 }
 
-function getDatabaseUrl() {
+function getDatabaseUrl(): string {
   const databaseUrl = process.env.DATABASE_URL ?? readDatabaseUrlFromEnvFile();
 
   if (!databaseUrl) {
@@ -29,25 +29,25 @@ function getDatabaseUrl() {
   return databaseUrl;
 }
 
-function isLocalDatabaseUrl(databaseUrl) {
+function isLocalDatabaseUrl(databaseUrl: string): boolean {
   return databaseUrl.startsWith('file:') || databaseUrl.startsWith('sqlite:');
 }
 
-function getDatabaseKind() {
+function getDatabaseKind(): 'local' | 'turso' {
   return isLocalDatabaseUrl(getDatabaseUrl()) ? 'local' : 'turso';
 }
 
-function assertLocalDatabase(commandName) {
+function assertLocalDatabase(commandName: string): void {
   if (getDatabaseKind() !== 'local') {
     throw new Error(`${commandName} targets local SQLite only.`);
   }
 }
 
-function ensureLocalDataDir() {
+function ensureLocalDataDir(): void {
   fs.mkdirSync(path.resolve(process.cwd(), 'data'), { recursive: true });
 }
 
-function getLocalDatabaseFiles() {
+function getLocalDatabaseFiles(): string[] {
   const databaseUrl = getDatabaseUrl();
 
   if (!isLocalDatabaseUrl(databaseUrl)) {
@@ -61,13 +61,13 @@ function getLocalDatabaseFiles() {
   return [absolutePath, `${absolutePath}-wal`, `${absolutePath}-shm`];
 }
 
-function removeLocalDatabaseFiles() {
+function removeLocalDatabaseFiles(): void {
   for (const filePath of getLocalDatabaseFiles()) {
     fs.rmSync(filePath, { force: true });
   }
 }
 
-function runCommand(command, args) {
+function runCommand(command: string, args: string[]): void {
   const result = spawnSync(command, args, {
     cwd: process.cwd(),
     env: process.env,
@@ -83,12 +83,12 @@ function runCommand(command, args) {
   }
 }
 
-function runPnpm(args) {
+function runPnpm(args: string[]): void {
   const command = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
   runCommand(command, args);
 }
 
-function parseForce(args) {
+function parseForce(args: string[]): boolean {
   for (const arg of args) {
     if (arg === '--force' || arg === 'force=1' || arg === '--force=1') {
       return true;
@@ -98,18 +98,18 @@ function parseForce(args) {
   return false;
 }
 
-function assertNoArgs(commandName, args) {
+function assertNoArgs(commandName: string, args: string[]): void {
   if (args.length > 0) {
     throw new Error(`${commandName} does not accept extra arguments.`);
   }
 }
 
-async function main() {
+async function main(): Promise<void> {
   const [command, ...args] = process.argv.slice(2);
 
   if (!command) {
     throw new Error(
-      'Usage: node scripts/db.js <setup|migrate|seed|reset|studio>',
+      'Usage: tsx scripts/db.ts <setup|migrate|seed|reset|studio>',
     );
   }
 
