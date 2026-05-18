@@ -13,13 +13,13 @@ const prismaBinary =
     ? path.join(rootDir, 'node_modules', '.bin', 'prisma.cmd')
     : path.join(rootDir, 'node_modules', '.bin', 'prisma');
 
-describe('System Test: Inventory Lifecycle', () => {
+describe('Integration Test: Inventory Lifecycle', () => {
   let testDir: string;
 
   beforeAll(async () => {
     mkdirSync(tmpDir, { recursive: true });
-    testDir = mkdtempSync(path.join(tmpDir, 'system-test-'));
-    const databaseUrl = `file:${path.join(testDir, 'system.db')}`;
+    testDir = mkdtempSync(path.join(tmpDir, 'integration-test-'));
+    const databaseUrl = `file:${path.join(testDir, 'integration.db')}`;
 
     process.env.DATABASE_URL = databaseUrl;
 

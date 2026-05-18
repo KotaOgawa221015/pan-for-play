@@ -127,6 +127,14 @@ db-studio:
 test:
     pnpm test
 
+# Run E2E test suite via Playwright
+test-system:
+    pnpm test:system
+
+# Run E2E tests with Playwright UI Mode
+test-system-ui:
+    pnpm test:system:ui
+
 # Generate coverage report
 coverage:
     rm -rf coverage

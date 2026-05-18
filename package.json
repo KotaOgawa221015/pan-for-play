@@ -19,6 +19,8 @@
     "typecheck": "prisma generate && next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:system": "playwright test",
+    "test:system:ui": "playwright test --ui",
     "db:setup": "prisma generate && prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:migrate": "prisma migrate dev",
@@ -43,6 +45,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.5",
+    "@playwright/test": "^1.60.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
