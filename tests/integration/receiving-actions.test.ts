@@ -216,6 +216,7 @@ describe('receiving actions', () => {
 
     expect(draft.batchId).toBe('batch-1');
     expect(draft.originalFileName).toBe('invoice.png');
+    expect(draft.sourceImageUrl).toBe('/admin/receiving-images/batch-1');
     expect(draft.catalog).toEqual([
       { id: 'product-1', name: 'クラムチャウダー', category: 'SOUP' },
     ]);

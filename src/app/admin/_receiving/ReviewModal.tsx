@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import {
   isProductCategory,
@@ -293,6 +294,17 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
             </div>
 
             <aside className="order-first self-start rounded-2xl border border-zinc-200 bg-zinc-50 p-3 dark:border-zinc-800 dark:bg-zinc-900 lg:sticky lg:top-0 lg:order-none">
+              <div className="relative mb-3 h-36 overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-700 dark:bg-zinc-950">
+                <Image
+                  src={draft.sourceImageUrl}
+                  alt="アップロードした納品書"
+                  fill
+                  unoptimized
+                  sizes="(min-width: 1024px) 40vw, 100vw"
+                  className="object-contain"
+                />
+              </div>
+
               <div className="mb-3 flex items-start justify-between gap-3">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-400">

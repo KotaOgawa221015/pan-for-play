@@ -14,6 +14,7 @@ export type ReviewLine = {
 export type ReviewDraft = {
   batchId: string;
   originalFileName: string;
+  sourceImageUrl: string;
   processedAt: string;
   catalog: CatalogProduct[];
   products: ReviewLine[];

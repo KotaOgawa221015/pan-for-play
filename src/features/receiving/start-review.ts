@@ -47,6 +47,7 @@ export async function startReceivingReview(formData: FormData) {
     const persistedDraft = await completeReviewBatch({
       batchId: batch.id,
       originalFileName: batch.originalFileName,
+      sourceImageUrl: `/admin/receiving-images/${batch.id}`,
       processedAt: draft.processedAt,
       catalog: draft.catalog,
       lines: draft.lines,

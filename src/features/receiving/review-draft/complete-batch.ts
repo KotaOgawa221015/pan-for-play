@@ -8,6 +8,7 @@ type DraftLineInput = Omit<ReviewLine, 'lineId'>;
 export async function completeReviewBatch(input: {
   batchId: string;
   originalFileName: string;
+  sourceImageUrl: string;
   processedAt: Date;
   catalog: CatalogProduct[];
   lines: DraftLineInput[];
@@ -86,6 +87,7 @@ export async function completeReviewBatch(input: {
     return {
       batchId: input.batchId,
       originalFileName: input.originalFileName,
+      sourceImageUrl: input.sourceImageUrl,
       processedAt: input.processedAt.toISOString(),
       catalog: input.catalog,
       products,
