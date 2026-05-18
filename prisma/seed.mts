@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '@prisma/client';
 import { cleanDatabase } from './seeds/clean.mts';
@@ -12,7 +13,9 @@ const loadEnvFile = (
   }
 ).loadEnvFile;
 
-loadEnvFile?.();
+if (existsSync('.env')) {
+  loadEnvFile?.();
+}
 
 const databaseUrl = process.env.DATABASE_URL;
 
