@@ -22,5 +22,8 @@ jobs:
       - name: Install Playwright Browsers
         run: pnpm exec playwright install --with-deps
 
+      - name: Seed Development Database For System Tests
+        run: mise exec -- pnpm exec tsx scripts/db.ts seed
+
       - name: Run System Tests
         run: mise exec -- just system-test
