@@ -24,19 +24,13 @@ export async function getCurrentUser() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
-  return prisma.user.findUnique({
-    where: {
-      id: session.user.id,
-      deletedAt: null,
-    },
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      image: true,
-      role: true,
-    },
-  });
+  return {
+    id: session.user.id,
+    email: session.user.email,
+    name: session.user.name,
+    image: session.user.image,
+    role: session.user.role,
+  };
 }
 
 export type SessionStatus =
