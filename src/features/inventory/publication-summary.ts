@@ -2,8 +2,9 @@
 
 import { prisma } from '@/lib/prisma';
 import type { InventoryPublicationSummary } from '@/types/inventory';
+import { authenticatedAction } from '../auth/safe-actions';
 
-export async function getCurrentInventoryPublicationSummary(): Promise<InventoryPublicationSummary | null> {
+async function getCurrentInventoryPublicationSummaryInternal(): Promise<InventoryPublicationSummary | null> {
   const publication = await prisma.inventoryPublication.findFirst({
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
@@ -88,3 +89,6 @@ export async function getCurrentInventoryPublicationSummary(): Promise<Inventory
     ),
   };
 }
+export const getCurrentInventoryPublicationSummary = authenticatedAction(
+  getCurrentInventoryPublicationSummaryInternal,
+);

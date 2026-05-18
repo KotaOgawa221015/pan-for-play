@@ -28,11 +28,9 @@ function formatCountStatus(count: number) {
   if (count <= 0) {
     return '非表示';
   }
-
   if (count <= 5) {
     return '残り少し';
   }
-
   return '十分に残っている';
 }
 
@@ -40,10 +38,112 @@ function getReviewLineId(lineId: string) {
   return `review-line-${lineId}`;
 }
 
-export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
-  const [products, setProducts] = useState<ReviewLine[]>(
-    () => draft?.products ?? [],
+type LineItemProps = {
+  product: ReviewLine;
+  index: number;
+  isApplying: boolean;
+  onProductChange: (lineId: string, updater: (current: ReviewLine) => ReviewLine) => void;
+  catalogByName: Map<string, { id: string; name: string; category: any }>;
+};
+
+function ReviewLineItem({
+  product,
+  index,
+  isApplying,
+  onProductChange,
+  catalogByName,
+}: LineItemProps) {
+  const existingProductName = catalogByName.get(normalizeName(product.name))?.name ?? null;
+
+  return (
+    <section
+      id={getReviewLineId(product.lineId)}
+      className="scroll-m-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4"
+    >
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
+            Line {index + 1}
+          </p>
+          <p className="mt-1 text-sm text-zinc-500">
+            状態: {formatCountStatus(product.count)}
+          </p>
+        </div>
+        <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">
+          {existingProductName
+            ? `既存商品: ${existingProductName}`
+            : '新しい商品として登録'}
+        </span>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-[minmax(0,3fr)_120px_140px]">
+        <label className="space-y-2">
+          <span className="text-xs font-semibold text-zinc-500">商品名</span>
+          <input
+            type="text"
+            value={product.name}
+            disabled={isApplying}
+            onChange={(event) =>
+              onProductChange(product.lineId, (current) => ({
+                ...current,
+                name: event.target.value,
+              }))
+            }
+            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
+          />
+        </label>
+
+        <label className="space-y-2">
+          <span className="text-xs font-semibold text-zinc-500">数量</span>
+          <input
+            type="number"
+            min={1}
+            step={1}
+            value={product.count}
+            disabled={isApplying}
+            onChange={(event) =>
+              onProductChange(product.lineId, (current) => ({
+                ...current,
+                count: Number(event.target.value),
+              }))
+            }
+            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
+          />
+        </label>
+
+        <label className="space-y-2">
+          <span className="text-xs font-semibold text-zinc-500">カテゴリ</span>
+          <select
+            value={product.category}
+            disabled={isApplying}
+            onChange={(event) =>
+              onProductChange(product.lineId, (current) => {
+                const nextCategory = event.target.value;
+                if (!isProductCategory(nextCategory)) {
+                  return current;
+                }
+                return {
+                  ...current,
+                  category: nextCategory,
+                };
+              })
+            }
+            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
+          >
+            {PRODUCT_CATEGORIES.map((category) => (
+              <option key={category} value={category}>
+                {PRODUCT_CATEGORY_LABELS[category]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+    </section>
   );
+}
+
+export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
+  const [products, setProducts] = useState<ReviewLine[]>(() => draft?.products ?? []);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const catalogByName = useMemo(
@@ -90,8 +190,7 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
   }
 
   const summaryItems = products.map((product, index) => {
-    const existingProductName =
-      catalogByName.get(normalizeName(product.name))?.name ?? null;
+    const existingProductName = catalogByName.get(normalizeName(product.name))?.name ?? null;
 
     return {
       lineId: product.lineId,
@@ -101,9 +200,7 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
       existingProductName,
     };
   });
-  const existingProductCount = summaryItems.filter(
-    (item) => item.existingProductName,
-  ).length;
+  const existingProductCount = summaryItems.filter((item) => item.existingProductName).length;
   const newProductCount = summaryItems.length - existingProductCount;
 
   const handleProductChange = (
@@ -184,112 +281,16 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
               ) : null}
 
               <div className="space-y-4">
-                {products.map((product, index) => {
-                  const existingProductName =
-                    catalogByName.get(normalizeName(product.name))?.name ??
-                    null;
-
-                  return (
-                    <section
-                      id={getReviewLineId(product.lineId)}
-                      key={product.lineId}
-                      className="scroll-m-6 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-4"
-                    >
-                      <div className="mb-4 flex items-center justify-between">
-                        <div>
-                          <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
-                            Line {index + 1}
-                          </p>
-                          <p className="mt-1 text-sm text-zinc-500">
-                            状態: {formatCountStatus(product.count)}
-                          </p>
-                        </div>
-                        <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">
-                          {existingProductName
-                            ? `既存商品: ${existingProductName}`
-                            : '新しい商品として登録'}
-                        </span>
-                      </div>
-
-                      <div className="grid gap-4 md:grid-cols-[minmax(0,3fr)_120px_140px]">
-                        <label className="space-y-2">
-                          <span className="text-xs font-semibold text-zinc-500">
-                            商品名
-                          </span>
-                          <input
-                            type="text"
-                            value={product.name}
-                            disabled={isApplying}
-                            onChange={(event) =>
-                              handleProductChange(
-                                product.lineId,
-                                (current) => ({
-                                  ...current,
-                                  name: event.target.value,
-                                }),
-                              )
-                            }
-                            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
-                          />
-                        </label>
-
-                        <label className="space-y-2">
-                          <span className="text-xs font-semibold text-zinc-500">
-                            数量
-                          </span>
-                          <input
-                            type="number"
-                            min={1}
-                            step={1}
-                            value={product.count}
-                            disabled={isApplying}
-                            onChange={(event) =>
-                              handleProductChange(
-                                product.lineId,
-                                (current) => ({
-                                  ...current,
-                                  count: Number(event.target.value),
-                                }),
-                              )
-                            }
-                            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
-                          />
-                        </label>
-
-                        <label className="space-y-2">
-                          <span className="text-xs font-semibold text-zinc-500">
-                            カテゴリ
-                          </span>
-                          <select
-                            value={product.category}
-                            disabled={isApplying}
-                            onChange={(event) =>
-                              handleProductChange(product.lineId, (current) => {
-                                const nextCategory = event.target.value;
-
-                                if (!isProductCategory(nextCategory)) {
-                                  return current;
-                                }
-
-                                return {
-                                  ...current,
-                                  category: nextCategory,
-                                };
-                              })
-                            }
-                            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
-                          >
-                            {PRODUCT_CATEGORIES.map((category) => (
-                              <option key={category} value={category}>
-                                {PRODUCT_CATEGORY_LABELS[category]}
-                              </option>
-                            ))}
-                          </select>
-                        </label>
-                      </div>
-                    </section>
-                  );
-                })}
+                {products.map((product, index) => (
+                  <ReviewLineItem
+                    key={product.lineId}
+                    product={product}
+                    index={index}
+                    isApplying={isApplying}
+                    onProductChange={handleProductChange}
+                    catalogByName={catalogByName}
+                  />
+                ))}
               </div>
             </div>
 

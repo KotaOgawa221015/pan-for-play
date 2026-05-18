@@ -11,7 +11,9 @@
       "!package-lock.json",
       "!references",
       "!docs/.vitepress/cache",
-      "!docs/.vitepress/dist"
+      "!docs/.vitepress/dist",
+      "!playwright-report",
+      "!test-results"
     ]
   },
   "formatter": {

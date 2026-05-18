@@ -30,7 +30,7 @@ export type ReviewInput = {
   }>;
 };
 
-export type HistoryLine = {
+type HistoryLine = {
   id: string;
   name: string;
   count: number;

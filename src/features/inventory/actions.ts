@@ -1,20 +1,17 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/features/auth/auth';
-import { requireCurrentUser } from '@/features/auth/session-user';
+
 import { getProductStatusFromCount } from '@/features/inventory/counts';
 import { prisma } from '@/lib/prisma';
 import type { ProductStatus } from '@/types/inventory';
+import { authenticatedAction } from '@/features/auth/safe-actions';
 
-export async function updateProductStatus(
+async function updateProductStatusInternal(
+  user: { id: string },
   productId: string,
   nextStatus: ProductStatus,
 ) {
-  const session = await auth();
-  if (!session) throw new Error('Unauthorized');
-  const user = await requireCurrentUser();
-
   const changedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
@@ -61,9 +58,7 @@ export async function updateProductStatus(
       latestStatusChange?.nextStatus ??
       getProductStatusFromCount(publicationLine.count);
 
-    if (currentStatus === nextStatus) {
-      return;
-    }
+    if (currentStatus === nextStatus) return;
 
     await tx.inventoryStatusChange.create({
       data: {
@@ -79,3 +74,7 @@ export async function updateProductStatus(
 
   revalidatePath('/');
 }
+
+export const updateProductStatus = authenticatedAction(
+  updateProductStatusInternal,
+);

@@ -16,7 +16,7 @@ export type SessionStatus =
   | { status: 'invalid' }
   | { status: 'authenticated'; user: AuthenticatedUser };
 
-export async function getCurrentUser() {
+async function getCurrentUser() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
@@ -29,10 +29,6 @@ export async function getCurrentUser() {
   };
 }
 
-export async function getCurrentUserId() {
-  const session = await auth();
-  return session?.user?.id ?? null;
-}
 
 export async function requireCurrentUser() {
   const user = await getCurrentUser();
