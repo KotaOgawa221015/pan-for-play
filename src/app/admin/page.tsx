@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getRecentReceivingHistory } from '@/features/receiving/records';
+import { getRecentReceivingHistory } from '@/features/receiving/history/list-recent';
 import { Dashboard } from './_receiving/Dashboard';
 
 export default async function UploadPage() {

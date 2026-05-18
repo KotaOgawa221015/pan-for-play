@@ -6,7 +6,7 @@ type Props = {
   isReading: boolean;
   message: string | null;
   isError: boolean;
-  onRead: (fileName: string) => Promise<void>;
+  onRead: (formData: FormData) => Promise<void>;
 };
 
 export function UploadPanel({ isReading, message, isError, onRead }: Props) {
@@ -19,7 +19,7 @@ export function UploadPanel({ isReading, message, isError, onRead }: Props) {
       return;
     }
 
-    await onRead(fileName);
+    await onRead(new FormData(event.currentTarget));
   }
 
   return (
@@ -29,7 +29,8 @@ export function UploadPanel({ isReading, message, isError, onRead }: Props) {
           画像アップロード
         </h2>
         <p className="text-xs text-zinc-500">
-          納品書を選択すると、読取結果をレビュー用モーダルで確認できます。
+          PNG
+          の納品書画像を選択すると、読取結果をレビュー用モーダルで確認できます。
         </p>
       </div>
 
@@ -42,7 +43,7 @@ export function UploadPanel({ isReading, message, isError, onRead }: Props) {
             id="file"
             name="file"
             type="file"
-            accept="image/*"
+            accept="image/png"
             required
             disabled={isReading}
             onChange={(event) =>

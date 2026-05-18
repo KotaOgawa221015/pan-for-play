@@ -18,7 +18,9 @@ const {
   revalidatePath,
   requireAdminUser,
   listCatalogProducts,
-  extractProductsFromMock,
+  extractProductsFromDeliveryNote,
+  readDeliveryNoteUpload,
+  storeDeliveryNoteImage,
   auth,
 } = vi.hoisted(() => ({
   transaction: vi.fn(),
@@ -38,7 +40,9 @@ const {
   revalidatePath: vi.fn(),
   requireAdminUser: vi.fn(),
   listCatalogProducts: vi.fn(),
-  extractProductsFromMock: vi.fn(),
+  extractProductsFromDeliveryNote: vi.fn(),
+  readDeliveryNoteUpload: vi.fn(),
+  storeDeliveryNoteImage: vi.fn(),
   auth: vi.fn(),
 }));
 
@@ -91,20 +95,26 @@ vi.mock('@/features/product-catalog/products', () => ({
   ),
 }));
 
-vi.mock('@/features/product-list-extraction/mock', () => ({
-  extractProductsFromMock,
+vi.mock('@/features/receiving/delivery-note/extract-products', () => ({
+  extractProductsFromDeliveryNote,
+}));
+
+vi.mock('@/features/receiving/delivery-note/read-upload', () => ({
+  readDeliveryNoteUpload,
+}));
+
+vi.mock('@/features/receiving/delivery-note/store-image', () => ({
+  storeDeliveryNoteImage,
 }));
 
 vi.mock('next/cache', () => ({
   revalidatePath,
 }));
 
-import {
-  applyReceivingReview,
-  deleteReceivingBatch,
-  reapplyReceivingBatch,
-  startReceivingReview,
-} from '@/features/receiving/actions';
+import { deleteReceivingBatch } from '@/features/receiving/history/delete-batch';
+import { applyReceivingReview } from '@/features/receiving/publication/apply-review';
+import { reapplyReceivingBatch } from '@/features/receiving/publication/reapply-batch';
+import { startReceivingReview } from '@/features/receiving/start-review';
 
 describe('receiving actions', () => {
   beforeEach(() => {
@@ -125,7 +135,9 @@ describe('receiving actions', () => {
     revalidatePath.mockReset();
     requireAdminUser.mockReset();
     listCatalogProducts.mockReset();
-    extractProductsFromMock.mockReset();
+    extractProductsFromDeliveryNote.mockReset();
+    readDeliveryNoteUpload.mockReset();
+    storeDeliveryNoteImage.mockReset();
     auth.mockReset();
 
     auth.mockResolvedValue({ user: { id: 'user-1', role: 'ADMIN' } });
@@ -164,13 +176,23 @@ describe('receiving actions', () => {
     listCatalogProducts.mockResolvedValue([
       { id: 'product-1', name: 'クラムチャウダー', category: 'SOUP' },
     ]);
-    extractProductsFromMock.mockResolvedValue([
+    readDeliveryNoteUpload.mockResolvedValue({
+      fileName: 'invoice.png',
+      imageBuffer: Buffer.from('png'),
+    });
+    storeDeliveryNoteImage.mockResolvedValue('/tmp/project/.tmp/invoice.png');
+    extractProductsFromDeliveryNote.mockResolvedValue([
       { name: 'クラムチャウダー', count: 4 },
       { name: '新作パン', count: 9 },
     ]);
     uploadBatchCreate.mockResolvedValue({
       id: 'batch-1',
-      originalFileName: 'invoice.jpg',
+      originalFileName: 'invoice.png',
+    });
+    uploadBatchFindUnique.mockResolvedValue({
+      id: 'batch-1',
+      originalFileName: 'invoice.png',
+      processingStatus: 'PENDING',
     });
     uploadBatchLineCreate.mockImplementation(async ({ data }) => ({
       id: `line-${data.lineNumber}`,
@@ -182,10 +204,17 @@ describe('receiving actions', () => {
     }));
     uploadBatchUpdate.mockResolvedValue({});
 
-    const draft = await startReceivingReview('invoice.jpg');
+    const formData = new FormData();
+
+    formData.set(
+      'file',
+      new File(['png'], 'invoice.png', { type: 'image/png' }),
+    );
+
+    const draft = await startReceivingReview(formData);
 
     expect(draft.batchId).toBe('batch-1');
-    expect(draft.originalFileName).toBe('invoice.jpg');
+    expect(draft.originalFileName).toBe('invoice.png');
     expect(draft.catalog).toEqual([
       { id: 'product-1', name: 'クラムチャウダー', category: 'SOUP' },
     ]);
@@ -200,12 +229,65 @@ describe('receiving actions', () => {
     expect(uploadBatchCreate).toHaveBeenCalledWith({
       data: {
         uploadedByUserId: 'user-1',
-        originalFileName: 'invoice.jpg',
+        originalFileName: 'invoice.png',
         storagePath: null,
         processingStatus: 'PENDING',
       },
+      select: {
+        id: true,
+        originalFileName: true,
+      },
+    });
+    expect(uploadBatchUpdate).toHaveBeenNthCalledWith(1, {
+      where: { id: 'batch-1' },
+      data: {
+        storagePath: '/tmp/project/.tmp/invoice.png',
+      },
+    });
+    expect(uploadBatchUpdate).toHaveBeenNthCalledWith(2, {
+      where: { id: 'batch-1' },
+      data: {
+        processingStatus: 'PROCESSED',
+        processedAt: expect.any(Date),
+      },
     });
     expect(revalidatePath).toHaveBeenCalledWith('/admin');
+  });
+
+  it('marks the batch as failed when OCR extraction fails', async () => {
+    requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
+    readDeliveryNoteUpload.mockResolvedValue({
+      fileName: 'invoice.png',
+      imageBuffer: Buffer.from('png'),
+    });
+    storeDeliveryNoteImage.mockResolvedValue('/tmp/project/.tmp/invoice.png');
+    extractProductsFromDeliveryNote.mockRejectedValue(new Error('OCR failed'));
+    uploadBatchCreate.mockResolvedValue({
+      id: 'batch-1',
+      originalFileName: 'invoice.png',
+    });
+    uploadBatchUpdate.mockResolvedValue({});
+
+    const formData = new FormData();
+
+    formData.set(
+      'file',
+      new File(['png'], 'invoice.png', { type: 'image/png' }),
+    );
+
+    await expect(startReceivingReview(formData)).rejects.toThrow('OCR failed');
+    expect(uploadBatchUpdate).toHaveBeenNthCalledWith(1, {
+      where: { id: 'batch-1' },
+      data: {
+        storagePath: '/tmp/project/.tmp/invoice.png',
+      },
+    });
+    expect(uploadBatchUpdate).toHaveBeenNthCalledWith(2, {
+      where: { id: 'batch-1' },
+      data: {
+        processingStatus: 'FAILED',
+      },
+    });
   });
 
   it('applies reviewed lines and creates a publication with status changes', async () => {

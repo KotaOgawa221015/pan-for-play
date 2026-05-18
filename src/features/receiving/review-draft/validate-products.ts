@@ -1,61 +1,7 @@
-import { ProductCategory } from '@prisma/client';
 import { isProductCategory } from '@/features/product-catalog/category';
-import type { ExtractProducts } from '@/features/product-list-extraction/types';
 import type { CatalogProduct } from '@/features/product-catalog/products';
-import type { ReviewInput, ReviewLine } from './types';
-
-export function normalizeProductName(value: string) {
-  return value.trim().replace(/\s+/g, ' ');
-}
-
-export async function prepareReviewDraft(
-  fileName: string,
-  deps: {
-    getCurrentUserId: () => Promise<string | null>;
-    extractProducts: ExtractProducts;
-    listCatalogProducts: () => Promise<CatalogProduct[]>;
-    now?: () => Date;
-  },
-) {
-  const userId = await deps.getCurrentUserId();
-
-  if (!userId) {
-    throw new Error('セッションが無効です。再ログインしてください。');
-  }
-
-  const normalizedFileName = fileName.trim();
-
-  if (!normalizedFileName) {
-    throw new Error('ファイル名を取得できませんでした。');
-  }
-
-  const [catalog, extractedProducts] = await Promise.all([
-    deps.listCatalogProducts(),
-    deps.extractProducts({ fileName: normalizedFileName }),
-  ]);
-  const productByName = new Map(
-    catalog.map((product) => [normalizeProductName(product.name), product]),
-  );
-
-  return {
-    userId,
-    fileName: normalizedFileName,
-    processedAt: (deps.now ?? (() => new Date()))(),
-    catalog,
-    lines: extractedProducts.map((product) => {
-      const matchedProduct =
-        productByName.get(normalizeProductName(product.name)) ?? null;
-
-      return {
-        name: product.name,
-        category: matchedProduct?.category ?? ProductCategory.BREAD,
-        count: product.count,
-        selectedProductId: matchedProduct?.id ?? null,
-        matchStatus: matchedProduct ? 'MATCHED' : 'NEEDS_REVIEW',
-      } satisfies Omit<ReviewLine, 'lineId'>;
-    }),
-  };
-}
+import type { ReviewInput } from '../types';
+import { normalizeProductName } from './normalize-product-name';
 
 export function validateReviewProducts(
   products: ReviewInput['products'],
