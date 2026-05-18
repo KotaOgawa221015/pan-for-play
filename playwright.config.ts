@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const PORT = process.env.PORT || 3000;
-const BASE_URL = `http://localhost:${PORT}`;
+const SYSTEM_TEST_PORT = process.env.PANCOLLE_SYSTEM_TEST_PORT || 3000;
+const BASE_URL = `http://localhost:${SYSTEM_TEST_PORT}`;
 
 export default defineConfig({
   testDir: './tests/system',

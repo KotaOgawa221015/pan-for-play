@@ -127,6 +127,10 @@ db-studio:
 test:
     pnpm test
 
+# Run Playwright system tests
+system-test:
+    pnpm test:system
+
 # Generate coverage report
 coverage:
     rm -rf coverage

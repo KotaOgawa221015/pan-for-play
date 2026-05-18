@@ -1,0 +1,34 @@
+# System Test Workflow
+#
+# Runs Playwright system tests.
+
+name: Run System Tests
+
+on:
+  workflow_call:
+
+jobs:
+  run-system-tests:
+    name: Run System Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Setup Development Environment
+        uses: ./.github/actions/setup
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Run System Tests
+        run: mise exec -- just system-test
+
+      - name: Upload Playwright Report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
