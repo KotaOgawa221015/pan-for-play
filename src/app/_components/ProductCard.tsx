@@ -52,7 +52,9 @@ export function ProductCard({ product }: Props) {
     : null;
 
   const iconSrc =
-    product.category === ProductCategory.SOUP ? '/soup.png' : '/bread.png';
+    product.category === ProductCategory.SOUP
+      ? '/category-icons/soup.png'
+      : '/category-icons/bread.png';
 
   const handleStatusChange = (nextStatus: ProductStatus) => {
     if (nextStatus === optimisticStatus) {
@@ -88,9 +90,8 @@ export function ProductCard({ product }: Props) {
 
       <div className="flex flex-wrap items-start justify-center gap-x-3 gap-y-1 min-h-10 mb-2">
         <span
-          className={`px-3 py-0.5 rounded-full text-[11px] font-bold tracking-wider shrink-0 ${
-            STATUS_STYLES[optimisticStatus].badge
-          }`}
+          className={`px-3 py-0.5 rounded-full text-[11px] font-bold tracking-wider shrink-0 ${STATUS_STYLES[optimisticStatus].badge
+            }`}
         >
           {STATUS_LABELS[optimisticStatus]}
         </span>
@@ -120,9 +121,8 @@ export function ProductCard({ product }: Props) {
               onClick={() => handleStatusChange(status)}
               disabled={isPending}
               aria-pressed={isActive}
-              className={`flex-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition ${
-                isActive ? styles.active : styles.inactive
-              } ${isPending ? 'opacity-70' : ''}`}
+              className={`flex-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition ${isActive ? styles.active : styles.inactive
+                } ${isPending ? 'opacity-70' : ''}`}
             >
               {STATUS_LABELS[status]}
             </button>
