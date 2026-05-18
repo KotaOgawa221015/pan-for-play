@@ -1,6 +1,7 @@
 import type { CatalogProduct } from '@/features/product-catalog/products';
 import { prisma } from '@/lib/prisma';
 import type { ReviewDraft, ReviewLine } from '../types';
+import { normalizeProductName } from './normalize-product-name';
 
 type DraftLineInput = Omit<ReviewLine, 'lineId'>;
 
@@ -29,19 +30,28 @@ export async function completeReviewBatch(input: {
       throw new Error('未処理の納品書だけをレビュー作成できます。');
     }
 
+    const catalogByName = new Map(
+      input.catalog.map((product) => [
+        normalizeProductName(product.name),
+        product,
+      ]),
+    );
     const createdLines = await Promise.all(
-      input.lines.map((line, index) =>
-        tx.uploadBatchLine.create({
+      input.lines.map((line, index) => {
+        const matchedProduct =
+          catalogByName.get(normalizeProductName(line.name)) ?? null;
+
+        return tx.uploadBatchLine.create({
           data: {
             uploadBatchId: input.batchId,
             lineNumber: index + 1,
             rawText: line.name,
             count: line.count,
-            matchedProductId: line.selectedProductId,
-            matchStatus: line.matchStatus,
+            matchedProductId: matchedProduct?.id ?? null,
+            matchStatus: matchedProduct ? 'MATCHED' : 'NEEDS_REVIEW',
           },
-        }),
-      ),
+        });
+      }),
     );
 
     const categoryByLineNumber = new Map(
@@ -62,8 +72,6 @@ export async function completeReviewBatch(input: {
           name: createdLine.rawText,
           category,
           count: createdLine.count,
-          selectedProductId: createdLine.matchedProductId,
-          matchStatus: createdLine.matchStatus,
         };
       });
 

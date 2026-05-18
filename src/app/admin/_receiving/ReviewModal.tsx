@@ -41,8 +41,14 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const catalogById = useMemo(
-    () => new Map(draft?.catalog.map((product) => [product.id, product]) ?? []),
+  const catalogByName = useMemo(
+    () =>
+      new Map(
+        draft?.catalog.map((product) => [
+          normalizeName(product.name),
+          product,
+        ]) ?? [],
+      ),
     [draft],
   );
 
@@ -64,21 +70,15 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
         return `カテゴリが不正です: ${name}`;
       }
 
-      const resolvedName = product.selectedProductId
-        ? normalizeName(
-            catalogById.get(product.selectedProductId)?.name ?? product.name,
-          )
-        : name;
-
-      if (seen.has(resolvedName)) {
-        return `同じ商品が複数回含まれています: ${resolvedName}`;
+      if (seen.has(name)) {
+        return `同じ商品が複数回含まれています: ${name}`;
       }
 
-      seen.add(resolvedName);
+      seen.add(name);
     }
 
     return null;
-  }, [catalogById, products]);
+  }, [products]);
 
   if (!draft) {
     return null;
@@ -111,7 +111,6 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
           name: normalizeName(product.name),
           category: product.category,
           count: product.count,
-          selectedProductId: product.selectedProductId,
         })),
       });
     } catch (error) {
@@ -145,7 +144,7 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
 
         <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5 space-y-5">
           <div className="rounded-2xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-4 text-sm text-zinc-600 dark:text-zinc-300">
-            商品名と数量を確認して、既存商品への紐付けまたは新規商品登録を確定します。
+            商品名と数量を確認します。既存の商品名ならその商品を更新し、未登録の商品名なら新しく登録します。
           </div>
 
           {validationMessage || errorMessage ? (
@@ -156,9 +155,8 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
 
           <div className="space-y-4">
             {products.map((product, index) => {
-              const selectedProductName = product.selectedProductId
-                ? (catalogById.get(product.selectedProductId)?.name ?? null)
-                : null;
+              const existingProductName =
+                catalogByName.get(normalizeName(product.name))?.name ?? null;
 
               return (
                 <section
@@ -175,13 +173,13 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
                       </p>
                     </div>
                     <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-1 text-[11px] font-semibold text-zinc-600 dark:text-zinc-300">
-                      {selectedProductName
-                        ? `既存商品: ${selectedProductName}`
+                      {existingProductName
+                        ? `既存商品: ${existingProductName}`
                         : '新しい商品として登録'}
                     </span>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_120px_minmax(0,1.1fr)_140px]">
+                  <div className="grid gap-4 md:grid-cols-[minmax(0,1.4fr)_120px_140px]">
                     <label className="space-y-2">
                       <span className="text-xs font-semibold text-zinc-500">
                         商品名
@@ -218,41 +216,6 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
                         }
                         className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
                       />
-                    </label>
-
-                    <label className="space-y-2">
-                      <span className="text-xs font-semibold text-zinc-500">
-                        紐付け先
-                      </span>
-                      <select
-                        value={product.selectedProductId ?? ''}
-                        disabled={isApplying}
-                        onChange={(event) =>
-                          handleProductChange(product.lineId, (current) => {
-                            const nextProductId = event.target.value || null;
-                            const matchedCategory = nextProductId
-                              ? catalogById.get(nextProductId)?.category
-                              : current.category;
-
-                            return {
-                              ...current,
-                              selectedProductId: nextProductId,
-                              category: matchedCategory ?? current.category,
-                            };
-                          })
-                        }
-                        className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
-                      >
-                        <option value="">新しい商品として登録</option>
-                        {draft.catalog.map((catalogProduct) => (
-                          <option
-                            key={catalogProduct.id}
-                            value={catalogProduct.id}
-                          >
-                            {catalogProduct.name}
-                          </option>
-                        ))}
-                      </select>
                     </label>
 
                     <label className="space-y-2">

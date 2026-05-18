@@ -340,14 +340,12 @@ describe('receiving actions', () => {
           name: 'クラムチャウダー',
           category: 'SOUP',
           count: 4,
-          selectedProductId: 'existing-1',
         },
         {
           lineId: 'line-2',
           name: '新作パン',
           category: 'BREAD',
           count: 9,
-          selectedProductId: null,
         },
       ],
     });
@@ -446,7 +444,6 @@ describe('receiving actions', () => {
           name: 'クラムチャウダー',
           category: 'SOUP',
           count: 4,
-          selectedProductId: 'existing-1',
         },
       ],
     });
@@ -508,7 +505,6 @@ describe('receiving actions', () => {
           name: '食パン',
           category: 'BREAD',
           count: 8,
-          selectedProductId: 'existing-1',
         },
       ],
     });
@@ -541,20 +537,16 @@ describe('receiving actions', () => {
             name: 'クラムチャウダー',
             category: 'SOUP',
             count: 4,
-            selectedProductId: 'existing-1',
           },
           {
             lineId: 'line-2',
             name: 'クラムチャウダー',
             category: 'BREAD',
             count: 2,
-            selectedProductId: null,
           },
         ],
       }),
-    ).rejects.toThrow(
-      '既存商品と同名の商品は新規登録できません: クラムチャウダー',
-    );
+    ).rejects.toThrow('同じ商品が複数回含まれています: クラムチャウダー');
 
     expect(transaction).not.toHaveBeenCalled();
   });

@@ -20,9 +20,11 @@ export async function applyReceivingReview(input: ReviewInput) {
     requireAdminUser().then((user) => user.id),
     listCatalogProducts(),
   ]);
-  const reviewedProducts = validateReviewProducts(input.products, catalog);
+  const reviewedProducts = validateReviewProducts(input.products);
 
-  const catalogById = new Map(catalog.map((product) => [product.id, product]));
+  const catalogByName = new Map(
+    catalog.map((product) => [normalizeProductName(product.name), product]),
+  );
   const publishedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
@@ -77,10 +79,12 @@ export async function applyReceivingReview(input: ReviewInput) {
       { name: string; category: (typeof reviewedProducts)[number]['category'] }
     >();
     for (const product of reviewedProducts) {
-      if (product.selectedProductId) {
+      const normalizedProductName = normalizeProductName(product.name);
+
+      if (catalogByName.has(normalizedProductName)) {
         continue;
       }
-      const normalizedProductName = normalizeProductName(product.name);
+
       const existing = newProductByNormalizedName.get(normalizedProductName);
 
       if (existing && existing.category !== product.category) {
@@ -115,29 +119,26 @@ export async function applyReceivingReview(input: ReviewInput) {
     }> = [];
 
     const productCategoryUpdates = reviewedProducts.map(async (product) => {
-      if (!product.selectedProductId) {
-        return;
-      }
+      const existingProduct = catalogByName.get(
+        normalizeProductName(product.name),
+      );
 
-      const selectedProduct = catalogById.get(product.selectedProductId);
-
-      if (!selectedProduct) {
-        throw new Error(`選択された商品が存在しません: ${product.name}`);
-      }
-
-      if (selectedProduct.category === product.category) {
+      if (!existingProduct || existingProduct.category === product.category) {
         return;
       }
 
       await tx.product.update({
-        where: { id: selectedProduct.id },
+        where: { id: existingProduct.id },
         data: { category: product.category },
       });
     });
 
     const batchLineUpdates = reviewedProducts.map(async (product) => {
+      const existingProduct = catalogByName.get(
+        normalizeProductName(product.name),
+      );
       const matchedProductId =
-        product.selectedProductId ??
+        existingProduct?.id ??
         createdProductIdByNormalizedName.get(
           normalizeProductName(product.name),
         );

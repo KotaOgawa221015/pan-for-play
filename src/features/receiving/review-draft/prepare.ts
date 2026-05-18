@@ -52,8 +52,6 @@ export async function prepareReviewDraft(
         name: product.name,
         category: matchedProduct?.category ?? ProductCategory.BREAD,
         count: product.count,
-        selectedProductId: matchedProduct?.id ?? null,
-        matchStatus: matchedProduct ? 'MATCHED' : 'NEEDS_REVIEW',
       } satisfies Omit<ReviewLine, 'lineId'>;
     }),
   };
