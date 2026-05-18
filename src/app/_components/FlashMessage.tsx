@@ -1,7 +1,6 @@
 'use client';
 
 import { useReducer, useEffect } from 'react';
-import { usePathname } from 'next/navigation';
 
 type MessagePhase = 'idle' | 'visible' | 'exiting';
 
@@ -25,7 +24,6 @@ function flashMessageReducer(state: State, action: Action): State {
 }
 
 export function FlashMessage({ msg }: { msg?: string }) {
-  const pathname = usePathname();
   const validMessages = [
     'login_success',
     'signup_success',
@@ -49,14 +47,18 @@ export function FlashMessage({ msg }: { msg?: string }) {
     }, 2400);
 
     const removeTimer = setTimeout(() => {
-      window.history.replaceState(window.history.state, '', pathname);
+      window.history.replaceState(
+        window.history.state,
+        '',
+        window.location.pathname,
+      );
     }, 2900);
 
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(removeTimer);
     };
-  }, [isTriggered, pathname]);
+  }, [isTriggered]);
 
   if (state.phase === 'idle' || !msg) return null;
 
