@@ -27,6 +27,7 @@ setup:
         echo "Created .env from .env.example"; \
     fi
     pnpm install
+    pnpm exec playwright install
     pnpm exec tsx scripts/db.ts setup
 
 # ==============================================================================
