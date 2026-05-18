@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { NextRequest } from 'next/server';
 
 const { googleProvider } = vi.hoisted(() => ({
   googleProvider: vi.fn(() => ({
@@ -27,7 +28,7 @@ function createRequest(
     method: init?.method ?? 'GET',
     headers,
     nextUrl: new URL(`https://example.com${pathname}`),
-  };
+  } as unknown as NextRequest;
 }
 
 describe('auth config authorized callback', () => {
