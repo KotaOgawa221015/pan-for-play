@@ -1,5 +1,9 @@
 import NextAuth from 'next-auth';
-import { authConfig } from '@/features/auth/auth.config';
+import { authorizeRouteAccess } from '@/features/auth/route-access';
+import {
+  addSessionClaimsToToken,
+  exposeSessionClaims,
+} from '@/features/auth/session-claims';
 
 export default NextAuth({
   secret:
@@ -7,7 +11,17 @@ export default NextAuth({
     (process.env.NODE_ENV === 'development'
       ? 'development-only-secret'
       : undefined),
-  ...authConfig,
+  trustHost: true,
+  providers: [],
+  session: { strategy: 'jwt' },
+  pages: {
+    signIn: '/login',
+  },
+  callbacks: {
+    authorized: authorizeRouteAccess,
+    jwt: addSessionClaimsToToken,
+    session: exposeSessionClaims,
+  },
 }).auth;
 
 export const config = {

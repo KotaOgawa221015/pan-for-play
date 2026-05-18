@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { auth } from '@/features/auth/auth';
-import { requireCurrentUser } from '@/features/auth/account-access';
+import { requireCurrentUser } from '@/features/auth/session-user';
 import { getProductStatusFromCount } from '@/features/inventory/counts';
 import { prisma } from '@/lib/prisma';
 import type { ProductStatus } from '@/types/inventory';

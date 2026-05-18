@@ -23,6 +23,10 @@ jobs:
     name: Test
     uses: ./.github/workflows/run-tests.yml
 
+  system-test:
+    name: System Test
+    uses: ./.github/workflows/run-system-tests.yml
+
   react-doctor:
     name: React Doctor
     uses: ./.github/workflows/run-react-doctor.yml

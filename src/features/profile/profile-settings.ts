@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireCurrentUser } from '@/features/auth/account-access';
+import { requireCurrentUser } from '@/features/auth/session-user';
 import { prisma } from '@/lib/prisma';
 import { auth, signOut } from '@/features/auth/auth';
 

@@ -4,7 +4,7 @@ import {
   loginWithGoogleAction,
   loginAsAdminAction,
   loginAsUserAction,
-} from '@/features/auth/account-access';
+} from '@/features/auth/sign-in-actions';
 
 export function LoginPageClient() {
   const showDemoLogin = process.env.NODE_ENV === 'development';

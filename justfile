@@ -27,6 +27,7 @@ setup:
         echo "Created .env from .env.example"; \
     fi
     pnpm install
+    pnpm exec playwright install
     pnpm exec tsx scripts/db.ts setup
 
 # ==============================================================================
@@ -126,6 +127,10 @@ db-studio:
 # Run test suite
 test:
     pnpm test
+
+# Run Playwright system tests
+system-test:
+    pnpm test:system
 
 # Generate coverage report
 coverage:

@@ -1,0 +1,29 @@
+# System Test Workflow
+#
+# Runs Playwright system tests.
+
+name: Run System Tests
+
+on:
+  workflow_call:
+
+jobs:
+  run-system-tests:
+    name: Run System Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v5
+
+      - name: Setup Development Environment
+        uses: ./.github/actions/setup
+
+      - name: Install Playwright Browsers
+        run: pnpm exec playwright install --with-deps
+
+      - name: Seed Development Database For System Tests
+        run: mise exec -- pnpm exec tsx scripts/db.ts seed
+
+      - name: Run System Tests
+        run: mise exec -- just system-test

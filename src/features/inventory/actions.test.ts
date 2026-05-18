@@ -28,7 +28,7 @@ vi.mock('@/features/auth/auth', () => ({
   auth,
 }));
 
-vi.mock('@/features/auth/account-access', () => ({
+vi.mock('@/features/auth/session-user', () => ({
   requireCurrentUser,
 }));
 

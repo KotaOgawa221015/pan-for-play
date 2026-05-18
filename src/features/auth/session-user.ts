@@ -1,8 +1,8 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import type { UserRole } from '@prisma/client';
-import { auth, signIn, signOut } from './auth';
+import { redirect } from 'next/navigation';
+import { auth } from './auth';
 
 export type AuthenticatedUser = {
   id: string;
@@ -11,13 +11,10 @@ export type AuthenticatedUser = {
   role: UserRole;
 };
 
-export async function loginWithGoogleAction() {
-  await signIn('google', { redirectTo: '/' });
-}
-
-export async function logoutAction() {
-  await signOut({ redirectTo: '/login' });
-}
+export type SessionStatus =
+  | { status: 'anonymous' }
+  | { status: 'invalid' }
+  | { status: 'authenticated'; user: AuthenticatedUser };
 
 export async function getCurrentUser() {
   const session = await auth();
@@ -31,11 +28,6 @@ export async function getCurrentUser() {
     role: session.user.role,
   };
 }
-
-export type SessionStatus =
-  | { status: 'anonymous' }
-  | { status: 'invalid' }
-  | { status: 'authenticated'; user: AuthenticatedUser };
 
 export async function getCurrentUserId() {
   const session = await auth();
@@ -60,18 +52,4 @@ export async function requireAdminUser() {
   }
 
   return user;
-}
-
-export async function loginAsUserAction() {
-  const _session = await auth(); // Not strictly needed but satisfies react-doctor
-  if (process.env.NODE_ENV === 'development') {
-    await signIn('dev-user', { redirectTo: '/' });
-  }
-}
-
-export async function loginAsAdminAction() {
-  const _session = await auth(); // Not strictly needed but satisfies react-doctor
-  if (process.env.NODE_ENV === 'development') {
-    await signIn('dev-admin', { redirectTo: '/' });
-  }
 }
