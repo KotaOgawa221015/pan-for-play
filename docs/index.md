@@ -9,12 +9,9 @@ hero:
   actions:
     - theme: brand
       text: アーキテクチャを読む
-      link: /architecture
+      link: /architecture/structure
     - theme: alt
-      text: ER図の解説
-      link: /inventory_erd/inventory_erd_explanation
-    - theme: alt
-      text: ER図(Mermaid)
-      link: /inventory_erd/inventory_erd_mermaid
+      text: データモデルを読む
+      link: /architecture/data_model
 ---
 
