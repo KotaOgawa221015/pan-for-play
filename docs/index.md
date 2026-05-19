@@ -8,10 +8,13 @@ hero:
   tagline: "冷凍庫のパンとスープの在庫を管理するアプリの仕様書"
   actions:
     - theme: brand
-      text: アーキテクチャを読む
+      text: アーキテクチャ
       link: /architecture/structure
     - theme: alt
-      text: データモデルを読む
+      text: データモデル
       link: /architecture/data_model
+    - theme: alt
+      text: 設定
+      link: /config/biome
 ---
 
