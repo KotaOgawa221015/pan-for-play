@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { applyPendingMigrations, createTursoClient } from './turso-database.ts';
 
 const loadEnvFile = (
@@ -6,8 +7,9 @@ const loadEnvFile = (
   }
 ).loadEnvFile;
 
-loadEnvFile?.();
-
+if (existsSync('.env')) {
+  loadEnvFile?.();
+}
 async function main(): Promise<void> {
   const client = createTursoClient();
 

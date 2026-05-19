@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { applyPendingMigrations, createTursoClient } from './turso-database.ts';
 
@@ -7,7 +8,9 @@ const loadEnvFile = (
   }
 ).loadEnvFile;
 
-loadEnvFile?.();
+if (existsSync('.env')) {
+  loadEnvFile?.();
+}
 
 type RunCommandOptions = {
   captureStdout?: boolean;
