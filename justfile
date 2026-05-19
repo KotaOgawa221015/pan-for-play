@@ -128,6 +128,14 @@ db-studio:
 test:
     pnpm test
 
+# Run unit tests
+unit-test:
+    pnpm test:unit
+
+# Run integration tests
+integration-test:
+    pnpm test:integration
+
 # Run Playwright system tests
 system-test:
     pnpm test:system

@@ -1,6 +1,6 @@
 # Test Workflow
 #
-# Runs Vitest tests.
+# Runs Vitest tests in parallel.
 
 name: Run Tests
 
@@ -9,8 +9,12 @@ on:
 
 jobs:
   run-tests:
-    name: Run Tests
+    name: Run ${{ matrix.test-type }} Tests
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        test-type: [unit, integration]
 
     steps:
       - name: Checkout Repository
@@ -19,5 +23,5 @@ jobs:
       - name: Setup Development Environment
         uses: ./.github/actions/setup
 
-      - name: Run Vitest
-        run: mise exec -- just test
+      - name: Run ${{ matrix.test-type }} Tests
+        run: mise exec -- just ${{ matrix.test-type }}-test
