@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { getRecentReceivingHistory } from '@/features/receiving/history/list-recent';
 import { Dashboard } from './_receiving/Dashboard';
 
+export const dynamic = 'force-dynamic';
+
 export default async function UploadPage() {
   const recentHistory = await getRecentReceivingHistory();
 

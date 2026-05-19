@@ -7,6 +7,8 @@ import type { Metadata } from 'next';
 import { FlashMessage } from '@/app/_components/FlashMessage';
 import { InventoryPublicationPanel } from '@/app/_components/InventoryPublicationPanel';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'パンコレ',
   description: '冷凍庫のパンとスープの在庫を管理するアプリ',
