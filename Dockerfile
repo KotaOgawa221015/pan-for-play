@@ -2,7 +2,7 @@
 # ==============================================================================
 # Stage 1: Base runtime
 # ==============================================================================
-FROM node:24.14.1-slim AS base
+FROM node:24-slim AS base
 
 WORKDIR /app
 
@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         ca-certificates \
         openssl \
     && rm -rf /var/lib/apt/lists/*
+
+RUN corepack enable
 
 RUN groupadd -r appgroup && useradd -r -g appgroup -d /home/appuser -m appuser
 
@@ -29,11 +31,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 ENV DATABASE_URL="file:/tmp/pancolle-generate.db"
 
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 
 # ==============================================================================
@@ -49,7 +51,7 @@ USER appuser
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
+CMD ["pnpm", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
 
 
 # ==============================================================================
@@ -91,4 +93,4 @@ USER appuser
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "start"]
