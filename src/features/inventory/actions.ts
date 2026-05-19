@@ -2,10 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 
+import { authenticatedAction } from '@/features/account/session-user';
 import { getProductStatusFromCount } from '@/features/inventory/counts';
 import { prisma } from '@/lib/prisma';
 import type { ProductStatus } from '@/types/inventory';
-import { authenticatedAction } from '@/features/auth/safe-actions';
 
 async function updateProductStatusInternal(
   user: { id: string },

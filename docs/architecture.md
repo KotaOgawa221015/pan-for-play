@@ -16,10 +16,9 @@ src/
     admin/
 
   features/
-    auth/
+    account/
     inventory/
     product-catalog/
-    profile/
     receiving/
 
   lib/

@@ -1,8 +1,8 @@
-import { requireCurrentUser } from '@/features/auth/session-user';
-import { ProfileForm } from './profile-form';
-import Link from 'next/link';
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { SessionProvider } from 'next-auth/react';
+import { requireCurrentUser } from '@/features/account/session-user';
+import { ProfileForm } from './profile-form';
 
 export const metadata: Metadata = {
   title: 'マイページ | パンコレ',

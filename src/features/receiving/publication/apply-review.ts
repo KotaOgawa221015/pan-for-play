@@ -1,7 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { adminAction } from '@/features/auth/safe-actions';
+import { adminAction } from '@/features/account/session-user';
 import { publishInventorySnapshot } from '@/features/inventory/publication';
 import {
   createCatalogProduct,

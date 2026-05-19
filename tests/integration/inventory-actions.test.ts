@@ -7,7 +7,7 @@ const { inventoryPublicationFindFirst, inventoryStatusChangeFindMany, auth } =
     auth: vi.fn(),
   }));
 
-vi.mock('@/features/auth/auth', () => ({
+vi.mock('@/features/account/auth', () => ({
   auth,
 }));
 

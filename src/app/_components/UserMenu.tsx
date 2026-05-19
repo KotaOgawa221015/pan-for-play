@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { logoutAction } from '@/features/auth/sign-in-actions';
 import Link from 'next/link';
+import { useState } from 'react';
+import { logoutAction } from '@/features/account/access';
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);

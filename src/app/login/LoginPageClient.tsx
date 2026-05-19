@@ -1,10 +1,10 @@
 'use client';
 
 import {
-  loginWithGoogleAction,
   loginAsAdminAction,
   loginAsUserAction,
-} from '@/features/auth/sign-in-actions';
+  loginWithGoogleAction,
+} from '@/features/account/access';
 
 export function LoginPageClient() {
   const showDemoLogin = process.env.NODE_ENV === 'development';

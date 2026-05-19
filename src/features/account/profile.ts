@@ -1,9 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { requireCurrentUser } from '@/features/auth/session-user';
 import { prisma } from '@/lib/prisma';
-import { auth, signOut } from '@/features/auth/auth';
+import { auth, signOut } from './auth';
+import { requireCurrentUser } from './session-user';
 
 export async function updateProfileAction(
   _prevState: unknown,
@@ -13,8 +13,6 @@ export async function updateProfileAction(
   if (!session) throw new Error('Unauthorized');
   const user = await requireCurrentUser();
 
-  const userId = user.id;
-
   const name = formData.get('name') as string;
 
   if (!name?.trim()) {
@@ -23,7 +21,7 @@ export async function updateProfileAction(
 
   try {
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: user.id },
       data: { name: name.trim() },
     });
     revalidatePath('/profile');
@@ -46,7 +44,7 @@ export async function deleteAccountAction() {
     if (!user) return { error: 'ユーザーが見つかりません' };
 
     const googleAccount = user.accounts.find(
-      (acc) => acc.provider === 'google',
+      (account) => account.provider === 'google',
     );
     const token = googleAccount?.access_token || googleAccount?.refresh_token;
     if (token) {
@@ -55,8 +53,8 @@ export async function deleteAccountAction() {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         });
-      } catch (err) {
-        console.error('Google token revocation failed:', err);
+      } catch (error) {
+        console.error('Google token revocation failed:', error);
       }
     }
 
@@ -68,8 +66,8 @@ export async function deleteAccountAction() {
           email: `${user.email}_deleted_${Date.now()}`,
         },
       }),
-      prisma.account.deleteMany({ where: { userId: userId } }),
-      prisma.session.deleteMany({ where: { userId: userId } }),
+      prisma.account.deleteMany({ where: { userId } }),
+      prisma.session.deleteMany({ where: { userId } }),
     ]);
   } catch (error) {
     console.error('Delete account error:', error);

@@ -1,5 +1,5 @@
-import { auth } from '@/features/auth/auth';
-import { requireAdminUser } from '@/features/auth/session-user';
+import { auth } from '@/features/account/auth';
+import { requireAdminUser } from '@/features/account/session-user';
 import { readStoredDeliveryNoteImage } from '@/features/receiving/delivery-note/read-stored-image';
 
 export async function GET(
