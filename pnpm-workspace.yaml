@@ -3,3 +3,5 @@ allowBuilds:
   better-sqlite3: true
   prisma: true
   sharp: true
+  esbuild: true
+  tesseract.js: true
