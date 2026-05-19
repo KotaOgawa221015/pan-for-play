@@ -1,5 +1,5 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
-set dotenv-load
+set dotenv-load := true
 
 APP_NAME := env("COMPOSE_PROJECT_NAME", "pancolle")
 
@@ -38,12 +38,14 @@ setup:
 fix:
     pnpm format
     pnpm lint:fix
+    mise exec -- just --fmt --unstable
 
 # Run formatting checks, lint, and typecheck
 check:
     pnpm format:check
     pnpm lint
     pnpm typecheck
+    mise exec -- just --fmt --check --unstable
 
 # ==============================================================================
 # Docker Environment Commands
