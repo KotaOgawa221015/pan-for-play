@@ -1,8 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/features/auth/auth';
-import { requireAdminUser } from '@/features/auth/session-user';
+import { auth } from '@/features/account/auth';
+import { requireAdminUser } from '@/features/account/session-user';
 import { listCatalogProducts } from '@/features/product-catalog/products';
 import { extractProductsFromDeliveryNote } from './delivery-note/extract-products';
 import { readDeliveryNoteUpload } from './delivery-note/read-upload';

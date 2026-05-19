@@ -24,11 +24,15 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-vi.mock('@/features/auth/auth', () => ({
+vi.mock('@/features/account/auth', () => ({
   auth,
 }));
 
-vi.mock('@/features/auth/session-user', () => ({
+vi.mock('@/features/account/session-user', () => ({
+  authenticatedAction:
+    (action: (user: { id: string }, ...args: unknown[]) => Promise<unknown>) =>
+    async (...args: unknown[]) =>
+      action(await requireCurrentUser(), ...args),
   requireCurrentUser,
 }));
 

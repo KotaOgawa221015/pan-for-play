@@ -1,8 +1,8 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/features/auth/auth';
-import { requireAdminUser } from '@/features/auth/session-user';
+import { auth } from '@/features/account/auth';
+import { requireAdminUser } from '@/features/account/session-user';
 import { prisma } from '@/lib/prisma';
 
 export async function deleteReceivingBatch(batchId: string) {

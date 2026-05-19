@@ -1,16 +1,16 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { adminAction } from '@/features/account/session-user';
+import { publishInventorySnapshot } from '@/features/inventory/publication';
 import {
   createCatalogProduct,
   listCatalogProducts,
+  normalizeProductName,
 } from '@/features/product-catalog/products';
 import { prisma } from '@/lib/prisma';
-import type { ReviewInput } from '../types';
-import { normalizeProductName } from '../review-draft/normalize-product-name';
 import { validateReviewProducts } from '../review-draft/validate-products';
-import { createInventoryPublication } from './create-publication';
-import { adminAction } from '@/features/auth/safe-actions';
+import type { ReviewInput } from '../types';
 
 async function applyReceivingReviewInternal(
   admin: { id: string },
@@ -24,35 +24,14 @@ async function applyReceivingReviewInternal(
   const publishedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
-    const [batch, currentPublication] = await Promise.all([
-      tx.uploadBatch.findUnique({
-        where: { id: input.batchId },
-        include: {
-          lines: {
-            orderBy: { lineNumber: 'asc' },
-          },
+    const batch = await tx.uploadBatch.findUnique({
+      where: { id: input.batchId },
+      include: {
+        lines: {
+          orderBy: { lineNumber: 'asc' },
         },
-      }),
-      tx.inventoryPublication.findFirst({
-        orderBy: [
-          { publishedAt: 'desc' },
-          { createdAt: 'desc' },
-          { id: 'desc' },
-        ],
-        include: {
-          uploadBatch: {
-            include: {
-              lines: {
-                select: {
-                  count: true,
-                  matchedProductId: true,
-                },
-              },
-            },
-          },
-        },
-      }),
-    ]);
+      },
+    });
 
     if (!batch) {
       throw new Error('対象の納品書履歴が存在しません。');
@@ -164,22 +143,14 @@ async function applyReceivingReviewInternal(
       Promise.all(batchLineUpdates),
     ]);
 
-    await createInventoryPublication(tx, {
+    await publishInventorySnapshot(tx, {
       uploadBatchId: batch.id,
       publishedByUserId: admin.id,
       publishedAt,
-      previousLines:
-        currentPublication?.uploadBatch.lines.flatMap((line) =>
-          line.matchedProductId
-            ? [
-                {
-                  matchedProductId: line.matchedProductId,
-                  count: line.count,
-                },
-              ]
-            : [],
-        ) ?? [],
-      nextLines: nextPublicationLines,
+      lines: nextPublicationLines.map((line) => ({
+        productId: line.matchedProductId,
+        count: line.count,
+      })),
     });
   });
 

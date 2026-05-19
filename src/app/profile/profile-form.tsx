@@ -1,11 +1,11 @@
 'use client';
 
-import { useActionState, useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
+import { useActionState, useEffect, useState } from 'react';
 import {
-  updateProfileAction,
   deleteAccountAction,
-} from '@/features/profile/profile-settings';
+  updateProfileAction,
+} from '@/features/account/profile';
 
 export function ProfileForm({ user }: { user: { name?: string | null } }) {
   const [state, pAction, pPending] = useActionState(updateProfileAction, null);

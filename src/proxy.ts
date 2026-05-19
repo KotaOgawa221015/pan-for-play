@@ -1,9 +1,9 @@
 import NextAuth from 'next-auth';
-import { authorizeRouteAccess } from '@/features/auth/route-access';
 import {
   addSessionClaimsToToken,
+  authorizeRouteAccess,
   exposeSessionClaims,
-} from '@/features/auth/session-claims';
+} from '@/features/account/auth';
 
 export default NextAuth({
   secret:

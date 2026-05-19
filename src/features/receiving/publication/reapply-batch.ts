@@ -1,10 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { auth } from '@/features/auth/auth';
-import { requireAdminUser } from '@/features/auth/session-user';
+import { auth } from '@/features/account/auth';
+import { requireAdminUser } from '@/features/account/session-user';
+import { publishInventorySnapshot } from '@/features/inventory/publication';
 import { prisma } from '@/lib/prisma';
-import { createInventoryPublication } from './create-publication';
 
 export async function reapplyReceivingBatch(batchId: string) {
   const session = await auth();
@@ -13,35 +13,14 @@ export async function reapplyReceivingBatch(batchId: string) {
   const publishedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
-    const [batch, currentPublication] = await Promise.all([
-      tx.uploadBatch.findUnique({
-        where: { id: batchId },
-        include: {
-          lines: {
-            orderBy: { lineNumber: 'asc' },
-          },
+    const batch = await tx.uploadBatch.findUnique({
+      where: { id: batchId },
+      include: {
+        lines: {
+          orderBy: { lineNumber: 'asc' },
         },
-      }),
-      tx.inventoryPublication.findFirst({
-        orderBy: [
-          { publishedAt: 'desc' },
-          { createdAt: 'desc' },
-          { id: 'desc' },
-        ],
-        include: {
-          uploadBatch: {
-            include: {
-              lines: {
-                select: {
-                  count: true,
-                  matchedProductId: true,
-                },
-              },
-            },
-          },
-        },
-      }),
-    ]);
+      },
+    });
 
     if (!batch) {
       throw new Error('対象の納品書履歴が存在しません。');
@@ -51,36 +30,21 @@ export async function reapplyReceivingBatch(batchId: string) {
       throw new Error('公開できるのはレビュー済みの納品書だけです。');
     }
 
-    if (currentPublication?.uploadBatchId === batch.id) {
-      throw new Error('この納品書はすでに現在の在庫として公開されています。');
-    }
-
     for (const line of batch.lines) {
       if (!line.matchedProductId) {
         throw new Error('紐付けが未確定の行があるため再適用できません。');
       }
     }
 
-    await createInventoryPublication(tx, {
+    await publishInventorySnapshot(tx, {
       uploadBatchId: batch.id,
       publishedByUserId: currentUserId,
       publishedAt,
-      previousLines:
-        currentPublication?.uploadBatch.lines.flatMap((line) =>
-          line.matchedProductId
-            ? [
-                {
-                  matchedProductId: line.matchedProductId,
-                  count: line.count,
-                },
-              ]
-            : [],
-        ) ?? [],
-      nextLines: batch.lines.flatMap((line) =>
+      lines: batch.lines.flatMap((line) =>
         line.matchedProductId
           ? [
               {
-                matchedProductId: line.matchedProductId,
+                productId: line.matchedProductId,
                 count: line.count,
               },
             ]
