@@ -54,9 +54,13 @@ src/
 
 ## 受け入れフローの境界
 
-`features/receiving` は納品書画像の抽出、レビュー下書き作成、レビュー適用、履歴ステータス遷移を所有する。
+`features/receiving` は納品書画像の抽出、レビュー下書き作成、レビュー入力の確定、履歴ステータス遷移を所有する。
 
-`features/product-catalog` は商品カタログの検索と新規登録を所有する。
+`features/product-catalog` は商品カタログの検索、新規登録、商品名正規化を所有する。
+
+`features/inventory` は在庫公開、在庫ステータス差分作成、手動在庫ステータス更新を所有する。
+
+レビュー適用では、`features/receiving` が確定した商品行を作り、`features/inventory` がその結果を現在在庫として公開する。
 
 受け入れ適用は次の不変条件で動作する。
 

@@ -18,6 +18,7 @@ const {
   revalidatePath,
   requireAdminUser,
   listCatalogProducts,
+  normalizeProductName,
   extractProductsFromDeliveryNote,
   readDeliveryNoteUpload,
   storeDeliveryNoteImage,
@@ -40,6 +41,9 @@ const {
   revalidatePath: vi.fn(),
   requireAdminUser: vi.fn(),
   listCatalogProducts: vi.fn(),
+  normalizeProductName: vi.fn((value: string) =>
+    value.trim().replace(/\s+/g, ' '),
+  ),
   extractProductsFromDeliveryNote: vi.fn(),
   readDeliveryNoteUpload: vi.fn(),
   storeDeliveryNoteImage: vi.fn(),
@@ -85,6 +89,7 @@ vi.mock('@/features/auth/session-user', () => ({
 
 vi.mock('@/features/product-catalog/products', () => ({
   listCatalogProducts,
+  normalizeProductName,
   createCatalogProduct: vi.fn(async (_writer, name: string, category: string) =>
     productCreate({
       data: {
@@ -111,11 +116,11 @@ vi.mock('next/cache', () => ({
   revalidatePath,
 }));
 
+import { UnreadableDeliveryNoteImageError } from '@/features/receiving/delivery-note/unreadable-image-error';
 import { deleteReceivingBatch } from '@/features/receiving/history/delete-batch';
 import { applyReceivingReview } from '@/features/receiving/publication/apply-review';
 import { reapplyReceivingBatch } from '@/features/receiving/publication/reapply-batch';
 import { startReceivingReview } from '@/features/receiving/start-review';
-import { UnreadableDeliveryNoteImageError } from '@/features/receiving/delivery-note/unreadable-image-error';
 
 describe('receiving actions', () => {
   beforeEach(() => {
@@ -136,6 +141,7 @@ describe('receiving actions', () => {
     revalidatePath.mockReset();
     requireAdminUser.mockReset();
     listCatalogProducts.mockReset();
+    normalizeProductName.mockClear();
     extractProductsFromDeliveryNote.mockReset();
     readDeliveryNoteUpload.mockReset();
     storeDeliveryNoteImage.mockReset();

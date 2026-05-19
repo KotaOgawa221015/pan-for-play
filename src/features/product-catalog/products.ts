@@ -7,6 +7,10 @@ export type CatalogProduct = {
   category: ProductCategory;
 };
 
+export function normalizeProductName(value: string) {
+  return value.trim().replace(/\s+/g, ' ');
+}
+
 type ProductCreator = {
   product: {
     create(args: {

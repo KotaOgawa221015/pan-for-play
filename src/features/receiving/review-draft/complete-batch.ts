@@ -1,7 +1,9 @@
-import type { CatalogProduct } from '@/features/product-catalog/products';
+import {
+  type CatalogProduct,
+  normalizeProductName,
+} from '@/features/product-catalog/products';
 import { prisma } from '@/lib/prisma';
 import type { ReviewDraft, ReviewLine } from '../types';
-import { normalizeProductName } from './normalize-product-name';
 
 type DraftLineInput = Omit<ReviewLine, 'lineId'>;
 

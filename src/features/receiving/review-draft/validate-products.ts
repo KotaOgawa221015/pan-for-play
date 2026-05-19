@@ -1,6 +1,6 @@
 import { isProductCategory } from '@/features/product-catalog/category';
+import { normalizeProductName } from '@/features/product-catalog/products';
 import type { ReviewInput } from '../types';
-import { normalizeProductName } from './normalize-product-name';
 
 export function validateReviewProducts(products: ReviewInput['products']) {
   if (products.length === 0) {

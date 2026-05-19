@@ -1,8 +1,8 @@
 import { ProductCategory } from '@prisma/client';
-import type { ExtractDeliveryNoteProducts } from '../delivery-note/extract-products';
 import type { CatalogProduct } from '@/features/product-catalog/products';
+import { normalizeProductName } from '@/features/product-catalog/products';
+import type { ExtractDeliveryNoteProducts } from '../delivery-note/extract-products';
 import type { ReviewLine } from '../types';
-import { normalizeProductName } from './normalize-product-name';
 
 export async function prepareReviewDraft(
   input: {
