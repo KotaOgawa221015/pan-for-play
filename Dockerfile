@@ -51,7 +51,7 @@ USER appuser
 
 EXPOSE 3000
 
-CMD ["pnpm", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
+CMD ["/app/node_modules/.bin/next", "dev", "-H", "0.0.0.0", "-p", "3000"]
 
 
 # ==============================================================================
@@ -93,4 +93,4 @@ USER appuser
 
 EXPOSE 3000
 
-CMD ["pnpm", "start"]
+CMD ["/app/node_modules/.bin/next", "start", "-H", "0.0.0.0", "-p", "3000"]
