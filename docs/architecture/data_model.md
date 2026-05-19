@@ -1,8 +1,120 @@
-# 在庫ER図の解説
+# 在庫データモデル
 
 このドキュメントは、現行の在庫データモデルを説明する。
 
 このモデルの中心は、商品ごとの個別確認ではなく、レビュー済み納品書を現在在庫として公開することにある。
+
+## ER図
+
+Nullable カラムには `"NULL"` コメントを付与する。`USER`、`ACCOUNT`、`SESSION`、`VERIFICATION_TOKEN` は Auth.js の OAuth・セッション・メールトークン用アダプタテーブルである。
+
+```mermaid
+erDiagram
+    direction LR
+
+    USER ||--o{ UPLOAD_BATCH : uploads
+    USER ||--o{ INVENTORY_PUBLICATION : publishes
+    USER ||--o{ INVENTORY_STATUS_CHANGE : changes
+    USER ||--o{ ACCOUNT : links
+    USER ||--o{ SESSION : owns
+
+    PRODUCT ||--o{ UPLOAD_BATCH_LINE : matched_by
+    PRODUCT ||--o{ INVENTORY_STATUS_CHANGE : changes
+
+    UPLOAD_BATCH ||--|{ UPLOAD_BATCH_LINE : contains
+    UPLOAD_BATCH ||--o{ INVENTORY_PUBLICATION : published_as
+    INVENTORY_PUBLICATION ||--|{ INVENTORY_STATUS_CHANGE : records
+
+    PRODUCT {
+        string id PK
+        string name UK
+        string category
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    USER {
+        string id PK
+        string name
+        string email UK
+        datetime emailVerified "NULL"
+        string image "NULL"
+        string passwordHash
+        string role
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    ACCOUNT {
+        string id PK
+        string userId FK
+        string type
+        string provider
+        string providerAccountId
+        string refreshToken "NULL"
+        string accessToken "NULL"
+        int expiresAt "NULL"
+        string tokenType "NULL"
+        string scope "NULL"
+        string idToken "NULL"
+        string sessionState "NULL"
+    }
+
+    SESSION {
+        string id PK
+        string sessionToken UK
+        string userId FK
+        datetime expires
+    }
+
+    VERIFICATION_TOKEN {
+        string identifier PK
+        string token PK
+        datetime expires
+    }
+
+    UPLOAD_BATCH {
+        string id PK
+        string uploadedByUserId FK
+        string originalFileName
+        string storagePath "NULL"
+        string processingStatus
+        datetime processedAt "NULL"
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    UPLOAD_BATCH_LINE {
+        string id PK
+        string uploadBatchId FK
+        int lineNumber
+        string rawText
+        int count
+        string matchedProductId FK "NULL"
+        string matchStatus
+        datetime createdAt
+    }
+
+    INVENTORY_PUBLICATION {
+        string id PK
+        string uploadBatchId FK
+        string publishedByUserId FK
+        datetime publishedAt
+        datetime createdAt
+    }
+
+    INVENTORY_STATUS_CHANGE {
+        string id PK
+        string publicationId FK "NULL"
+        string productId FK
+        string changedByUserId FK
+        string previousStatus "NULL"
+        string nextStatus
+        datetime changedAt
+        datetime createdAt
+    }
+```
 
 ## Product
 
@@ -46,14 +158,14 @@
 
 納品書反映では、その納品書に含まれる商品のうち導出ステータスが変わったものだけを記録する。納品書に存在しない商品を `SOLD_OUT` として扱わない。
 
-トップページの商品カードから手動で状態を変更した場合も、このテーブルに記録する。その場合、`publicationId` は `NULL` になる。
+トップページの商品カードから手動で状態を変更した場合も、このテーブルに記録する。その場合、`publicationId` は `NULL` になる。`VERIFICATION_TOKEN` は独立したトークンテーブルであり `USER` を参照しない。
 
 ## 現在在庫の導出
 
 1. 最新の `InventoryPublication` を1件取得する。
 2. その `uploadBatchId` に属する `UploadBatchLine` を読む。
 3. `matchedProductId` がある行をトップページ表示対象にする。
-4. `count` から納品書由来の在庫ステータスを導出する。
+4. `count` から納品書由来の在庫ステータスを導出する。`FEW_LEFT` は残数 1〜5 を意味する。
 5. 商品ごとの最新 `InventoryStatusChange` が存在する場合は、その `nextStatus` を表示状態として優先する。
 
 ## 変更者追跡

@@ -25,26 +25,18 @@ export default withMermaid(
         {
           text: 'ガイド',
           items: [
-            { text: 'アーキテクチャ', link: '/architecture' },
-            { text: 'テスト構造', link: '/testing' },
+            { text: 'アーキテクチャ', link: '/architecture/structure' },
+            { text: 'テスト構造', link: '/architecture/testing' },
+            {
+              text: 'デプロイレポート',
+              link: '/architecture/vercel_deploy_report',
+            },
+            { text: 'データモデル', link: '/architecture/data_model' },
           ],
         },
         {
           text: '設定解説',
           items: [{ text: 'Biome設定', link: '/config/biome' }],
-        },
-        {
-          text: 'データベース設計',
-          items: [
-            {
-              text: '在庫ER図の解説',
-              link: '/inventory_erd/inventory_erd_explanation',
-            },
-            {
-              text: 'ER図 (Mermaid)',
-              link: '/inventory_erd/inventory_erd_mermaid',
-            },
-          ],
         },
       ],
       // 検索機能を有効化する場合

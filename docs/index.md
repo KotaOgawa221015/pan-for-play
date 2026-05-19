@@ -8,13 +8,13 @@ hero:
   tagline: "冷凍庫のパンとスープの在庫を管理するアプリの仕様書"
   actions:
     - theme: brand
-      text: アーキテクチャを読む
-      link: /architecture
+      text: アーキテクチャ
+      link: /architecture/structure
     - theme: alt
-      text: ER図の解説
-      link: /inventory_erd/inventory_erd_explanation
+      text: データモデル
+      link: /architecture/data_model
     - theme: alt
-      text: ER図(Mermaid)
-      link: /inventory_erd/inventory_erd_mermaid
+      text: 設定
+      link: /config/biome
 ---
 
