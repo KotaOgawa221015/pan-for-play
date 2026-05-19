@@ -1,21 +1,24 @@
-node_modules
-.next
-.env
-.env.local
-*.log
-*.md
-.git
-.vscode
-Dockerfile*
-docker-compose*
-.dockerignore
-*.db
-*.db-journal
-*.db-shm
-*.db-wal
-docs/.vitepress/cache
-docs/.vitepress/dist
-playwright-report/
-test-results/
-coverage/
-references/
+**
+
+# Package Management
+!package.json
+!pnpm-lock.yaml
+!pnpm-workspace.yaml
+
+# Database Configuration
+!prisma/
+!prisma.config.ts
+
+# Application Source Code and Static Files
+!src/
+!public/
+
+# Next.js / TypeScript / Style Configuration
+!next.config.ts
+!tsconfig.json
+!postcss.config.js
+
+# Project-Specific Tools and Scripts
+!scripts/
+!react-doctor.config.json
+!biome.json
