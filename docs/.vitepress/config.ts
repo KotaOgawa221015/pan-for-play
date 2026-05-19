@@ -36,7 +36,13 @@ export default withMermaid(
         },
         {
           text: '設定解説',
-          items: [{ text: 'Biome設定', link: '/config/biome' }],
+          items: [
+            { text: 'Biomeの設定', link: '/config/biome' },
+            {
+              text: 'pnpmワークスペースの設定',
+              link: '/config/pnpm_workspace',
+            },
+          ],
         },
       ],
       // 検索機能を有効化する場合

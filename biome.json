@@ -8,7 +8,7 @@
       "!.next",
       "!node_modules",
       "!dist",
-      "!package-lock.json",
+      "!pnpm-lock.yaml",
       "!references",
       "!docs/.vitepress/cache",
       "!docs/.vitepress/dist",
