@@ -4,6 +4,17 @@ import { revalidatePath } from 'next/cache';
 import { prisma } from '@/lib/prisma';
 import { auth, signOut } from './auth';
 import { requireCurrentUser } from './session-user';
+import { z } from 'zod';
+
+const profileUpdateSchema = z.object({
+  name: z
+    .string({
+      message: '表示名を入力してください',
+    })
+    .trim()
+    .min(1, { message: '表示名を入力してください' })
+    .max(30, { message: '表示名は30文字以内で入力してください' }),
+});
 
 export async function updateProfileAction(
   _prevState: unknown,
@@ -13,16 +24,21 @@ export async function updateProfileAction(
   if (!session) throw new Error('Unauthorized');
   const user = await requireCurrentUser();
 
-  const name = formData.get('name') as string;
+  const parsed = profileUpdateSchema.safeParse({
+    name: formData.get('name'),
+  });
 
-  if (!name?.trim()) {
-    return { error: '表示名を入力してください' };
+  if (!parsed.success) {
+    const issue = parsed.error.issues[0];
+    return { error: issue?.message ?? '表示名を入力してください' };
   }
+
+  const { name } = parsed.data;
 
   try {
     await prisma.user.update({
       where: { id: user.id },
-      data: { name: name.trim() },
+      data: { name },
     });
     revalidatePath('/profile');
     return { success: 'プロフィールを更新しました' };

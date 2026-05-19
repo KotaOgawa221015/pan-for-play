@@ -42,6 +42,7 @@ export function ProfileForm({ user }: { user: { name?: string | null } }) {
               name="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              maxLength={30}
               className="w-full p-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
             />
           </div>

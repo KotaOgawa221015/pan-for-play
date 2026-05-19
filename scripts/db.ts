@@ -1,6 +1,7 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { requireDatabaseUrl } from '../src/lib/environment.ts';
 
 function readDatabaseUrlFromEnvFile(): string | null {
   const envFilePath = path.resolve(process.cwd(), '.env');
@@ -22,11 +23,10 @@ function readDatabaseUrlFromEnvFile(): string | null {
 function getDatabaseUrl(): string {
   const databaseUrl = process.env.DATABASE_URL ?? readDatabaseUrlFromEnvFile();
 
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL is required.');
-  }
-
-  return databaseUrl;
+  return requireDatabaseUrl({
+    ...process.env,
+    DATABASE_URL: databaseUrl ?? undefined,
+  });
 }
 
 function isLocalDatabaseUrl(databaseUrl: string): boolean {

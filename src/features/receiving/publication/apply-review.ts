@@ -9,15 +9,19 @@ import {
   normalizeProductName,
 } from '@/features/product-catalog/products';
 import { prisma } from '@/lib/prisma';
-import { validateReviewProducts } from '../review-draft/validate-products';
+import {
+  ReviewInputSchema,
+  validateReviewProducts,
+} from '../review-draft/validate-products';
 import type { ReviewInput } from '../types';
 
 async function applyReceivingReviewInternal(
   admin: { id: string },
   input: ReviewInput,
 ) {
+  const parsedInput = ReviewInputSchema.parse(input);
   const catalog = await listCatalogProducts();
-  const reviewedProducts = validateReviewProducts(input.products);
+  const reviewedProducts = validateReviewProducts(parsedInput.products);
   const catalogByName = new Map(
     catalog.map((product) => [normalizeProductName(product.name), product]),
   );
@@ -25,7 +29,7 @@ async function applyReceivingReviewInternal(
 
   await prisma.$transaction(async (tx) => {
     const batch = await tx.uploadBatch.findUnique({
-      where: { id: input.batchId },
+      where: { id: parsedInput.batchId },
       include: {
         lines: {
           orderBy: { lineNumber: 'asc' },

@@ -1,13 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import { getSystemTestPort } from './src/lib/environment.ts';
 
-const SYSTEM_TEST_PORT_ENV = process.env.PANCOLLE_SYSTEM_TEST_PORT ?? '3000';
-const SYSTEM_TEST_PORT = Number.parseInt(SYSTEM_TEST_PORT_ENV, 10);
-
-if (!Number.isInteger(SYSTEM_TEST_PORT) || SYSTEM_TEST_PORT <= 0) {
-  throw new Error(
-    `PANCOLLE_SYSTEM_TEST_PORT must be a positive integer: received "${SYSTEM_TEST_PORT_ENV}"`,
-  );
-}
+const SYSTEM_TEST_PORT = getSystemTestPort();
 
 const BASE_URL = `http://localhost:${SYSTEM_TEST_PORT}`;
 

@@ -7,6 +7,7 @@ import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { prisma } from '@/lib/prisma';
+import { getAuthEnv } from '@/lib/environment';
 
 type AuthCallbacks = NonNullable<NextAuthConfig['callbacks']>;
 
@@ -125,20 +126,18 @@ export const exposeSessionClaims: NonNullable<
   return session;
 };
 
+const authEnv = getAuthEnv();
+
 export const { auth, signIn, signOut, handlers } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  secret:
-    process.env.AUTH_SECRET ||
-    (process.env.NODE_ENV === 'development'
-      ? 'development-only-secret'
-      : undefined),
+  secret: authEnv.authSecret,
   trustHost: true,
   providers: [
     Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      clientId: authEnv.authGoogleId,
+      clientSecret: authEnv.authGoogleSecret,
     }),
-    ...createDevelopmentSignInProviders(process.env.NODE_ENV, {
+    ...createDevelopmentSignInProviders(authEnv.nodeEnv, {
       findDevelopmentAdmin: () =>
         prisma.user.findFirst({
           where: { email: 'admin@example.com', role: 'ADMIN' },

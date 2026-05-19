@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 type PositionedLine = {
   y: number;
   text: string;
@@ -13,6 +15,11 @@ type RecognizedTextBlock = {
     }>;
   }>;
 };
+
+const recognizedCountSchema = z
+  .string()
+  .regex(/^\d+$/u)
+  .transform((value) => Number.parseInt(value, 10));
 
 function collectLines(blocks: RecognizedTextBlock[] | null): string[] {
   if (!blocks) {
@@ -44,11 +51,12 @@ export function extractRecognizedLines(blocks: RecognizedTextBlock[] | null) {
 export function extractRecognizedCounts(blocks: RecognizedTextBlock[] | null) {
   return collectLines(blocks).map((line) => {
     const digitsOnly = line.replace(/[^\d]/gu, '');
+    const parsed = recognizedCountSchema.safeParse(digitsOnly);
 
-    if (!/^\d+$/u.test(digitsOnly)) {
+    if (!parsed.success) {
       throw new Error(`数量行を整数として認識できませんでした: ${line}`);
     }
 
-    return Number.parseInt(digitsOnly, 10);
+    return parsed.data;
   });
 }

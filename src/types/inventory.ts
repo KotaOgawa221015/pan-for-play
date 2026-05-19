@@ -1,9 +1,8 @@
-import type {
-  InventoryStatus as PrismaInventoryStatus,
-  ProductCategory as PrismaProductCategory,
-} from '@prisma/client';
+import { InventoryStatus } from '@prisma/client';
+import type { ProductCategory as PrismaProductCategory } from '@prisma/client';
+import { z } from 'zod';
 
-export type ProductStatus = PrismaInventoryStatus;
+export type ProductStatus = InventoryStatus;
 
 export type Product = {
   id: string;
@@ -62,7 +61,11 @@ const STATUS_CATALOG: Record<
   },
 };
 
-export const PRODUCT_STATUSES = Object.keys(STATUS_CATALOG) as ProductStatus[];
+export const PRODUCT_STATUSES = Object.values(
+  InventoryStatus,
+) as ProductStatus[];
+
+export const ProductStatusSchema = z.nativeEnum(InventoryStatus);
 
 export const STATUS_LABELS = Object.fromEntries(
   PRODUCT_STATUSES.map((status) => [status, STATUS_CATALOG[status].label]),
@@ -73,5 +76,5 @@ export const STATUS_STYLES = Object.fromEntries(
 ) as Record<ProductStatus, { active: string; inactive: string; badge: string }>;
 
 export function isProductStatus(value: string): value is ProductStatus {
-  return value in STATUS_LABELS;
+  return ProductStatusSchema.safeParse(value).success;
 }

@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { applyPendingMigrations, createTursoClient } from './turso-database.ts';
+import { getTursoRecreateEnv } from '../src/lib/environment.ts';
 
 const loadEnvFile = (
   process as typeof process & {
@@ -15,26 +16,6 @@ if (existsSync('.env')) {
 type RunCommandOptions = {
   captureStdout?: boolean;
 };
-
-function getDatabaseUrl(): string {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL is required.');
-  }
-
-  return databaseUrl;
-}
-
-function requireEnv(name: string): string {
-  const value = process.env[name];
-
-  if (!value) {
-    throw new Error(`${name} is required.`);
-  }
-
-  return value;
-}
 
 function hasForceFlag(): boolean {
   return process.argv.slice(2).some((arg) => {
@@ -75,20 +56,18 @@ function runTurso(args: string[], options?: RunCommandOptions): string {
   return runCommand(command, args, options);
 }
 
-function recreateDatabase(databaseName: string): void {
+function recreateDatabase(databaseName: string, databaseGroup?: string): void {
   const createArgs = ['db', 'create', databaseName, '--wait'];
 
-  if (process.env.TURSO_DATABASE_GROUP) {
-    createArgs.push('--group', process.env.TURSO_DATABASE_GROUP);
+  if (databaseGroup) {
+    createArgs.push('--group', databaseGroup);
   }
 
   runTurso(['db', 'destroy', databaseName, '--yes']);
   runTurso(createArgs);
 }
 
-function createDatabaseToken(databaseName: string): string {
-  const expiration = requireEnv('TURSO_AUTH_TOKEN_EXPIRATION');
-
+function createDatabaseToken(databaseName: string, expiration: string): string {
   return runTurso(
     ['db', 'tokens', 'create', databaseName, '--expiration', expiration],
     { captureStdout: true },
@@ -115,11 +94,14 @@ async function main(): Promise<void> {
     );
   }
 
-  getDatabaseUrl();
-  const databaseName = requireEnv('TURSO_DATABASE_NAME');
+  const { tursoDatabaseName, tursoAuthTokenExpiration, tursoDatabaseGroup } =
+    getTursoRecreateEnv();
 
-  recreateDatabase(databaseName);
-  const authToken = createDatabaseToken(databaseName);
+  recreateDatabase(tursoDatabaseName, tursoDatabaseGroup);
+  const authToken = createDatabaseToken(
+    tursoDatabaseName,
+    tursoAuthTokenExpiration,
+  );
 
   if (!authToken) {
     throw new Error('Failed to create a Turso database token.');

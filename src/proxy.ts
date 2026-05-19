@@ -5,18 +5,17 @@ import {
   authorizeRouteAccess,
   exposeSessionClaims,
 } from '@/features/account/auth';
+import { getAuthEnv } from '@/lib/environment';
+
+const authEnv = getAuthEnv();
 
 export default NextAuth({
-  secret:
-    process.env.AUTH_SECRET ||
-    (process.env.NODE_ENV === 'development'
-      ? 'development-only-secret'
-      : undefined),
+  secret: authEnv.authSecret,
   trustHost: true,
   providers: [
     Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+      clientId: authEnv.authGoogleId,
+      clientSecret: authEnv.authGoogleSecret,
     }),
   ],
   session: { strategy: 'jwt' },

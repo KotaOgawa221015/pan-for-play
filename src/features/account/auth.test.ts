@@ -33,6 +33,15 @@ vi.mock('next-auth', () => ({
   })),
 }));
 
+vi.mock('@/lib/environment', () => ({
+  getAuthEnv: () => ({
+    authSecret: 'test-secret',
+    authGoogleId: 'test-google-id',
+    authGoogleSecret: 'test-google-secret',
+    nodeEnv: 'test',
+  }),
+}));
+
 import { authorizeRouteAccess, createDevelopmentSignInProviders } from './auth';
 
 function createRequest(
