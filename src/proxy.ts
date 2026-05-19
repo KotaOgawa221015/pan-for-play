@@ -12,7 +12,7 @@ export default NextAuth({
       ? 'development-only-secret'
       : undefined),
   trustHost: true,
-  providers: [],
+  providers: [Google],
   session: { strategy: 'jwt' },
   pages: {
     signIn: '/login',
