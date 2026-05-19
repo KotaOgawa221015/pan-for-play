@@ -1,4 +1,5 @@
 import NextAuth from 'next-auth';
+import Google from 'next-auth/providers/google';
 import {
   addSessionClaimsToToken,
   authorizeRouteAccess,
@@ -12,7 +13,12 @@ export default NextAuth({
       ? 'development-only-secret'
       : undefined),
   trustHost: true,
-  providers: [],
+  providers: [
+    Google({
+      clientId: process.env.AUTH_GOOGLE_ID,
+      clientSecret: process.env.AUTH_GOOGLE_SECRET,
+    }),
+  ],
   session: { strategy: 'jwt' },
   pages: {
     signIn: '/login',
