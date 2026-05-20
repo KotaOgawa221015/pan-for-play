@@ -3,13 +3,13 @@ import { z } from 'zod';
 type RawEnv = Record<string, string | undefined>;
 type GoogleAuthConfiguration =
   | {
-      isEnabled: false;
-    }
+    isEnabled: false;
+  }
   | {
-      isEnabled: true;
-      clientId: string;
-      clientSecret: string;
-    };
+    isEnabled: true;
+    clientId: string;
+    clientSecret: string;
+  };
 
 const requiredString = (name: string) =>
   z.preprocess(
@@ -155,7 +155,7 @@ export function getTursoRecreateEnv(raw: RawEnv = process.env) {
   };
 }
 
-export function getSystemTestPort(raw: RawEnv = process.env, fallback = 3000) {
+export function getSystemTestPort(raw: RawEnv = process.env, fallback = 3001) {
   const value = raw.PANCOLLE_SYSTEM_TEST_PORT;
 
   if (value === undefined) {
