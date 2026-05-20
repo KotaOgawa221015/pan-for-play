@@ -13,7 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         openssl \
     && rm -rf /var/lib/apt/lists/*
 
-RUN corepack enable
+RUN npm install -g pnpm@latest
 
 RUN groupadd -r appgroup && useradd -r -g appgroup -d /home/appuser -m appuser
 

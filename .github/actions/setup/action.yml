@@ -21,16 +21,16 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Enable Corepack
-      run: corepack enable
-      shell: bash
-
     - name: Setup Node.js
       uses: actions/setup-node@v5
       with:
         node-version-file: ${{ inputs.node-version-file }}
         cache: pnpm
         cache-dependency-path: pnpm-lock.yaml
+
+    - name: Install pnpm
+      run: npm install -g pnpm@latest
+      shell: bash
 
     - name: Setup mise
       if: inputs.install-mise == 'true'

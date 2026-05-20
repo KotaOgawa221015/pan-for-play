@@ -1,6 +1,5 @@
-# WARNING: NEVER run "corepack enable" on the local developer machine!
-# Doing so pollutes the host PATH shims (e.g. fnm/nvm) and breaks local Homebrew/system pnpm.
-# Corepack must only be enabled inside isolated environments (Docker/CI).
+# This repository does not use Corepack for pnpm installation.
+# CI and Docker install pnpm via npm (`npm install -g pnpm@latest`).
 
 packages:
   - 'docs'
@@ -20,4 +19,5 @@ blockExoticSubdeps: true
 strictDepBuilds: true
 dangerouslyAllowAllBuilds: false
 
+pmOnFail: download
 engineStrict: true
