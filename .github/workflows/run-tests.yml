@@ -22,14 +22,3 @@ jobs:
 
       - name: Setup Development Environment
         uses: ./.github/actions/setup
-
-      # ▼ テスト実行の「前」に移動します
-      - name: Generate Prisma Client
-        run: npx prisma generate
-
-      - name: Setup Test Database
-        run: npx prisma db push
-
-      # ▼ DBのセットアップが終わった後にテストを実行します
-      - name: Run ${{ matrix.test-type }} Tests
-        run: mise exec -- just ${{ matrix.test-type }}-test
