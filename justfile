@@ -21,12 +21,12 @@ build:
     pnpm build
 
 # Install dependencies and apply database migrations
-setup:
+setup *args:
     @if [ ! -f .env ]; then \
         cp .env.example .env; \
         echo "Created .env from .env.example"; \
     fi
-    pnpm install
+    pnpm install {{ args }}
     pnpm exec playwright install
     pnpm exec tsx scripts/db.ts setup
 
@@ -153,7 +153,7 @@ coverage:
 
 # Remove repository-local generated artifacts
 clean:
-    rm -rf \
+    sudo rm -rf \
         .next \
         coverage \
         node_modules

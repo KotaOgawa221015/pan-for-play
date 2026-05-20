@@ -40,11 +40,12 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter docs
         shell: bash
 
       - name: Build with VitePress
-        run: pnpm docs:build
+        working-directory: docs
+        run: pnpm build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v4
