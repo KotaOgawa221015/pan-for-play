@@ -28,9 +28,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Enable Corepack
-        run: corepack enable
-        shell: bash
+      - uses: pnpm/action-setup@v6
+        with:
+          cache: false
 
       - name: Setup Node
         uses: actions/setup-node@v5
