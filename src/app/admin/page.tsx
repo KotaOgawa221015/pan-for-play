@@ -22,12 +22,6 @@ export default async function UploadPage() {
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
             管理画面
           </h1>
-          <Link
-            href="/admin/qr"
-            className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 bg-emerald-50 px-4 py-2 rounded-lg transition"
-          >
-            サイトのQRコードを発行
-          </Link>
           <Link href="/" className="text-sm text-zinc-500 hover:underline">
             戻る
           </Link>
