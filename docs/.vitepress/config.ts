@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
-// withMermaid でラップして defineConfig を呼び出します
 export default withMermaid(
   defineConfig({
     base: '/pancolle/',
@@ -27,10 +26,7 @@ export default withMermaid(
           items: [
             { text: 'アーキテクチャ', link: '/architecture/structure' },
             { text: 'テスト構造', link: '/architecture/testing' },
-            {
-              text: 'デプロイレポート',
-              link: '/architecture/vercel_deploy_report',
-            },
+            { text: 'デプロイレポート', link: '/architecture/vercel_deploy_report' },
             { text: 'データモデル', link: '/architecture/data_model' },
           ],
         },
@@ -38,14 +34,17 @@ export default withMermaid(
           text: '設定解説',
           items: [
             { text: 'Biomeの設定', link: '/config/biome' },
-            {
-              text: 'pnpmワークスペースの設定',
-              link: '/config/pnpm_workspace',
-            },
+            { text: 'pnpmワークスペースの設定', link: '/config/pnpm_workspace' },
+          ],
+        },
+        {
+          text: '法的表記',
+          items: [
+            { text: '利用規約', link: '/legal/terms' },
+            { text: 'プライバシーポリシー', link: '/legal/privacy' },
           ],
         },
       ],
-      // 検索機能を有効化する場合
       search: {
         provider: 'local',
       },
