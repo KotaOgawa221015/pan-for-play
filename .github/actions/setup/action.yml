@@ -21,14 +21,14 @@ inputs:
 runs:
   using: composite
   steps:
+    - uses: pnpm/action-setup@v6  
+      with:  
+        cache: true
+
     - name: Setup Node.js  
       uses: actions/setup-node@v5  
       with:  
         node-version-file: ${{ inputs.node-version-file }}
-
-    - uses: pnpm/action-setup@v6  
-      with:  
-        cache: true
 
     - name: Setup mise
       if: inputs.install-mise == 'true'
