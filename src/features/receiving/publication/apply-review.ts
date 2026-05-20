@@ -156,6 +156,13 @@ async function applyReceivingReviewInternal(
         count: line.count,
       })),
     });
+    await tx.inventoryStatusChange.deleteMany({
+      where: {
+        createdAt: {
+          lt: publishedAt,
+        },
+      },
+    });
   });
 
   revalidatePath('/');

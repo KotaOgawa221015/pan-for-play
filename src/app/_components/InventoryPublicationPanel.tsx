@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import {
   STATUS_LABELS,
   type InventoryPublicationChange,
@@ -20,40 +23,65 @@ function formatDateTime(value: string) {
 function ChangeList({
   changes,
   emptyText,
+  defaultLimit,
 }: {
   changes: InventoryPublicationChange[];
   emptyText: string;
+  defaultLimit?: number;
 }) {
+  const [showAll, setShowAll] = useState(false);
+
   if (changes.length === 0) {
     return <p className="text-sm text-zinc-500">{emptyText}</p>;
   }
 
+  const hasLimit = defaultLimit !== undefined && changes.length > defaultLimit;
+
+  const displayedChanges =
+    hasLimit && !showAll ? changes.slice(0, defaultLimit) : changes;
+
   return (
-    <ul className="grid gap-3">
-      {changes.map((change) => (
-        <li
-          key={`${change.productId}-${change.changedAt}-${change.nextStatus}`}
-          className="rounded-lg border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-zinc-200"
-        >
-          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100">
-                {change.productName}
+    <div className="space-y-3">
+      <ul className="grid gap-3">
+        {displayedChanges.map((change) => (
+          <li
+            key={`${change.productId}-${change.changedAt}-${change.nextStatus}`}
+            className="rounded-lg border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-700 dark:border-zinc-800 dark:bg-zinc-950/50 dark:text-zinc-200"
+          >
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <span>
+                <span className="font-semibold text-zinc-900 dark:text-zinc-100">
+                  {change.productName}
+                </span>
+                {' : '}
+                {change.previousStatus
+                  ? STATUS_LABELS[change.previousStatus]
+                  : '未掲載'}
+                {' から '}
+                {STATUS_LABELS[change.nextStatus]}
               </span>
-              {' : '}
-              {change.previousStatus
-                ? STATUS_LABELS[change.previousStatus]
-                : '未掲載'}
-              {' から '}
-              {STATUS_LABELS[change.nextStatus]}
-            </span>
-            <span className="text-xs text-zinc-500">
-              {change.changedByName}・{formatDateTime(change.changedAt)}
-            </span>
-          </div>
-        </li>
-      ))}
-    </ul>
+              <span className="text-xs text-zinc-500">
+                {change.changedByName}・{formatDateTime(change.changedAt)}
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      {hasLimit && (
+        <div className="pt-1">
+          <button
+            type="button"
+            onClick={() => setShowAll(!showAll)}
+            className="text-sm font-medium text-zinc-500 hover:text-zinc-800 transition-colors focus:outline-none dark:text-zinc-400 dark:hover:text-zinc-200"
+          >
+            {showAll
+              ? '一部のみ表示する'
+              : `すべて表示する (${changes.length}件)`}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -74,36 +102,20 @@ export function InventoryPublicationPanel({ summary }: Props) {
           </p>
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-                反映後の手動変更
-              </h3>
-              <span className="text-xs text-zinc-500">
-                {summary.manualChangesAfterPublication.length} 件
-              </span>
-            </div>
-            <ChangeList
-              changes={summary.manualChangesAfterPublication}
-              emptyText="この納品書反映後の手動変更はありません。"
-            />
+        <div className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
+              反映後の手動変更
+            </h3>
+            <span className="text-xs text-zinc-500">
+              {summary.manualChangesAfterPublication.length} 件
+            </span>
           </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
-                納品書反映で変わった状態
-              </h3>
-              <span className="text-xs text-zinc-500">
-                {summary.publicationChanges.length} 件
-              </span>
-            </div>
-            <ChangeList
-              changes={summary.publicationChanges}
-              emptyText="この納品書反映では状態変更はありません。"
-            />
-          </div>
+          <ChangeList
+            changes={summary.manualChangesAfterPublication}
+            emptyText="この納品書反映後の手動変更はありません。"
+            defaultLimit={10}
+          />
         </div>
       </div>
     </section>

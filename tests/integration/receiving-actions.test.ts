@@ -13,6 +13,7 @@ const {
   inventoryPublicationCreate,
   inventoryStatusChangeFindMany,
   inventoryStatusChangeCreate,
+  inventoryStatusChangeDeleteMany,
   productCreate,
   productUpdate,
   revalidatePath,
@@ -36,6 +37,7 @@ const {
   inventoryPublicationCreate: vi.fn(),
   inventoryStatusChangeFindMany: vi.fn(),
   inventoryStatusChangeCreate: vi.fn(),
+  inventoryStatusChangeDeleteMany: vi.fn(),
   productCreate: vi.fn(),
   productUpdate: vi.fn(),
   revalidatePath: vi.fn(),
@@ -71,6 +73,7 @@ vi.mock('@/lib/prisma', () => ({
     inventoryStatusChange: {
       findMany: inventoryStatusChangeFindMany,
       create: inventoryStatusChangeCreate,
+      deleteMany: inventoryStatusChangeDeleteMany,
     },
     product: {
       create: productCreate,
@@ -140,6 +143,7 @@ describe('receiving actions', () => {
     inventoryPublicationCreate.mockReset();
     inventoryStatusChangeFindMany.mockReset();
     inventoryStatusChangeCreate.mockReset();
+    inventoryStatusChangeDeleteMany.mockReset();
     productCreate.mockReset();
     productUpdate.mockReset();
     revalidatePath.mockReset();
@@ -173,6 +177,7 @@ describe('receiving actions', () => {
         inventoryStatusChange: {
           findMany: inventoryStatusChangeFindMany,
           create: inventoryStatusChangeCreate,
+          deleteMany: inventoryStatusChangeDeleteMany,
         },
         product: {
           create: productCreate,
