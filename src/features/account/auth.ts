@@ -78,10 +78,10 @@ export function authorizeRouteAccess({
 
   const { nextUrl } = request;
   const user = auth?.user;
-  const isOnLoginPage = nextUrl.pathname === '/login';
   const isLoggedIn = !!user;
   const { pathname } = nextUrl;
-  const isPublicPage = pathname === '/login';
+
+  const isPublicPage = pathname === '/login' || pathname === '/terms' || pathname === '/privacy';
   const isOnSessionClearPage = nextUrl.pathname === '/session/clear';
   const isOnAdminRoute =
     nextUrl.pathname === '/admin' || nextUrl.pathname.startsWith('/admin/');
@@ -95,8 +95,7 @@ export function authorizeRouteAccess({
     return Response.redirect(new URL('/', nextUrl));
   }
 
-  if (isOnLoginPage) {
-    if (user) return Response.redirect(new URL('/', nextUrl));
+  if (isPublicPage) {
     return true;
   }
 

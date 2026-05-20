@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import Link from 'next/link';
 import {
   loginAsAdminAction,
   loginAsUserAction,
@@ -57,6 +58,17 @@ export function LoginPageClient({
         >
           Googleでログイン
         </button>
+        <p className="text-[11px] text-zinc-400 dark:text-zinc-500 leading-relaxed px-2">
+          ログインまたは新規登録を行うことで、パンコレの
+          <Link href="/terms" className="text-emerald-600 dark:text-emerald-400 hover:underline mx-0.5">
+            利用規約
+          </Link>
+          および
+          <Link href="/privacy" className="text-emerald-600 dark:text-emerald-400 hover:underline mx-0.5">
+            プライバシーポリシー
+          </Link>
+          に同意したものとみなされます。
+        </p>
         {googleLoginError && (
           <p
             role="alert"
