@@ -79,12 +79,12 @@ export function authorizeRouteAccess({
   const { nextUrl } = request;
   const user = auth?.user;
   const isLoggedIn = !!user;
-  const { pathname } = nextUrl;
 
-  const isPublicPage = pathname === '/login' || pathname === '/terms' || pathname === '/privacy';
-  const isOnSessionClearPage = nextUrl.pathname === '/session/clear';
-  const isOnAdminRoute =
-    nextUrl.pathname === '/admin' || nextUrl.pathname.startsWith('/admin/');
+  const cleanPath = nextUrl.pathname.replace(/\/$/, '');
+
+  const isPublicPage = cleanPath === '/login' || cleanPath === '/terms' || cleanPath === '/privacy';
+  const isOnSessionClearPage = cleanPath === '/session/clear';
+  const isOnAdminRoute = cleanPath === '/admin' || cleanPath.startsWith('/admin/');
 
   if (user?.deletedAt) {
     if (isOnSessionClearPage) return true;
