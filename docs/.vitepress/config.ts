@@ -26,7 +26,10 @@ export default withMermaid(
           items: [
             { text: 'アーキテクチャ', link: '/architecture/structure' },
             { text: 'テスト構造', link: '/architecture/testing' },
-            { text: 'デプロイレポート', link: '/architecture/vercel_deploy_report' },
+            {
+              text: 'デプロイレポート',
+              link: '/architecture/vercel_deploy_report',
+            },
             { text: 'データモデル', link: '/architecture/data_model' },
           ],
         },
@@ -34,7 +37,10 @@ export default withMermaid(
           text: '設定解説',
           items: [
             { text: 'Biomeの設定', link: '/config/biome' },
-            { text: 'pnpmワークスペースの設定', link: '/config/pnpm_workspace' },
+            {
+              text: 'pnpmワークスペースの設定',
+              link: '/config/pnpm_workspace',
+            },
           ],
         },
         {
