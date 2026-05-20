@@ -1,5 +1,6 @@
 import type { UserRole } from '@prisma/client';
 import { redirect } from 'next/navigation';
+import { prisma } from '@/lib/prisma';
 import { auth } from './auth';
 
 export type AuthenticatedUser = {
@@ -18,12 +19,26 @@ async function getCurrentUser() {
   const session = await auth();
   if (!session?.user?.id) return null;
 
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      deletedAt: true,
+    },
+  });
+
+  if (!user || user.deletedAt) {
+    return null;
+  }
+
   return {
-    id: session.user.id,
-    email: session.user.email,
-    name: session.user.name,
-    image: session.user.image,
-    role: session.user.role,
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
   };
 }
 
