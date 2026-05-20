@@ -82,9 +82,13 @@ export function authorizeRouteAccess({
 
   const cleanPath = nextUrl.pathname.replace(/\/$/, '');
 
-  const isPublicPage = cleanPath === '/login' || cleanPath === '/terms' || cleanPath === '/privacy';
+  const isPublicPage =
+    cleanPath === '/login' ||
+    cleanPath === '/terms' ||
+    cleanPath === '/privacy';
   const isOnSessionClearPage = cleanPath === '/session/clear';
-  const isOnAdminRoute = cleanPath === '/admin' || cleanPath.startsWith('/admin/');
+  const isOnAdminRoute =
+    cleanPath === '/admin' || cleanPath.startsWith('/admin/');
 
   if (user?.deletedAt) {
     if (isOnSessionClearPage) return true;
