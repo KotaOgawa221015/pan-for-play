@@ -86,7 +86,7 @@ export function ProductCard({ product }: Props) {
           alt=""
           width={36}
           height={36}
-          className="shrink-0 object-contain w-9 h-9"
+          className="shrink-0 object-contain size-9"
           priority
           unoptimized
         />

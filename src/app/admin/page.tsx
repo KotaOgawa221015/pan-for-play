@@ -10,6 +10,7 @@ export const dynamic = 'force-dynamic';
 export default async function UploadPage() {
   const currentAdmin = await requireAdminUser();
 
+  // eslint-disable-next-line react-doctor/async-parallel react-doctor/server-sequential-independent-await
   const [recentHistory, users] = await Promise.all([
     getRecentReceivingHistory(),
     listEligibleUsers(),
