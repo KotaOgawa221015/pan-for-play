@@ -55,10 +55,5 @@ export default withMermaid(
         provider: 'local',
       },
     },
-    vite: {
-      optimizeDeps: {
-        include: ['dayjs', 'mermaid'],
-      },
-    },
   }),
 );

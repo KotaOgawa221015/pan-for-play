@@ -2,6 +2,9 @@
 # Doing so pollutes the host PATH shims (e.g. fnm/nvm) and breaks local Homebrew/system pnpm.
 # Corepack must only be enabled inside isolated environments (Docker/CI).
 
+packages:
+  - 'docs'
+
 allowBuilds:
   '@prisma/engines': true
   better-sqlite3: true

@@ -14,6 +14,10 @@ inputs:
     description: mise version to install
     required: false
     default: '2026.4.27'
+  args:
+    description: Arguments passed to `just setup`
+    required: false
+    default: '--frozen-lockfile'
 runs:
   using: composite
   steps:
@@ -35,10 +39,6 @@ runs:
         version: ${{ inputs.mise-version }}
         install_args: --locked
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
-      shell: bash
-
     - name: Run just setup
-      run: mise exec -- just setup
+      run: mise exec -- just setup ${{ inputs.args }}
       shell: bash
