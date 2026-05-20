@@ -16,11 +16,7 @@ async function updateProductStatusInternal(
 
   await prisma.$transaction(async (tx) => {
     const currentPublication = await tx.inventoryPublication.findFirst({
-      orderBy: [
-        { publishedAt: 'desc' },
-        { createdAt: 'desc' },
-        { id: 'desc' },
-      ],
+      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       include: {
         uploadBatch: {
           include: {
