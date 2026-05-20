@@ -22,3 +22,6 @@ jobs:
 
       - name: Setup Development Environment
         uses: ./.github/actions/setup
+
+      - name: Run ${{ matrix.test-type }} Tests
+        run: mise exec -- just ${{ matrix.test-type }}-test
