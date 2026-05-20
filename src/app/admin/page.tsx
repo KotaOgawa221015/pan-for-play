@@ -8,7 +8,6 @@ import { requireAdminUser } from '@/features/account/session-user';
 export const dynamic = 'force-dynamic';
 
 export default async function UploadPage() {
-  // eslint-disable-next-line react-doctor/async-parallel react-doctor/server-sequential-independent-await
   const currentAdmin = await requireAdminUser();
 
   const [recentHistory, users] = await Promise.all([
