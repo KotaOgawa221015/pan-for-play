@@ -156,6 +156,21 @@ async function applyReceivingReviewInternal(
         count: line.count,
       })),
     });
+
+    // -------------------------------------------------------------------
+    // ▼ 追加・修正箇所：古い在庫変更履歴（InventoryStatusChange）の削除 ▼
+    // -------------------------------------------------------------------
+    // publishInventorySnapshot の内部で新しい履歴が作成されるため、
+    // 「今処理した時間（publishedAt）より前に作成されたもの」を削除します。
+    await tx.inventoryStatusChange.deleteMany({
+      where: {
+        createdAt: {
+          lt: publishedAt,
+        },
+      },
+    });
+    // -------------------------------------------------------------------
+
   });
 
   revalidatePath('/');
