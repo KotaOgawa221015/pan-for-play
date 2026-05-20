@@ -14,7 +14,7 @@
 
 新しいソースコードがデプロイされるたびに、データベースのスキーマが自動で本番環境に適用され、Next.jsの最適化ビルドが走るよう、以下のコマンドを一本化しました。
 
-* **Build Command:** pnpm exec tsx scripts/turso-migrate.ts && next build  
+* **Build Command:** pnpm run vercel-build  
 * **Output Directory:** デフォルト (.next)  
 * **Install Command:** デフォルト (pnpm install) ※package.json の postinstall により prisma generate が自動実行されます。
 
