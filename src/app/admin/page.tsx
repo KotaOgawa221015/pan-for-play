@@ -1,11 +1,19 @@
 import Link from 'next/link';
 import { getRecentReceivingHistory } from '@/features/receiving/history/list-recent';
 import { Dashboard } from './_receiving/Dashboard';
+import { listEligibleUsers } from '@/features/account/admin-management';
+import { UserManagementPanel } from './_receiving/UserManagementPanel';
+import { requireAdminUser } from '@/features/account/session-user';
 
 export const dynamic = 'force-dynamic';
 
 export default async function UploadPage() {
-  const recentHistory = await getRecentReceivingHistory();
+  const currentAdmin = await requireAdminUser();
+
+  const [recentHistory, users] = await Promise.all([
+    getRecentReceivingHistory(),
+    listEligibleUsers(),
+  ]);
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-6">
@@ -24,6 +32,7 @@ export default async function UploadPage() {
             戻る
           </Link>
         </header>
+        <UserManagementPanel users={users} currentAdminId={currentAdmin.id} />
 
         <Dashboard recentHistory={recentHistory} />
       </div>
