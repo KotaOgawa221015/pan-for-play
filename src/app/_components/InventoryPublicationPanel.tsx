@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useState } from 'react';
 import {
@@ -37,9 +37,8 @@ function ChangeList({
 
   const hasLimit = defaultLimit !== undefined && changes.length > defaultLimit;
 
-  const displayedChanges = hasLimit && !showAll
-    ? changes.slice(0, defaultLimit)
-    : changes;
+  const displayedChanges =
+    hasLimit && !showAll ? changes.slice(0, defaultLimit) : changes;
 
   return (
     <div className="space-y-3">
@@ -76,7 +75,9 @@ function ChangeList({
             onClick={() => setShowAll(!showAll)}
             className="text-sm font-medium text-zinc-500 hover:text-zinc-800 transition-colors focus:outline-none dark:text-zinc-400 dark:hover:text-zinc-200"
           >
-            {showAll ? '一部のみ表示する' : `すべて表示する (${changes.length}件)`}
+            {showAll
+              ? '一部のみ表示する'
+              : `すべて表示する (${changes.length}件)`}
           </button>
         </div>
       )}

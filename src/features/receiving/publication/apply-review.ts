@@ -170,7 +170,6 @@ async function applyReceivingReviewInternal(
       },
     });
     // -------------------------------------------------------------------
-
   });
 
   revalidatePath('/');
