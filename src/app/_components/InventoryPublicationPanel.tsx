@@ -102,7 +102,6 @@ export function InventoryPublicationPanel({ summary }: Props) {
           </p>
         </div>
 
-        {/* 変更箇所: grid を外し、1列のレイアウトにする */}
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <h3 className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">
