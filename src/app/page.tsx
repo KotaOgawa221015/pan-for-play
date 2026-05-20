@@ -25,6 +25,9 @@ export default async function Page({
     getCurrentInventoryPublicationSummary(),
   ]);
 
+  const availableProducts = products.filter((p) => p.status !== 'SOLD_OUT');
+  const soldOutProducts = products.filter((p) => p.status === 'SOLD_OUT');
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
       <FlashMessage msg={msg} />
@@ -60,7 +63,10 @@ export default async function Page({
             <p className="text-sm text-zinc-400">商品がありません</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {products.map((product) => (
+              {availableProducts.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+              {soldOutProducts.map((product) => (
                 <ProductCard key={product.id} product={product} />
               ))}
             </div>
