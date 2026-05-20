@@ -21,7 +21,9 @@ export default async function LoginPage({
   return (
     <>
       <FlashMessage msg={msg} />
-      <LoginPageClient showGoogleSignIn={authEnv.googleProvider.isEnabled} />
+      <LoginPageClient
+        isGoogleSignInEnabled={authEnv.googleProvider.isEnabled}
+      />
     </>
   );
 }

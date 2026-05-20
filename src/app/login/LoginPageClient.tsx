@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useTransition } from 'react';
 import {
   loginAsAdminAction,
   loginAsUserAction,
@@ -7,14 +8,38 @@ import {
 } from '@/features/account/access';
 
 type LoginPageClientProps = {
-  showGoogleSignIn: boolean;
+  isGoogleSignInEnabled: boolean;
 };
 
-export function LoginPageClient({ showGoogleSignIn }: LoginPageClientProps) {
+export function LoginPageClient({
+  isGoogleSignInEnabled,
+}: LoginPageClientProps) {
   const showDemoLogin = process.env.NODE_ENV === 'development';
-  const description = showGoogleSignIn
-    ? 'Googleアカウントでログインしてください'
-    : '開発用ユーザーでログインしてください';
+  const [googleLoginError, setGoogleLoginError] = useState<string | null>(null);
+  const [isGoogleSignInPending, startGoogleSignInTransition] = useTransition();
+
+  const description = 'Googleアカウントでログインしてください';
+
+  const handleGoogleSignIn = () => {
+    setGoogleLoginError(null);
+
+    if (!isGoogleSignInEnabled) {
+      setGoogleLoginError(
+        'Googleログインは現在利用できません。管理者へ設定状況を確認してください。',
+      );
+      return;
+    }
+
+    startGoogleSignInTransition(async () => {
+      try {
+        await loginWithGoogleAction();
+      } catch {
+        setGoogleLoginError(
+          'Googleログインに失敗しました。しばらくしてから再試行してください。',
+        );
+      }
+    });
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-50 dark:bg-zinc-950 p-6">
@@ -24,14 +49,21 @@ export function LoginPageClient({ showGoogleSignIn }: LoginPageClientProps) {
           <p className="text-sm text-zinc-500">{description}</p>
         </header>
 
-        {showGoogleSignIn && (
-          <button
-            type="button"
-            onClick={() => loginWithGoogleAction()}
-            className="w-full py-4 bg-white border border-zinc-300 text-zinc-900 rounded-xl font-bold hover:bg-zinc-50 transition shadow-sm flex items-center justify-center gap-2"
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleSignInPending}
+          className="w-full py-4 bg-white border border-zinc-300 text-zinc-900 rounded-xl font-bold hover:bg-zinc-50 transition shadow-sm flex items-center justify-center gap-2 disabled:opacity-70"
+        >
+          Googleでログイン
+        </button>
+        {googleLoginError && (
+          <p
+            role="alert"
+            className="text-xs text-rose-600 dark:text-rose-400 leading-relaxed"
           >
-            Googleでログイン
-          </button>
+            {googleLoginError}
+          </p>
         )}
         {showDemoLogin && (
           <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">

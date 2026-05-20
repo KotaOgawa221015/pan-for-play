@@ -3,13 +3,13 @@ import { z } from 'zod';
 type RawEnv = Record<string, string | undefined>;
 type GoogleAuthConfiguration =
   | {
-    isEnabled: false;
-  }
+      isEnabled: false;
+    }
   | {
-    isEnabled: true;
-    clientId: string;
-    clientSecret: string;
-  };
+      isEnabled: true;
+      clientId: string;
+      clientSecret: string;
+    };
 
 const requiredString = (name: string) =>
   z.preprocess(
