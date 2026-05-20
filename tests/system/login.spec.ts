@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
 test.describe('ログイン・在庫画面ライフサイクル', () => {
   test('ログインページが正しく表示され、開発用バイパスログインができること', async ({
@@ -21,6 +21,8 @@ test.describe('ログイン・在庫画面ライフサイクル', () => {
       .catch(() => false);
     if (showsUnavailableError) {
       await expect(googleUnavailableError).toBeVisible();
+    } else {
+      await page.goto('/login');
     }
 
     const bypassUserButton = page.getByRole('button', { name: '一般ユーザー' });
