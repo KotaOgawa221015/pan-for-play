@@ -74,10 +74,11 @@ export function ProductCard({ product }: Props) {
 
   return (
     <div
-      className={`flex flex-col h-full p-4 rounded-2xl border shadow-sm transition-all duration-300 ${optimisticStatus === 'SOLD_OUT'
+      className={`flex flex-col h-full p-4 rounded-2xl border shadow-sm transition-all duration-300 ${
+        optimisticStatus === 'SOLD_OUT'
           ? 'bg-zinc-100 border-zinc-200 opacity-60 grayscale dark:bg-zinc-900/50 dark:border-zinc-800'
           : 'bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800'
-        }`}
+      }`}
     >
       <div className="flex items-center justify-center gap-2.5 h-10 mb-1.5 overflow-hidden px-1">
         <Image
@@ -96,8 +97,9 @@ export function ProductCard({ product }: Props) {
 
       <div className="flex flex-wrap items-start justify-center gap-x-3 gap-y-1 min-h-10 mb-2">
         <span
-          className={`px-3 py-0.5 rounded-full text-[11px] font-bold tracking-wider shrink-0 ${STATUS_STYLES[optimisticStatus].badge
-            }`}
+          className={`px-3 py-0.5 rounded-full text-[11px] font-bold tracking-wider shrink-0 ${
+            STATUS_STYLES[optimisticStatus].badge
+          }`}
         >
           {STATUS_LABELS[optimisticStatus]}
         </span>
@@ -125,8 +127,9 @@ export function ProductCard({ product }: Props) {
               onClick={() => handleStatusChange(status)}
               disabled={isPending}
               aria-pressed={isActive}
-              className={`flex-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition ${isActive ? styles.active : styles.inactive
-                } ${isPending ? 'opacity-70' : ''}`}
+              className={`flex-1 rounded-full border px-2 py-1 text-[11px] font-semibold transition ${
+                isActive ? styles.active : styles.inactive
+              } ${isPending ? 'opacity-70' : ''}`}
             >
               {STATUS_LABELS[status]}
             </button>
