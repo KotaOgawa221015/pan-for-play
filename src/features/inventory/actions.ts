@@ -15,6 +15,7 @@ async function updateProductStatusInternal(
   const changedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
+    // eslint-disable-next-line react-
     const currentPublication = await tx.inventoryPublication.findFirst({
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       include: {
