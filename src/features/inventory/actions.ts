@@ -15,39 +15,38 @@ async function updateProductStatusInternal(
   const changedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
-    const [currentPublication, latestStatusChange] = await Promise.all([
-      tx.inventoryPublication.findFirst({
-        orderBy: [
-          { publishedAt: 'desc' },
-          { createdAt: 'desc' },
-          { id: 'desc' },
-        ],
-        include: {
-          uploadBatch: {
-            include: {
-              lines: {
-                where: {
-                  matchedProductId: productId,
-                },
-                select: {
-                  id: true,
-                  count: true,
-                },
+    const currentPublication = await tx.inventoryPublication.findFirst({
+      orderBy: [
+        { publishedAt: 'desc' },
+        { createdAt: 'desc' },
+        { id: 'desc' },
+      ],
+      include: {
+        uploadBatch: {
+          include: {
+            lines: {
+              where: {
+                matchedProductId: productId,
+              },
+              select: {
+                id: true,
+                count: true,
               },
             },
           },
         },
-      }),
-      tx.inventoryStatusChange.findFirst({
-        where: {
-          productId,
-        },
-        orderBy: [{ changedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-        select: {
-          nextStatus: true,
-        },
-      }),
-    ]);
+      },
+    });
+
+    const latestStatusChange = await tx.inventoryStatusChange.findFirst({
+      where: {
+        productId,
+      },
+      orderBy: [{ changedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
+      select: {
+        nextStatus: true,
+      },
+    });
 
     const publicationLine = currentPublication?.uploadBatch.lines[0];
     if (!publicationLine) {
