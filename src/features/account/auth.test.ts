@@ -33,7 +33,23 @@ vi.mock('next-auth', () => ({
   })),
 }));
 
-import { authorizeRouteAccess, createDevelopmentSignInProviders } from './auth';
+vi.mock('@/lib/environment', () => ({
+  getAuthEnv: () => ({
+    authSecret: 'test-secret',
+    googleProvider: {
+      isEnabled: true,
+      clientId: 'test-google-id',
+      clientSecret: 'test-google-secret',
+    },
+    nodeEnv: 'test',
+  }),
+}));
+
+import {
+  authorizeRouteAccess,
+  createDevelopmentSignInProviders,
+  createGoogleSignInProviders,
+} from './auth';
 
 function createRequest(
   pathname: string,
@@ -92,5 +108,15 @@ describe('account auth', () => {
     );
 
     expect(credentialsProviders).toHaveLength(2);
+  });
+
+  it('returns no Google providers when Google sign-in is disabled', () => {
+    const providers = createGoogleSignInProviders({
+      authSecret: 'test-secret',
+      googleProvider: { isEnabled: false },
+      nodeEnv: 'development',
+    });
+
+    expect(providers).toEqual([]);
   });
 });

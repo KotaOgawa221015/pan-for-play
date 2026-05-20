@@ -32,7 +32,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [dev, prod]
+        include:
+          - target: dev
+            database_url: file:./data/dev.db
+          - target: prod
+            database_url: file:./data/prod.db
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v5
@@ -44,8 +48,13 @@ jobs:
         run: docker build --target "${{ matrix.target }}" -t "pancolle-ci:${{ matrix.target }}" .
 
       - name: Docker Run Check (${{ matrix.target }})
+        env:
+          DATABASE_URL: ${{ matrix.database_url }}
+          AUTH_SECRET: ci-auth-secret
+          AUTH_GOOGLE_ID: ci-google-id
+          AUTH_GOOGLE_SECRET: ci-google-secret
         run: |
-          docker run -d --name "pancolle-ci-${{ matrix.target }}" -p 127.0.0.1:3000:3000 -e DATABASE_URL=file:./data/prod.db "pancolle-ci:${{ matrix.target }}"
+          docker run -d --name "pancolle-ci-${{ matrix.target }}" -p 127.0.0.1:3000:3000 -e DATABASE_URL -e AUTH_SECRET -e AUTH_GOOGLE_ID -e AUTH_GOOGLE_SECRET "pancolle-ci:${{ matrix.target }}"
           curl --retry 30 --retry-delay 2 --retry-connrefused --retry-all-errors --fail http://127.0.0.1:3000/login
 
       - name: Docker Failure Logs (${{ matrix.target }})

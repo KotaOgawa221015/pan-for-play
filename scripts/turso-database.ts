@@ -3,6 +3,7 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createClient } from '@libsql/client';
+import { getTursoEnv, requireDatabaseUrl } from '../src/lib/environment.ts';
 
 type TursoClient = ReturnType<typeof createClient>;
 
@@ -21,13 +22,7 @@ const migrationsDir = path.join(projectRoot, 'prisma', 'migrations');
 const migrationsTableName = '__pancolle_migrations';
 
 function getDatabaseUrl(): string {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL is required.');
-  }
-
-  return databaseUrl;
+  return requireDatabaseUrl();
 }
 
 export function assertTursoDatabaseUrl(): string {
@@ -43,19 +38,15 @@ export function assertTursoDatabaseUrl(): string {
 }
 
 export function getTursoAuthToken(): string {
-  const authToken = process.env.TURSO_AUTH_TOKEN;
-
-  if (!authToken) {
-    throw new Error('TURSO_AUTH_TOKEN is required for Turso commands.');
-  }
-
-  return authToken;
+  return getTursoEnv().tursoAuthToken;
 }
 
 export function createTursoClient(): TursoClient {
+  const { tursoAuthToken } = getTursoEnv();
+
   return createClient({
     url: assertTursoDatabaseUrl(),
-    authToken: getTursoAuthToken(),
+    authToken: tursoAuthToken,
   });
 }
 

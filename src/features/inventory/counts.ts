@@ -1,7 +1,10 @@
 import type { ProductStatus } from '@/types/inventory';
+import { z } from 'zod';
+
+const inventoryCountSchema = z.number().int().min(0);
 
 export function getProductStatusFromCount(count: number): ProductStatus {
-  if (!Number.isInteger(count) || count < 0) {
+  if (!inventoryCountSchema.safeParse(count).success) {
     throw new Error(`Invalid inventory count: ${count}`);
   }
 

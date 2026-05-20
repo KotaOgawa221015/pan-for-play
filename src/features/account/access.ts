@@ -1,8 +1,14 @@
 'use server';
 
+import { getAuthEnv } from '@/lib/environment';
 import { auth, signIn, signOut } from './auth';
 
 export async function loginWithGoogleAction() {
+  const authEnv = getAuthEnv();
+  if (!authEnv.googleProvider.isEnabled) {
+    throw new Error('Google sign-in is not configured.');
+  }
+
   await signIn('google', { redirectTo: '/' });
 }
 

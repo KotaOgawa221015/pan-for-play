@@ -6,6 +6,7 @@ import NextAuth from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
+import { getAuthEnv } from '@/lib/environment';
 import { prisma } from '@/lib/prisma';
 
 type AuthCallbacks = NonNullable<NextAuthConfig['callbacks']>;
@@ -14,6 +15,23 @@ type DevelopmentSignInDependencies = {
   findDevelopmentAdmin: () => Promise<User | null>;
   findDevelopmentUser: () => Promise<User | null>;
 };
+
+type AuthEnvironment = ReturnType<typeof getAuthEnv>;
+
+export function createGoogleSignInProviders(
+  authEnv: AuthEnvironment,
+): Provider[] {
+  if (!authEnv.googleProvider.isEnabled) {
+    return [];
+  }
+
+  return [
+    Google({
+      clientId: authEnv.googleProvider.clientId,
+      clientSecret: authEnv.googleProvider.clientSecret,
+    }),
+  ];
+}
 
 export function createDevelopmentSignInProviders(
   nodeEnv: string | undefined,
@@ -125,38 +143,39 @@ export const exposeSessionClaims: NonNullable<
   return session;
 };
 
-export const { auth, signIn, signOut, handlers } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  secret:
-    process.env.AUTH_SECRET ||
-    (process.env.NODE_ENV === 'development'
-      ? 'development-only-secret'
-      : undefined),
-  trustHost: true,
-  providers: [
-    Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET,
-    }),
-    ...createDevelopmentSignInProviders(process.env.NODE_ENV, {
-      findDevelopmentAdmin: () =>
-        prisma.user.findFirst({
-          where: { email: 'admin@example.com', role: 'ADMIN' },
-        }),
-      findDevelopmentUser: () =>
-        prisma.user.findFirst({
-          where: { email: 'user@example.com', role: 'MEMBER' },
-        }),
-    }),
-  ],
-  session: { strategy: 'jwt' },
-  pages: {
-    signIn: '/login',
-  },
-  callbacks: {
-    authorized: authorizeRouteAccess,
-    signIn: allowActiveUserSignIn,
-    jwt: addSessionClaimsToToken,
-    session: exposeSessionClaims,
-  },
-});
+export function createAccountAuthConfig(): NextAuthConfig {
+  const authEnv = getAuthEnv();
+
+  return {
+    adapter: PrismaAdapter(prisma),
+    secret: authEnv.authSecret,
+    trustHost: true,
+    providers: [
+      ...createGoogleSignInProviders(authEnv),
+      ...createDevelopmentSignInProviders(authEnv.nodeEnv, {
+        findDevelopmentAdmin: () =>
+          prisma.user.findFirst({
+            where: { email: 'admin@example.com', role: 'ADMIN' },
+          }),
+        findDevelopmentUser: () =>
+          prisma.user.findFirst({
+            where: { email: 'user@example.com', role: 'MEMBER' },
+          }),
+      }),
+    ],
+    session: { strategy: 'jwt' },
+    pages: {
+      signIn: '/login',
+    },
+    callbacks: {
+      authorized: authorizeRouteAccess,
+      signIn: allowActiveUserSignIn,
+      jwt: addSessionClaimsToToken,
+      session: exposeSessionClaims,
+    },
+  };
+}
+
+export const { auth, signIn, signOut, handlers } = NextAuth(() =>
+  createAccountAuthConfig(),
+);
