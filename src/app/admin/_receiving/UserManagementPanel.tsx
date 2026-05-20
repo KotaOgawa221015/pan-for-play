@@ -1,7 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
-import { promoteToAdmin } from '@/features/account/admin-management';
+import { promoteToAdmin, demoteFromAdmin } from '@/features/account/admin-management';
 import { UserRole } from '@prisma/client';
 
 type EligibleUser = {
@@ -20,16 +20,27 @@ export function UserManagementPanel({ users, currentAdminId }: Props) {
     const [isPending, startTransition] = useTransition();
 
     const handlePromote = (userId: string, userName: string) => {
-        if (!confirm(`本当に ${userName} を管理者に昇格させますか？`)) {
+        if (!confirm(`本当に ${userName} を管理者に昇格させますか？`)) return;
+
+        startTransition(async () => {
+            try {
+                const result = await promoteToAdmin(userId);
+                if (result?.success) alert(`${userName} を管理者に昇格しました。`);
+            } catch (error) {
+                alert(error instanceof Error ? error.message : 'エラーが発生しました。');
+            }
+        });
+    };
+
+    const handleDemote = (userId: string, userName: string) => {
+        if (!confirm(`本当に ${userName} の管理者権限を剥奪しますか？\n一般ユーザーに格下げされます。`)) {
             return;
         }
 
         startTransition(async () => {
             try {
-                const result = await promoteToAdmin(userId);
-                if (result?.success) {
-                    alert(`${userName} を管理者に昇格しました。`);
-                }
+                const result = await demoteFromAdmin(userId);
+                if (result?.success) alert(`${userName} の管理者権限を剥奪しました。`);
             } catch (error) {
                 alert(error instanceof Error ? error.message : 'エラーが発生しました。');
             }
@@ -43,7 +54,7 @@ export function UserManagementPanel({ users, currentAdminId }: Props) {
                     ユーザー権限管理
                 </h2>
                 <p className="text-xs text-zinc-500">
-                    登録されているメンバーを管理者に昇格させることができます。
+                    メンバーの管理者への昇格、および管理者権限の剥奪を行えます。
                 </p>
             </div>
 
@@ -61,11 +72,23 @@ export function UserManagementPanel({ users, currentAdminId }: Props) {
                                 <p className="text-xs text-zinc-500">{user.email}</p>
                             </div>
 
-                            <div>
+                            <div className="flex items-center gap-2">
                                 {isAdmin ? (
-                                    <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-                                        管理者
-                                    </span>
+                                    <>
+                                        <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                                            管理者
+                                        </span>
+                                        {!isSelf && (
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDemote(user.id, user.name)}
+                                                disabled={isPending}
+                                                className="rounded-full border border-rose-300 dark:border-rose-700 px-3 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 disabled:opacity-50 transition"
+                                            >
+                                                権限を剥奪
+                                            </button>
+                                        )}
+                                    </>
                                 ) : (
                                     <button
                                         type="button"
