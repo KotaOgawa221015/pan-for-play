@@ -143,33 +143,39 @@ export const exposeSessionClaims: NonNullable<
   return session;
 };
 
-const authEnv = getAuthEnv();
+export function createAccountAuthConfig(): NextAuthConfig {
+  const authEnv = getAuthEnv();
 
-export const { auth, signIn, signOut, handlers } = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  secret: authEnv.authSecret,
-  trustHost: true,
-  providers: [
-    ...createGoogleSignInProviders(authEnv),
-    ...createDevelopmentSignInProviders(authEnv.nodeEnv, {
-      findDevelopmentAdmin: () =>
-        prisma.user.findFirst({
-          where: { email: 'admin@example.com', role: 'ADMIN' },
-        }),
-      findDevelopmentUser: () =>
-        prisma.user.findFirst({
-          where: { email: 'user@example.com', role: 'MEMBER' },
-        }),
-    }),
-  ],
-  session: { strategy: 'jwt' },
-  pages: {
-    signIn: '/login',
-  },
-  callbacks: {
-    authorized: authorizeRouteAccess,
-    signIn: allowActiveUserSignIn,
-    jwt: addSessionClaimsToToken,
-    session: exposeSessionClaims,
-  },
-});
+  return {
+    adapter: PrismaAdapter(prisma),
+    secret: authEnv.authSecret,
+    trustHost: true,
+    providers: [
+      ...createGoogleSignInProviders(authEnv),
+      ...createDevelopmentSignInProviders(authEnv.nodeEnv, {
+        findDevelopmentAdmin: () =>
+          prisma.user.findFirst({
+            where: { email: 'admin@example.com', role: 'ADMIN' },
+          }),
+        findDevelopmentUser: () =>
+          prisma.user.findFirst({
+            where: { email: 'user@example.com', role: 'MEMBER' },
+          }),
+      }),
+    ],
+    session: { strategy: 'jwt' },
+    pages: {
+      signIn: '/login',
+    },
+    callbacks: {
+      authorized: authorizeRouteAccess,
+      signIn: allowActiveUserSignIn,
+      jwt: addSessionClaimsToToken,
+      session: exposeSessionClaims,
+    },
+  };
+}
+
+export const { auth, signIn, signOut, handlers } = NextAuth(() =>
+  createAccountAuthConfig(),
+);

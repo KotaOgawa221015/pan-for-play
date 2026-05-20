@@ -75,6 +75,8 @@ DATABASE_URL="file:./data/dev.db" just db-seed
 just up-prod
 ```
 
+The production Docker stack reads `AUTH_SECRET`, `AUTH_GOOGLE_ID`, and `AUTH_GOOGLE_SECRET` from `.env` or the process environment. `just up-prod` stops before Docker starts when any of these values are empty.
+
 For Turso, the migration script applies the SQL files under `prisma/migrations/` in order and records applied checksums. If the remote database already has tables but no migration records, the command stops and requires database recreation or manual baseline.
 
 The same `DATABASE_URL` selects the database for Prisma commands and Docker Compose. In CI/CD, the process environment variable `DATABASE_URL` is the source of truth and overrides values from local `.env` files.

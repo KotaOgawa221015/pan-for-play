@@ -6,6 +6,9 @@ services:
     ports:
       - "${PANCOLLE_BIND_IP:-127.0.0.1}:${PANCOLLE_PORT:-3000}:3000"
     environment:
+      AUTH_GOOGLE_ID: ${AUTH_GOOGLE_ID:-}
+      AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET:-}
+      AUTH_SECRET: ${AUTH_SECRET:-}
       DATABASE_URL: ${DATABASE_URL:-file:./data/prod.db}
     volumes:
       - .:/app
