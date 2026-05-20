@@ -1,9 +1,18 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { UserRole } from '@prisma/client';
+import { z } from 'zod';
 import { adminAction } from '@/features/account/session-user';
 import { prisma } from '@/lib/prisma';
-import { UserRole } from '@prisma/client';
+
+const createTargetUserIdSchema = (currentAdminId: string) =>
+  z
+    .string()
+    .min(1, 'ユーザーIDが不正です。')
+    .refine((id) => id !== currentAdminId, {
+      message: '自分自身の権限は変更できません。',
+    });
 
 export async function listEligibleUsers() {
   return prisma.user.findMany({
@@ -22,16 +31,12 @@ export async function listEligibleUsers() {
 
 export const promoteToAdmin = adminAction(
   async (currentAdmin, userId: string) => {
-    if (!userId) {
-      throw new Error('ユーザーIDが不正です。');
-    }
-
-    if (currentAdmin.id === userId) {
-      throw new Error('自分自身の権限は変更できません。');
-    }
+    const targetUserId = createTargetUserIdSchema(currentAdmin.id).parse(
+      userId,
+    );
 
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: targetUserId },
       data: {
         role: UserRole.ADMIN,
       },
@@ -46,13 +51,9 @@ export const promoteToAdmin = adminAction(
 
 export const demoteFromAdmin = adminAction(
   async (currentAdmin, userId: string) => {
-    if (!userId) {
-      throw new Error('ユーザーIDが不正です。');
-    }
-
-    if (currentAdmin.id === userId) {
-      throw new Error('自分自身の権限は変更できません。');
-    }
+    const targetUserId = createTargetUserIdSchema(currentAdmin.id).parse(
+      userId,
+    );
 
     const adminCount = await prisma.user.count({
       where: {
@@ -68,7 +69,7 @@ export const demoteFromAdmin = adminAction(
     }
 
     await prisma.user.update({
-      where: { id: userId },
+      where: { id: targetUserId },
       data: {
         role: UserRole.MEMBER,
       },
