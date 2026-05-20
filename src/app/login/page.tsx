@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
-import { LoginPageClient } from './LoginPageClient';
 import { FlashMessage } from '@/app/_components/FlashMessage';
+import { getAuthEnv } from '@/lib/environment';
+import { LoginPageClient } from './LoginPageClient';
 
 export const metadata: Metadata = {
   title: 'ログイン | パンコレ',
@@ -13,11 +14,12 @@ export default async function LoginPage({
   searchParams: Promise<{ msg?: string }>;
 }) {
   const { msg } = await searchParams;
+  const authEnv = getAuthEnv();
 
   return (
     <>
       <FlashMessage msg={msg} />
-      <LoginPageClient />
+      <LoginPageClient showGoogleSignIn={authEnv.googleProvider.isEnabled} />
     </>
   );
 }

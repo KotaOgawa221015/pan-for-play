@@ -1,6 +1,15 @@
 import { z } from 'zod';
 
 type RawEnv = Record<string, string | undefined>;
+type GoogleAuthConfiguration =
+  | {
+      isEnabled: false;
+    }
+  | {
+      isEnabled: true;
+      clientId: string;
+      clientSecret: string;
+    };
 
 const requiredString = (name: string) =>
   z.preprocess(
@@ -8,13 +17,11 @@ const requiredString = (name: string) =>
     z.string().min(1, { message: `${name} is required.` }),
   );
 
-const optionalString = (name: string) =>
+const optionalString = () =>
   z.preprocess(
-    (value) => (typeof value === 'string' ? value : undefined),
-    z
-      .string()
-      .min(1, { message: `${name} must not be empty.` })
-      .optional(),
+    (value) =>
+      typeof value === 'string' && value.length > 0 ? value : undefined,
+    z.string().optional(),
   );
 
 function parseEnv<T extends z.ZodTypeAny>(schema: T, raw: RawEnv) {
@@ -34,13 +41,13 @@ const databaseEnvSchema = z.object({
 
 const prismaEnvSchema = z.object({
   DATABASE_URL: requiredString('DATABASE_URL'),
-  TURSO_AUTH_TOKEN: optionalString('TURSO_AUTH_TOKEN'),
+  TURSO_AUTH_TOKEN: optionalString(),
 });
 
 const authEnvSchema = z.object({
-  AUTH_SECRET: optionalString('AUTH_SECRET'),
-  AUTH_GOOGLE_ID: requiredString('AUTH_GOOGLE_ID'),
-  AUTH_GOOGLE_SECRET: requiredString('AUTH_GOOGLE_SECRET'),
+  AUTH_SECRET: optionalString(),
+  AUTH_GOOGLE_ID: optionalString(),
+  AUTH_GOOGLE_SECRET: optionalString(),
   NODE_ENV: z.string().optional(),
 });
 
@@ -53,7 +60,7 @@ const tursoRecreateEnvSchema = z.object({
   DATABASE_URL: requiredString('DATABASE_URL'),
   TURSO_DATABASE_NAME: requiredString('TURSO_DATABASE_NAME'),
   TURSO_AUTH_TOKEN_EXPIRATION: requiredString('TURSO_AUTH_TOKEN_EXPIRATION'),
-  TURSO_DATABASE_GROUP: optionalString('TURSO_DATABASE_GROUP'),
+  TURSO_DATABASE_GROUP: optionalString(),
 });
 
 const systemTestPortSchema = z.coerce.number().int().positive();
@@ -68,6 +75,39 @@ export function getPrismaEnv(raw: RawEnv = process.env) {
   return {
     databaseUrl: parsed.DATABASE_URL,
     tursoAuthToken: parsed.TURSO_AUTH_TOKEN,
+  };
+}
+
+function resolveGoogleAuthConfiguration(
+  raw: z.infer<typeof authEnvSchema>,
+  nodeEnv: string | undefined,
+): GoogleAuthConfiguration {
+  const clientId = raw.AUTH_GOOGLE_ID;
+  const clientSecret = raw.AUTH_GOOGLE_SECRET;
+  const hasGoogleId = clientId !== undefined;
+  const hasGoogleSecret = clientSecret !== undefined;
+
+  if (hasGoogleId !== hasGoogleSecret) {
+    throw new Error(
+      'AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set together.',
+    );
+  }
+
+  if (!hasGoogleId || !hasGoogleSecret) {
+    if (nodeEnv === 'development') {
+      console.warn(
+        'AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET are not set. Google sign-in is disabled.',
+      );
+      return { isEnabled: false };
+    }
+
+    throw new Error('AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET are required.');
+  }
+
+  return {
+    isEnabled: true,
+    clientId,
+    clientSecret,
   };
 }
 
@@ -86,10 +126,11 @@ export function getAuthEnv(raw: RawEnv = process.env) {
     console.warn('AUTH_SECRET is not set. Using development-only-secret.');
   }
 
+  const googleProvider = resolveGoogleAuthConfiguration(parsed, nodeEnv);
+
   return {
     authSecret,
-    authGoogleId: parsed.AUTH_GOOGLE_ID,
-    authGoogleSecret: parsed.AUTH_GOOGLE_SECRET,
+    googleProvider,
     nodeEnv,
   };
 }

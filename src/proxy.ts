@@ -1,8 +1,8 @@
 import NextAuth from 'next-auth';
-import Google from 'next-auth/providers/google';
 import {
   addSessionClaimsToToken,
   authorizeRouteAccess,
+  createGoogleSignInProviders,
   exposeSessionClaims,
 } from '@/features/account/auth';
 import { getAuthEnv } from '@/lib/environment';
@@ -12,12 +12,7 @@ const authEnv = getAuthEnv();
 export default NextAuth({
   secret: authEnv.authSecret,
   trustHost: true,
-  providers: [
-    Google({
-      clientId: authEnv.authGoogleId,
-      clientSecret: authEnv.authGoogleSecret,
-    }),
-  ],
+  providers: createGoogleSignInProviders(authEnv),
   session: { strategy: 'jwt' },
   pages: {
     signIn: '/login',

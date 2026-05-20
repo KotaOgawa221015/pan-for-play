@@ -6,8 +6,8 @@ import NextAuth from 'next-auth';
 import type { Provider } from 'next-auth/providers';
 import Credentials from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
-import { prisma } from '@/lib/prisma';
 import { getAuthEnv } from '@/lib/environment';
+import { prisma } from '@/lib/prisma';
 
 type AuthCallbacks = NonNullable<NextAuthConfig['callbacks']>;
 
@@ -15,6 +15,23 @@ type DevelopmentSignInDependencies = {
   findDevelopmentAdmin: () => Promise<User | null>;
   findDevelopmentUser: () => Promise<User | null>;
 };
+
+type AuthEnvironment = ReturnType<typeof getAuthEnv>;
+
+export function createGoogleSignInProviders(
+  authEnv: AuthEnvironment,
+): Provider[] {
+  if (!authEnv.googleProvider.isEnabled) {
+    return [];
+  }
+
+  return [
+    Google({
+      clientId: authEnv.googleProvider.clientId,
+      clientSecret: authEnv.googleProvider.clientSecret,
+    }),
+  ];
+}
 
 export function createDevelopmentSignInProviders(
   nodeEnv: string | undefined,
@@ -133,10 +150,7 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   secret: authEnv.authSecret,
   trustHost: true,
   providers: [
-    Google({
-      clientId: authEnv.authGoogleId,
-      clientSecret: authEnv.authGoogleSecret,
-    }),
+    ...createGoogleSignInProviders(authEnv),
     ...createDevelopmentSignInProviders(authEnv.nodeEnv, {
       findDevelopmentAdmin: () =>
         prisma.user.findFirst({
