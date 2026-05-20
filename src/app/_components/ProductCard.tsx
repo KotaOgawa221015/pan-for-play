@@ -73,7 +73,13 @@ export function ProductCard({ product }: Props) {
   };
 
   return (
-    <div className="flex flex-col h-full p-4 bg-white rounded-2xl border border-zinc-200 shadow-sm dark:bg-zinc-900 dark:border-zinc-800">
+    <div
+      className={`flex flex-col h-full p-4 rounded-2xl border shadow-sm transition-all duration-300 ${
+        optimisticStatus === 'SOLD_OUT'
+          ? 'bg-zinc-100 border-zinc-200 opacity-60 grayscale dark:bg-zinc-900/50 dark:border-zinc-800'
+          : 'bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800'
+      }`}
+    >
       <div className="flex items-center justify-center gap-2.5 h-10 mb-1.5 overflow-hidden px-1">
         <Image
           src={iconSrc}
@@ -97,9 +103,7 @@ export function ProductCard({ product }: Props) {
         >
           {STATUS_LABELS[optimisticStatus]}
         </span>
-        <span className="rounded-full bg-zinc-100 dark:bg-zinc-800 px-3 py-0.5 text-[11px] font-bold tracking-wider text-zinc-600 dark:text-zinc-300">
-          {product.count} 個
-        </span>
+
         {changedLabel && product.lastStatusChangedByName ? (
           <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
             状態変更 {product.lastStatusChangedByName}・{changedLabel}
