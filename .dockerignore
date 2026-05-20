@@ -12,6 +12,7 @@
 # Application Source Code and Static Files
 !src/
 !public/
+!docs/legal/
 
 # Next.js / TypeScript / Style Configuration
 !next.config.ts

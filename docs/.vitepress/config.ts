@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
-// withMermaid でラップして defineConfig を呼び出します
 export default withMermaid(
   defineConfig({
     base: '/pancolle/',
@@ -44,8 +43,14 @@ export default withMermaid(
             },
           ],
         },
+        {
+          text: '法的表記',
+          items: [
+            { text: '利用規約', link: '/legal/terms' },
+            { text: 'プライバシーポリシー', link: '/legal/privacy' },
+          ],
+        },
       ],
-      // 検索機能を有効化する場合
       search: {
         provider: 'local',
       },
