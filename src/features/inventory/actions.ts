@@ -15,7 +15,6 @@ async function updateProductStatusInternal(
   const changedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
-    /* eslint-disable react-doctor/async-parallel */
     const currentPublication = await tx.inventoryPublication.findFirst({
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       include: {
@@ -34,7 +33,6 @@ async function updateProductStatusInternal(
         },
       },
     });
-    /* eslint-enable react-doctor/async-parallel */
 
     const latestStatusChange = await tx.inventoryStatusChange.findFirst({
       where: {
