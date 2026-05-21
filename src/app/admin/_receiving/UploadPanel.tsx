@@ -7,59 +7,46 @@ type Props = {
   isReading: boolean;
   message: string | null;
   isError: boolean;
-  hasDraft: boolean;
-  draftFileName?: string;
   onRead: (formData: FormData) => Promise<void>;
-  onOpenDraft: () => void;
-  onDeleteDraft: () => void;
 };
 
-export function UploadPanel({
-  isReading,
-  message,
-  isError,
-  hasDraft,
-  draftFileName,
-  onRead,
-  onOpenDraft,
-  onDeleteDraft,
-}: Props) {
+export function UploadPanel({ isReading, message, isError, onRead }: Props) {
   const [fileName, setFileName] = useState('');
-  const examples = [
+
+  const goodExamples = [
     {
       src: '/receiving-examples/sample1.png',
-      alt: '読み取りに適した納品書画像の例 1',
+      alt: '良い例 1',
       width: 676,
       height: 334,
+      desc: '全体がまっすぐ写っている',
     },
     {
       src: '/receiving-examples/sample2.png',
-      alt: '読み取りに適した納品書画像の例 2',
+      alt: '良い例 2',
       width: 914,
       height: 446,
-    },
-    {
-      src: '/receiving-examples/sample6.png',
-      alt: '読み取りに適した納品書画像の例 3',
-      width: 2657,
-      height: 1293,
+      desc: '文字と数量が鮮明',
     },
   ];
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) {
-      setFileName('');
-      return;
-    }
+  const badExamples = [
+    {
+      src: '',
+      alt: '悪い例（ブレ・傾き）',
+      desc: '文字がブレている・斜めに傾いている',
+    },
+    {
+      src: '',
+      alt: '悪い例（見切れ）',
+      desc: '商品名や数量の端が見切れている',
+    },
+  ];
 
-    setFileName(file.name.trim());
-
-    const formData = new FormData();
-    formData.append('file', file);
-    await onRead(formData);
-
-    event.target.value = '';
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!fileName) return;
+    await onRead(new FormData(event.currentTarget));
   }
 
   return (
@@ -74,63 +61,103 @@ export function UploadPanel({
         </p>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-        <div className="space-y-3">
-          <p className="text-xs text-zinc-500">
-            納品書全体が写り、文字と数量がまっすぐ見える画像を使ってください。
-          </p>
-          <div className="grid gap-3 md:grid-cols-3">
-            {examples.map((example) => (
-              <figure
-                key={example.src}
-                className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950"
-              >
-                <Image
-                  src={example.src}
-                  alt={example.alt}
-                  width={example.width}
-                  height={example.height}
-                  className="h-28 w-full bg-white object-contain"
-                />
-              </figure>
-            ))}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4 border-b border-zinc-100 dark:border-zinc-800 pb-6">
+          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+            撮影のポイント
+          </h3>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-xs">
+                  ⭕
+                </span>
+                読み取り可能な例 (OK)
+              </div>
+              <div className="grid gap-2 grid-cols-2">
+                {goodExamples.map((example, idx) => (
+                  <div key={example.src || idx} className="space-y-1">
+                    <figure className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+                      <Image
+                        src={example.src}
+                        alt={example.alt}
+                        width={example.width}
+                        height={example.height}
+                        className="h-24 w-full bg-white object-contain"
+                        unoptimized
+                      />
+                    </figure>
+                    <p className="text-[10px] text-zinc-500 text-center">
+                      {example.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-xs">
+                  ❌
+                </span>
+                エラーになりやすい例 (NG)
+              </div>
+              <div className="grid gap-2 grid-cols-2">
+                {badExamples.map((example, idx) => (
+                  <div key={example.alt || idx} className="space-y-1">
+                    <figure className="overflow-hidden rounded-xl border border-dashed border-zinc-300 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-950 h-24 flex items-center justify-center p-2 text-center">
+                      {example.src ? (
+                        <Image
+                          src={example.src}
+                          alt={example.alt}
+                          width={200}
+                          height={100}
+                          className="h-full w-full bg-white object-contain"
+                          unoptimized
+                        />
+                      ) : (
+                        <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">
+                          {example.alt}
+                        </span>
+                      )}
+                    </figure>
+                    <p className="text-[10px] text-zinc-500 text-center">
+                      {example.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        <label className="group block border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-6 text-center cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-950/20 transition-colors">
+        <label className="block border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
+          <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+            撮影した納品書の画像を選択してください
+          </span>
+          <span className="block text-xs text-zinc-400 dark:text-zinc-500 mb-4">
+            対応形式: PNGのみ | 最大サイズ: 5MBまで
+          </span>
           <input
             id="file"
             name="file"
             type="file"
             accept="image/png"
-            required={!hasDraft}
+            required
             disabled={isReading}
-            onChange={handleFileChange}
-            className="sr-only"
+            onChange={(event) =>
+              setFileName(event.target.files?.[0]?.name.trim() ?? '')
+            }
+            className="block w-full text-sm text-zinc-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-full file:border-0
+              file:text-sm file:font-semibold
+              file:bg-zinc-900 file:text-white
+              hover:file:bg-zinc-800
+              dark:file:bg-zinc-100 dark:file:text-zinc-900
+              disabled:opacity-50 cursor-pointer mx-auto max-w-xs"
           />
-          <div className="space-y-3">
-            <div className="text-2xl">📄</div>
-            {fileName ? (
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                選択中:{' '}
-                <span className="underline font-semibold">{fileName}</span>
-              </p>
-            ) : hasDraft ? (
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                保持中:{' '}
-                <span className="underline font-semibold">{draftFileName}</span>
-              </p>
-            ) : (
-              <p className="inline-block text-sm font-medium text-zinc-600 dark:text-zinc-300 group-hover:underline group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
-                撮影した納品書の画像を選択
-              </p>
-            )}
-            {(fileName || hasDraft) && (
-              <p className="text-[11px] text-zinc-400">
-                ※クリックすると別のファイルを選び直せます
-              </p>
-            )}
-          </div>
         </label>
 
         {message ? (
@@ -145,28 +172,13 @@ export function UploadPanel({
           </p>
         ) : null}
 
-        {isReading ? (
-          <div className="w-full py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-xl font-bold text-center animate-pulse">
-            読み取り中...
-          </div>
-        ) : hasDraft && !fileName ? (
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onDeleteDraft}
-              className="w-1/2 py-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl font-bold hover:bg-rose-100 transition dark:bg-rose-950/30 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-900/50"
-            >
-              画像を削除
-            </button>
-            <button
-              type="button"
-              onClick={onOpenDraft}
-              className="w-1/2 py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/20"
-            >
-              読み取り結果を開く
-            </button>
-          </div>
-        ) : null}
+        <button
+          type="submit"
+          disabled={isReading || !fileName}
+          className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:bg-zinc-400 transition shadow-lg shadow-emerald-500/20"
+        >
+          {isReading ? '読み取り中...' : 'アップロードして読み込む'}
+        </button>
       </form>
     </section>
   );
