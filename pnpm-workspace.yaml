@@ -4,6 +4,9 @@
 packages:
   - 'docs'
 
+catalog:
+  tsx: ^4.21.1
+
 allowBuilds:
   '@prisma/engines': true
   better-sqlite3: true

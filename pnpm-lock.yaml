@@ -4,6 +4,12 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    tsx:
+      specifier: ^4.21.1
+      version: 4.22.0
+
 importers:
 
   .:
@@ -79,7 +85,7 @@ importers:
         specifier: ^4
         version: 4.3.0
       tsx:
-        specifier: ^4.21.1
+        specifier: 'catalog:'
         version: 4.22.0
       typescript:
         specifier: ^5
@@ -97,7 +103,7 @@ importers:
         specifier: ^3.2.4
         version: 3.2.4
       tsx:
-        specifier: ^4.21.1
+        specifier: 'catalog:'
         version: 4.22.0
       vitepress:
         specifier: ^1.6.4
