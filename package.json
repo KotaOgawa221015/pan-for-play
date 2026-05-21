@@ -30,7 +30,8 @@
     "db:reset": "prisma migrate reset",
     "docs:dev": "cd docs && pnpm dev",
     "docs:build": "cd docs && pnpm build",
-    "docs:preview": "cd docs && pnpm preview"
+    "docs:preview": "cd docs && pnpm preview",
+    "prepare": "husky"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
@@ -56,10 +57,15 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitest/coverage-v8": "^4.1.5",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.1",
     "typescript": "^5",
     "vitest": "^4.1.5"
+  },
+  "lint-staged": {
+    "*": ["biome check --write --no-errors-on-unmatched"]
   }
 }

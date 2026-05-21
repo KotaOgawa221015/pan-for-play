@@ -1,10 +1,10 @@
-import { ProductCard } from '@/app/_components/ProductCard';
-import { getInventoryProducts } from '@/features/inventory/product-inventory';
-import { getCurrentInventoryPublicationSummary } from '@/features/inventory/publication-summary';
-import { UserMenu } from '@/app/_components/UserMenu';
 import type { Metadata } from 'next';
 import { FlashMessage } from '@/app/_components/FlashMessage';
 import { InventoryPublicationPanel } from '@/app/_components/InventoryPublicationPanel';
+import { ProductCard } from '@/app/_components/ProductCard';
+import { UserMenu } from '@/app/_components/UserMenu';
+import { getInventoryProducts } from '@/features/inventory/product-inventory';
+import { getCurrentInventoryPublicationSummary } from '@/features/inventory/publication-summary';
 
 export const dynamic = 'force-dynamic';
 
