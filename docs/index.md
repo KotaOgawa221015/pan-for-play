@@ -1,5 +1,4 @@
 ---
-# https://vitepress.dev/reference/default-theme-home-page
 layout: home
 
 hero:
@@ -8,13 +7,12 @@ hero:
   tagline: "冷凍庫のパンとスープの在庫を管理するアプリの仕様書"
   actions:
     - theme: brand
-      text: アーキテクチャ
-      link: /architecture/structure
+      text: ガイドを読む
+      link: /architecture/
     - theme: alt
-      text: データモデル
-      link: /architecture/data_model
+      text: 設定解説を見る
+      link: /config/
     - theme: alt
-      text: 設定
-      link: /config/biome
+      text: 法的表記を確認
+      link: /legal/
 ---
-

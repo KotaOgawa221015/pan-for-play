@@ -28,6 +28,7 @@
     "db:seed": "prisma db seed",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
+    "docs:generate": "tsx scripts/generate-docs-index.ts",
     "docs:dev": "cd docs && pnpm dev",
     "docs:build": "cd docs && pnpm build",
     "docs:preview": "cd docs && pnpm preview"

@@ -1,7 +1,53 @@
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
+
+function getPageTitle(filePath: string, fallback: string): string {
+  try {
+    const content = fs.readFileSync(filePath, 'utf8');
+    const match = content.match(/^#\s+(.+)$/m);
+    return match ? match[1].trim() : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function autoGenerateSidebar() {
+  const docsDir = path.resolve(__dirname, '..');
+  const categories = [
+    { dir: 'architecture', text: 'ガイド' },
+    { dir: 'config', text: '設定解説' },
+    { dir: 'legal', text: '法的表記' }
+  ];
+
+  return categories.map(({ dir, text }) => {
+    const items: { text: string; link: string }[] = [];
+    const dirPath = path.join(docsDir, dir);
+
+    if (fs.existsSync(dirPath)) {
+      const files = fs.readdirSync(dirPath);
+      files.forEach(file => {
+        if (file.endsWith('.md') && file !== 'index.md') {
+          const nameWithoutExt = path.basename(file, '.md');
+          const title = getPageTitle(path.join(dirPath, file), nameWithoutExt);
+          items.push({
+            text: title,
+            link: `/${dir}/${nameWithoutExt}`
+          });
+        }
+      });
+    }
+
+    return {
+      text,
+      link: `/${dir}/`,
+      items
+    };
+  });
+}
 
 export default withMermaid(
   defineConfig({
@@ -35,37 +81,9 @@ export default withMermaid(
         text: 'このページを編集する',
       },
       nav: [{ text: 'Home', link: '/' }],
-      sidebar: [
-        {
-          text: 'ガイド',
-          items: [
-            { text: 'アーキテクチャ', link: '/architecture/structure' },
-            { text: 'テスト構造', link: '/architecture/testing' },
-            {
-              text: 'デプロイレポート',
-              link: '/architecture/vercel_deploy_report',
-            },
-            { text: 'データモデル', link: '/architecture/data_model' },
-          ],
-        },
-        {
-          text: '設定解説',
-          items: [
-            { text: 'Biomeの設定', link: '/config/biome' },
-            {
-              text: 'pnpmワークスペースの設定',
-              link: '/config/pnpm_workspace',
-            },
-          ],
-        },
-        {
-          text: '法的表記',
-          items: [
-            { text: '利用規約', link: '/legal/terms' },
-            { text: 'プライバシーポリシー', link: '/legal/privacy' },
-          ],
-        },
-      ],
+
+      sidebar: autoGenerateSidebar(),
+
       search: {
         provider: 'local',
       },
