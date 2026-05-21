@@ -1,7 +1,6 @@
 import { ProductCard } from '@/app/_components/ProductCard';
 import { getInventoryProducts } from '@/features/inventory/product-inventory';
 import { getCurrentInventoryPublicationSummary } from '@/features/inventory/publication-summary';
-import Link from 'next/link';
 import { UserMenu } from '@/app/_components/UserMenu';
 import type { Metadata } from 'next';
 import { FlashMessage } from '@/app/_components/FlashMessage';
@@ -47,13 +46,6 @@ export default async function Page({
 
         <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-4">
           <UserMenu />
-
-          <Link
-            href="/admin"
-            className="bg-white text-xs font-medium px-3 py-2 border border-zinc-200 dark:border-zinc-700 rounded-md text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 hover:border-zinc-900 hover:text-zinc-900 dark:hover:bg-zinc-800 transition-colors whitespace-nowrap shadow-sm"
-          >
-            管理者用
-          </Link>
         </div>
       </header>
 
