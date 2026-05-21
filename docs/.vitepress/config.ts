@@ -3,7 +3,7 @@ import { withMermaid } from 'vitepress-plugin-mermaid';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const isGitHubActions = process.env.GITHUB_ACTIONS === 'true';
+const siteBase = process.env.GITHUB_ACTIONS === 'true' ? '/pancolle/' : '/';
 
 function getPageTitle(filePath: string, fallback: string): string {
   try {
@@ -51,7 +51,7 @@ function autoGenerateSidebar() {
 
 export default withMermaid(
   defineConfig({
-    base: isGitHubActions ? '/pancolle/' : '/',
+    base: siteBase,
     title: 'Pancolle Docs',
     description: 'パンコレの開発ドキュメント',
 

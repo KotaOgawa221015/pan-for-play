@@ -9,7 +9,9 @@ type DocsPlaywrightConfigOptions = {
   serverMode: VitepressServerMode;
 };
 
-const docsBasePath = process.env.GITHUB_ACTIONS === 'true' ? '/pancolle/' : '/';
+const usesGithubPagesBase = process.env.GITHUB_ACTIONS === 'true';
+const docsSiteBase = usesGithubPagesBase ? '/pancolle/' : '/';
+const docsBrowserBasePath = usesGithubPagesBase ? '/pancolle' : '';
 const docsDirectoryPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -23,8 +25,8 @@ export function createVitepressPlaywrightConfig({
   const docsBaseUrl = `http://127.0.0.1:${port}`;
   const command =
     serverMode === 'dev'
-      ? `pnpm predev && pnpm exec vitepress dev . --host 127.0.0.1 --port ${port}`
-      : `pnpm exec vitepress preview . --host 127.0.0.1 --port ${port}`;
+      ? `pnpm predev && pnpm exec vitepress dev . --host 127.0.0.1 --port ${port} --base ${docsSiteBase}`
+      : `pnpm exec vitepress preview . --host 127.0.0.1 --port ${port} --base ${docsSiteBase}`;
   return {
     testDir: '.',
     fullyParallel: true,
@@ -43,7 +45,7 @@ export function createVitepressPlaywrightConfig({
     webServer: {
       command,
       cwd: docsDirectoryPath,
-      url: `${docsBaseUrl}${docsBasePath}`,
+      url: `${docsBaseUrl}${docsBrowserBasePath}/`,
       reuseExistingServer: false,
       timeout: 120_000,
       stdout: 'pipe',
