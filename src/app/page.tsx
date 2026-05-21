@@ -44,14 +44,7 @@ export default async function Page({
           </div>
         </div>
 
-        <div
-          className="absolute ri
-        
-        
-        
-        
-        ght-6 top-1/2 -translate-y-1/2 flex items-center gap-4"
-        >
+        <div className="abs. olute right-6 top-1/2 -translate-y-1/2 flex items-center gap-4">
           <UserMenu />
         </div>
       </header>
