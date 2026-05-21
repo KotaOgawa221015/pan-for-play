@@ -21,6 +21,10 @@ export function createVitepressPlaywrightConfig({
   serverMode,
 }: DocsPlaywrightConfigOptions): PlaywrightTestConfig {
   const docsBaseUrl = `http://127.0.0.1:${port}`;
+  const command =
+    serverMode === 'dev'
+      ? `pnpm dev -- --host 127.0.0.1 --port ${port}`
+      : `pnpm exec vitepress preview . --host 127.0.0.1 --port ${port}`;
   return {
     testDir: '.',
     fullyParallel: true,
@@ -37,7 +41,7 @@ export function createVitepressPlaywrightConfig({
       },
     ],
     webServer: {
-      command: `pnpm exec vitepress ${serverMode} . --host 127.0.0.1 --port ${port}`,
+      command,
       cwd: docsDirectoryPath,
       url: `${docsBaseUrl}${docsBasePath}`,
       reuseExistingServer: false,
