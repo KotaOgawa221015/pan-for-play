@@ -13,6 +13,14 @@ on:
 jobs:
   verify-docs-rendering:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - name: Preview
+            script: test:rendered:preview
+          - name: Dev Server
+            script: test:rendered:dev
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,10 +34,6 @@ jobs:
         working-directory: docs
         run: pnpm exec playwright install --with-deps chromium
 
-      - name: Verify Rendered Docs (Preview)
+      - name: Verify Rendered Docs (${{ matrix.suite.name }})
         working-directory: docs
-        run: pnpm test:rendered:preview
-
-      - name: Verify Rendered Docs (Dev Server)
-        working-directory: docs
-        run: pnpm test:rendered:dev
+        run: pnpm ${{ matrix.suite.script }}

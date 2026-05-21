@@ -8,8 +8,8 @@
     "prebuild": "tsx .vitepress/scripts/generate-docs-index.ts",
     "build": "vitepress build .",
     "preview": "vitepress preview .",
-    "test:rendered:preview": "GITHUB_ACTIONS=true pnpm build && GITHUB_ACTIONS=true playwright test --config .vitepress/tests/vitepress-preview.config.ts",
-    "test:rendered:dev": "GITHUB_ACTIONS=true playwright test --config .vitepress/tests/vitepress-dev.config.ts",
+    "test:rendered:preview": "GITHUB_ACTIONS=true pnpm build && GITHUB_ACTIONS=true playwright test --config .vitepress/tests/playwright.preview.config.ts",
+    "test:rendered:dev": "GITHUB_ACTIONS=true playwright test --config .vitepress/tests/playwright.dev.config.ts",
     "test:rendered": "pnpm test:rendered:preview && pnpm test:rendered:dev"
   },
   "devDependencies": {
