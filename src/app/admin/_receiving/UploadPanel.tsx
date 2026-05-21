@@ -5,61 +5,65 @@ import { useState } from 'react';
 
 type Props = {
   isReading: boolean;
-  message: string | null;
-  isError: boolean;
   hasDraft: boolean;
   draftFileName?: string;
-  onRead: (formData: FormData) => Promise<void>;
   onOpenDraft: () => void;
   onDeleteDraft: () => void;
+  message: string | null;
+  isError: boolean;
+  onRead: (formData: FormData) => Promise<void>;
 };
 
 export function UploadPanel({
   isReading,
-  message,
-  isError,
   hasDraft,
   draftFileName,
-  onRead,
   onOpenDraft,
   onDeleteDraft,
+  message,
+  isError,
+  onRead,
 }: Props) {
   const [fileName, setFileName] = useState('');
-  const examples = [
+  const [expandedImage, setExpandedImage] = useState<{
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+  } | null>(null);
+
+  const goodExamples = [
     {
-      src: '/receiving-examples/sample1.png',
-      alt: '読み取りに適した納品書画像の例 1',
-      width: 676,
-      height: 334,
-    },
-    {
-      src: '/receiving-examples/sample2.png',
-      alt: '読み取りに適した納品書画像の例 2',
+      src: '/receiving-examples/delivery_slip_correct.png',
+      alt: '正しい例',
       width: 914,
       height: 446,
-    },
-    {
-      src: '/receiving-examples/sample6.png',
-      alt: '読み取りに適した納品書画像の例 3',
-      width: 2657,
-      height: 1293,
+      desc: '全体がまっすぐ写っている',
     },
   ];
 
-  async function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    if (!file) {
-      setFileName('');
-      return;
-    }
+  const badExamples = [
+    {
+      src: '/receiving-examples/delivery_slip_blurred.png',
+      alt: '誤り例（ブレ）',
+      desc: '文字がブレていて判読しづらい',
+    },
+    {
+      src: '/receiving-examples/delivery_slip_tilted.png',
+      alt: '誤り例（傾き）',
+      desc: '用紙が傾いている',
+    },
+    {
+      src: '/receiving-examples/delivery_slip_excessive .png',
+      alt: '誤り例（近すぎ）',
+      desc: '商品名や個数、合計、空白の行が含まれている',
+    },
+  ];
 
-    setFileName(file.name.trim());
-
-    const formData = new FormData();
-    formData.append('file', file);
-    await onRead(formData);
-
-    event.target.value = '';
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!fileName) return;
+    await onRead(new FormData(event.currentTarget));
   }
 
   return (
@@ -74,63 +78,131 @@ export function UploadPanel({
         </p>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-        <div className="space-y-3">
-          <p className="text-xs text-zinc-500">
-            納品書全体が写り、文字と数量がまっすぐ見える画像を使ってください。
-          </p>
-          <div className="grid gap-3 md:grid-cols-3">
-            {examples.map((example) => (
-              <figure
-                key={example.src}
-                className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950"
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {hasDraft ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <p>未反映の下書きがあります: {draftFileName ?? '納品書'}</p>
+            <div className="mt-2 flex gap-2">
+              <button
+                type="button"
+                onClick={onOpenDraft}
+                className="rounded-md bg-amber-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-700"
               >
-                <Image
-                  src={example.src}
-                  alt={example.alt}
-                  width={example.width}
-                  height={example.height}
-                  className="h-28 w-full bg-white object-contain"
-                />
-              </figure>
-            ))}
+                下書きを再開
+              </button>
+              <button
+                type="button"
+                onClick={onDeleteDraft}
+                className="rounded-md border border-amber-300 bg-white px-3 py-1.5 text-xs font-semibold text-amber-800 hover:bg-amber-100"
+              >
+                下書きを破棄
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="space-y-4 border-b border-zinc-100 dark:border-zinc-800 pb-6">
+          <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+            撮影のポイント
+          </h3>
+
+          <div className="grid gap-6 md:grid-cols-4">
+            <div className="space-y-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="text-xs leading-none">⭕</span>
+                読み取り可能な例 (OK)
+              </div>
+              <div className="grid gap-2 grid-cols-1">
+                {goodExamples.map((example, idx) => (
+                  <div key={example.src || idx} className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedImage(example)}
+                      className="block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950"
+                    >
+                      <Image
+                        src={example.src}
+                        alt={example.alt}
+                        width={example.width}
+                        height={example.height}
+                        loading="eager"
+                        className="h-24 w-full bg-white object-contain"
+                        unoptimized
+                      />
+                    </button>
+                    <p className="text-[11px] text-zinc-500 text-center">
+                      {example.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-3 md:col-span-3">
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
+                <span className="text-xs leading-none">❌</span>
+                エラーになりやすい例 (NG)
+              </div>
+              <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+                {badExamples.map((example, idx) => (
+                  <div key={example.alt || idx} className="space-y-1">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedImage({
+                          src: example.src,
+                          alt: example.alt,
+                          width: 914,
+                          height: 446,
+                        })
+                      }
+                      className="block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950"
+                    >
+                      <Image
+                        src={example.src}
+                        alt={example.alt}
+                        width={914}
+                        height={446}
+                        className="h-24 w-full bg-white object-contain"
+                        unoptimized
+                      />
+                    </button>
+                    <p className="text-[11px] text-zinc-500 text-center">
+                      {example.desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        <label className="group block border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-6 text-center cursor-pointer hover:bg-zinc-50/50 dark:hover:bg-zinc-950/20 transition-colors">
+        <label className="block border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
+          <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+            撮影した納品書の画像を選択してください
+          </span>
+          <span className="block text-xs text-zinc-400 dark:text-zinc-500 mb-4">
+            対応形式: PNGのみ | 最大サイズ: 5MBまで
+          </span>
           <input
             id="file"
             name="file"
             type="file"
             accept="image/png"
-            required={!hasDraft}
+            required
             disabled={isReading}
-            onChange={handleFileChange}
-            className="sr-only"
+            onChange={(event) =>
+              setFileName(event.target.files?.[0]?.name.trim() ?? '')
+            }
+            className="block w-full text-sm text-zinc-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-full file:border-0
+              file:text-sm file:font-semibold
+              file:bg-zinc-900 file:text-white
+              hover:file:bg-zinc-800
+              dark:file:bg-zinc-100 dark:file:text-zinc-900
+              disabled:opacity-50 cursor-pointer mx-auto max-w-xs"
           />
-          <div className="space-y-3">
-            <div className="text-2xl">📄</div>
-            {fileName ? (
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                選択中:{' '}
-                <span className="underline font-semibold">{fileName}</span>
-              </p>
-            ) : hasDraft ? (
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-100">
-                保持中:{' '}
-                <span className="underline font-semibold">{draftFileName}</span>
-              </p>
-            ) : (
-              <p className="inline-block text-sm font-medium text-zinc-600 dark:text-zinc-300 group-hover:underline group-hover:text-zinc-900 dark:group-hover:text-zinc-100 transition-colors">
-                撮影した納品書の画像を選択
-              </p>
-            )}
-            {(fileName || hasDraft) && (
-              <p className="text-[11px] text-zinc-400">
-                ※クリックすると別のファイルを選び直せます
-              </p>
-            )}
-          </div>
         </label>
 
         {message ? (
@@ -145,29 +217,52 @@ export function UploadPanel({
           </p>
         ) : null}
 
-        {isReading ? (
-          <div className="w-full py-4 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400 rounded-xl font-bold text-center animate-pulse">
-            読み取り中...
-          </div>
-        ) : hasDraft && !fileName ? (
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onDeleteDraft}
-              className="w-1/2 py-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl font-bold hover:bg-rose-100 transition dark:bg-rose-950/30 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-900/50"
-            >
-              画像を削除
-            </button>
-            <button
-              type="button"
-              onClick={onOpenDraft}
-              className="w-1/2 py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/20"
-            >
-              読み取り結果を開く
-            </button>
-          </div>
-        ) : null}
+        <button
+          type="submit"
+          disabled={isReading || !fileName}
+          className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:bg-zinc-400 transition shadow-lg shadow-emerald-500/20"
+        >
+          {isReading ? '読み取り中...' : 'アップロードして読み込む'}
+        </button>
       </form>
+
+      {expandedImage ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="拡大画像"
+          tabIndex={-1}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setExpandedImage(null);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              setExpandedImage(null);
+            }
+          }}
+        >
+          <div className="relative w-full max-w-5xl">
+            <button
+              type="button"
+              onClick={() => setExpandedImage(null)}
+              className="absolute right-2 top-2 z-10 rounded-md bg-black/60 px-3 py-1 text-sm font-semibold text-white hover:bg-black/75"
+            >
+              閉じる
+            </button>
+            <Image
+              src={expandedImage.src}
+              alt={expandedImage.alt}
+              width={expandedImage.width}
+              height={expandedImage.height}
+              className="max-h-[85vh] w-full rounded-xl bg-white object-contain"
+              unoptimized
+            />
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
