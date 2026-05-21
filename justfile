@@ -1,5 +1,5 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
-set dotenv-load := true
+set dotenv-load
 
 APP_NAME := env("COMPOSE_PROJECT_NAME", "pancolle")
 
@@ -36,15 +36,12 @@ setup *args:
 
 # Apply formatter and safe lint fixes
 fix:
-    pnpm format
-    pnpm lint:fix
+    pnpm fix
     mise exec -- just --fmt --unstable
 
 # Run formatting checks, lint, and typecheck
 check:
-    pnpm format:check
-    pnpm lint
-    pnpm typecheck
+    pnpm check
     mise exec -- just --fmt --check --unstable
 
 # ==============================================================================
@@ -144,7 +141,6 @@ system-test:
 
 # Generate coverage report
 coverage:
-    rm -rf coverage
     pnpm test:coverage
 
 # ==============================================================================
