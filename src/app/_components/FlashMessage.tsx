@@ -53,7 +53,6 @@ export function FlashMessage({ msg }: { msg?: string }) {
       router.replace(window.location.pathname, { scroll: false });
     }, 2900);
 
-
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(removeTimer);

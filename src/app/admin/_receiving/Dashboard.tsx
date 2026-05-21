@@ -122,7 +122,6 @@ export function Dashboard({ recentHistory }: Props) {
       dispatch({ type: 'APPLY_SUCCESS' });
 
       router.replace('/admin?msg=apply_success', { scroll: false });
-
     } catch (error) {
       dispatch({
         type: 'APPLY_ERROR',

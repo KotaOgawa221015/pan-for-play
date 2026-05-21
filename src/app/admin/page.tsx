@@ -24,7 +24,6 @@ export default async function UploadPage({
 
   return (
     <>
-
       <FlashMessage msg={msg} />
 
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-6">
