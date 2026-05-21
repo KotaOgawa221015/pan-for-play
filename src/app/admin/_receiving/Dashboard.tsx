@@ -17,6 +17,7 @@ import { UploadPanel } from './UploadPanel';
 
 type State = {
   draft: ReviewDraft | null;
+  isModalOpen: boolean;
   notice: string | null;
   errorMessage: string | null;
   isReading: boolean;
@@ -35,14 +36,21 @@ type Action =
   | { type: 'START_BATCH_ACTION'; batchId: string }
   | { type: 'BATCH_ACTION_FINISH' }
   | { type: 'BATCH_ACTION_ERROR'; error: string }
-  | { type: 'CLOSE_DRAFT' };
+  | { type: 'CLOSE_DRAFT' }
+  | { type: 'OPEN_DRAFT' };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'START_READING':
       return { ...state, isReading: true, notice: null, errorMessage: null };
     case 'READ_SUCCESS':
-      return { ...state, isReading: false, draft: action.draft };
+      return {
+        ...state,
+        isReading: false,
+        draft: action.draft,
+        isModalOpen: true,
+        uploadKey: state.uploadKey + 1,
+      };
     case 'READ_ERROR':
       return { ...state, isReading: false, errorMessage: action.error };
     case 'START_APPLYING':
@@ -52,6 +60,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         isApplying: false,
         draft: null,
+        isModalOpen: false,
         notice: null,
         uploadKey: state.uploadKey + 1,
       };
@@ -69,7 +78,15 @@ function reducer(state: State, action: Action): State {
     case 'BATCH_ACTION_ERROR':
       return { ...state, busyBatchId: null, errorMessage: action.error };
     case 'CLOSE_DRAFT':
-      return { ...state, draft: null, uploadKey: state.uploadKey + 1 };
+      return {
+        ...state,
+        isModalOpen: false,
+      };
+    case 'OPEN_DRAFT':
+      return {
+        ...state,
+        isModalOpen: true,
+      };
     default:
       return state;
   }
@@ -83,6 +100,7 @@ export function Dashboard({ recentHistory }: Props) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, {
     draft: null,
+    isModalOpen: false,
     notice: null,
     errorMessage: null,
     isReading: false,
@@ -93,6 +111,7 @@ export function Dashboard({ recentHistory }: Props) {
 
   const {
     draft,
+    isModalOpen,
     notice,
     errorMessage,
     isReading,
@@ -130,7 +149,6 @@ export function Dashboard({ recentHistory }: Props) {
     try {
       await applyReceivingReview(input);
       dispatch({ type: 'APPLY_SUCCESS' });
-
       router.replace('/admin?msg=apply_success', { scroll: false });
     } catch (error) {
       dispatch({
@@ -172,7 +190,10 @@ export function Dashboard({ recentHistory }: Props) {
       <UploadPanel
         key={uploadKey}
         isReading={isReading}
+        hasDraft={draft !== null}
+        draftFileName={draft?.originalFileName}
         onRead={handleRead}
+        onOpenDraft={() => dispatch({ type: 'OPEN_DRAFT' })}
         message={errorMessage ?? notice}
         isError={Boolean(errorMessage)}
       />
@@ -188,19 +209,20 @@ export function Dashboard({ recentHistory }: Props) {
         }
       />
 
-      <ReviewModal
-        key={draft?.batchId ?? 'draft-closed'}
-        draft={draft}
-        isApplying={isApplying}
-        onApply={handleApply}
-        onClose={() => {
-          if (isApplying) {
-            return;
-          }
-
-          dispatch({ type: 'CLOSE_DRAFT' });
-        }}
-      />
+      {isModalOpen && (
+        <ReviewModal
+          key={draft?.batchId ?? 'draft-closed'}
+          draft={draft}
+          isApplying={isApplying}
+          onApply={handleApply}
+          onClose={() => {
+            if (isApplying) {
+              return;
+            }
+            dispatch({ type: 'CLOSE_DRAFT' });
+          }}
+        />
+      )}
     </div>
   );
 }
