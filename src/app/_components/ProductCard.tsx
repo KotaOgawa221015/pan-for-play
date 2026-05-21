@@ -6,10 +6,10 @@ import { useOptimistic, useTransition } from 'react';
 import { updateProductStatus } from '@/features/inventory/actions';
 import {
   PRODUCT_STATUSES,
-  STATUS_LABELS,
-  STATUS_STYLES,
   type Product,
   type ProductStatus,
+  STATUS_LABELS,
+  STATUS_STYLES,
 } from '@/types/inventory';
 
 type Props = {
@@ -112,7 +112,11 @@ export function ProductCard({ product }: Props) {
           <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
             更新中...
           </span>
-        ) : null}
+        ) : (
+          <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
+            納品書反映・{formatRelativeTime(product.lastPublishedAt)}
+          </span>
+        )}
       </div>
 
       <div className="mt-4 flex gap-2">
