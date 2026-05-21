@@ -1,0 +1,39 @@
+name: Verify Docs Rendering
+
+on:
+  pull_request:
+    branches: ["main"]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/verify-docs-rendering.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+
+jobs:
+  verify-docs-rendering:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        suite:
+          - name: Preview
+            script: test:rendered:preview
+          - name: Dev Server
+            script: test:rendered:dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Development Environment
+        uses: ./.github/actions/setup
+        with:
+          args: '--frozen-lockfile --filter docs --ignore-scripts'
+
+      - name: Install Playwright Browser
+        working-directory: docs
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Verify Rendered Docs (${{ matrix.suite.name }})
+        working-directory: docs
+        run: pnpm ${{ matrix.suite.script }}
