@@ -23,7 +23,7 @@ export function createVitepressPlaywrightConfig({
   const docsBaseUrl = `http://127.0.0.1:${port}`;
   const command =
     serverMode === 'dev'
-      ? `pnpm dev -- --host 127.0.0.1 --port ${port}`
+      ? `pnpm predev && pnpm exec vitepress dev . --host 127.0.0.1 --port ${port}`
       : `pnpm exec vitepress preview . --host 127.0.0.1 --port ${port}`;
   return {
     testDir: '.',

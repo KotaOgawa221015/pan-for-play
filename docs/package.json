@@ -9,7 +9,7 @@
     "build": "vitepress build .",
     "preview": "vitepress preview .",
     "test:rendered:preview": "GITHUB_ACTIONS=true pnpm build && GITHUB_ACTIONS=true playwright test --config .vitepress/tests/playwright.preview.config.ts",
-    "test:rendered:dev": "GITHUB_ACTIONS=true playwright test --config .vitepress/tests/playwright.dev.config.ts",
+    "test:rendered:dev": "playwright test --config .vitepress/tests/playwright.dev.config.ts",
     "test:rendered": "pnpm test:rendered:preview && pnpm test:rendered:dev"
   },
   "devDependencies": {
