@@ -29,7 +29,7 @@ type Action =
   | { type: 'READ_SUCCESS'; draft: ReviewDraft }
   | { type: 'READ_ERROR'; error: string }
   | { type: 'START_APPLYING' }
-  | { type: 'APPLY_SUCCESS'; notice: string }
+  | { type: 'APPLY_SUCCESS' }
   | { type: 'APPLY_ERROR'; error: string }
   | { type: 'START_BATCH_ACTION'; batchId: string }
   | { type: 'BATCH_ACTION_FINISH' }
@@ -51,7 +51,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         isApplying: false,
         draft: null,
-        notice: action.notice,
+        notice: null,
       };
     case 'APPLY_ERROR':
       return { ...state, isApplying: false, errorMessage: action.error };
@@ -78,7 +78,7 @@ type Props = {
 };
 
 export function Dashboard({ recentHistory }: Props) {
-  const { refresh } = useRouter();
+  const router = useRouter();
   const [state, dispatch] = useReducer(reducer, {
     draft: null,
     notice: null,
@@ -92,7 +92,7 @@ export function Dashboard({ recentHistory }: Props) {
     state;
 
   const refreshPage = () => {
-    refresh();
+    router.refresh();
   };
 
   const handleRead = async (formData: FormData) => {
@@ -119,10 +119,10 @@ export function Dashboard({ recentHistory }: Props) {
 
     try {
       await applyReceivingReview(input);
-      dispatch({
-        type: 'APPLY_SUCCESS',
-        notice: '納品書の内容を現在在庫として公開しました。',
-      });
+      dispatch({ type: 'APPLY_SUCCESS' });
+
+      router.replace('/admin?msg=apply_success', { scroll: false });
+
     } catch (error) {
       dispatch({
         type: 'APPLY_ERROR',
