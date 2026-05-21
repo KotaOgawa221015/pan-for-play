@@ -45,7 +45,7 @@ export function UploadPanel({
     {
       src: '/receiving-examples/delivery_slip_tilted.png',
       alt: '誤り例（傾き）',
-      desc: '用紙が傾いていて行の認識が不安定になる',
+      desc: '用紙が傾いている',
     },
     {
       src: '/receiving-examples/delivery_slip_excessive .png',
@@ -120,7 +120,7 @@ export function UploadPanel({
                         unoptimized
                       />
                     </figure>
-                    <p className="text-[14px] text-zinc-500 text-center">
+                    <p className="text-[11px] text-zinc-500 text-center">
                       {example.desc}
                     </p>
                   </div>
@@ -146,7 +146,7 @@ export function UploadPanel({
                         unoptimized
                       />
                     </figure>
-                    <p className="text-[14px] text-zinc-500 text-center">
+                    <p className="text-[11px] text-zinc-500 text-center">
                       {example.desc}
                     </p>
                   </div>
