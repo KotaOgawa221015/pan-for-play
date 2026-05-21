@@ -32,7 +32,7 @@ jobs:
 
       - name: Install Playwright Browser
         working-directory: docs
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install --with-deps
 
       - name: Verify Rendered Docs (${{ matrix.suite.name }})
         working-directory: docs
