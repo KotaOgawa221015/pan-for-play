@@ -1,6 +1,7 @@
 'use client';
 
 import { useReducer, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 type MessagePhase = 'idle' | 'visible' | 'exiting';
 
@@ -24,11 +25,13 @@ function flashMessageReducer(state: State, action: Action): State {
 }
 
 export function FlashMessage({ msg }: { msg?: string }) {
+  const router = useRouter();
   const validMessages = [
     'login_success',
     'signup_success',
     'logout_success',
     'session_invalid',
+    'apply_success',
   ];
   const isTriggered = Boolean(msg && validMessages.includes(msg));
 
@@ -47,18 +50,14 @@ export function FlashMessage({ msg }: { msg?: string }) {
     }, 2400);
 
     const removeTimer = setTimeout(() => {
-      window.history.replaceState(
-        window.history.state,
-        '',
-        window.location.pathname,
-      );
+      router.replace(window.location.pathname, { scroll: false });
     }, 2900);
 
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(removeTimer);
     };
-  }, [isTriggered]);
+  }, [isTriggered, router]);
 
   if (state.phase === 'idle' || !msg) return null;
 
@@ -73,6 +72,7 @@ export function FlashMessage({ msg }: { msg?: string }) {
     signup_success: 'アカウントを作成しました',
     logout_success: 'ログアウトしました',
     session_invalid: 'セッションが無効です。再ログインしてください。',
+    apply_success: '納品書が適用されました',
   };
 
   return (
