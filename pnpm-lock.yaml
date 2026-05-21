@@ -102,6 +102,9 @@ importers:
       '@playwright/test':
         specifier: 'catalog:'
         version: 1.60.0
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       mermaid:
         specifier: ^11.15.0
         version: 11.15.0

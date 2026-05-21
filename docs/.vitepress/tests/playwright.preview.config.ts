@@ -1,5 +1,6 @@
 import { defineConfig } from '@playwright/test';
 import { createVitepressPlaywrightConfig } from './create-vitepress-playwright-config';
+import './load-dotenv';
 
 const docsTestPort = Number(process.env.DOCS_TEST_PREVIEW_PORT ?? 4173);
 

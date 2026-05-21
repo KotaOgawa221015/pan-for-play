@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@playwright/test": "catalog:",
+    "dotenv": "^17.4.2",
     "mermaid": "^11.15.0",
     "nunjucks": "^3.2.4",
     "tsx": "catalog:",
