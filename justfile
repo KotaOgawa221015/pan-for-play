@@ -1,5 +1,5 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
-set dotenv-load
+set dotenv-load := true
 
 APP_NAME := env("COMPOSE_PROJECT_NAME", "pancolle")
 
