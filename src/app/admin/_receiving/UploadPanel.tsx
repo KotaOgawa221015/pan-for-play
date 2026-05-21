@@ -156,14 +156,14 @@ export function UploadPanel({
               onClick={onDeleteDraft}
               className="w-1/2 py-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl font-bold hover:bg-rose-100 transition dark:bg-rose-950/30 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-900/50"
             >
-              保持中の画像を削除
+              画像を削除
             </button>
             <button
               type="button"
               onClick={onOpenDraft}
               className="w-1/2 py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/20"
             >
-              開く
+              画像を開く
             </button>
           </div>
         ) : null}
