@@ -20,7 +20,7 @@ function autoGenerateSidebar() {
   const categories = [
     { dir: 'architecture', text: 'ガイド' },
     { dir: 'config', text: '設定解説' },
-    { dir: 'legal', text: '法的表記' }
+    { dir: 'legal', text: '法的表記' },
   ];
 
   return categories.map(({ dir, text }) => {
@@ -29,13 +29,13 @@ function autoGenerateSidebar() {
 
     if (fs.existsSync(dirPath)) {
       const files = fs.readdirSync(dirPath);
-      files.forEach(file => {
+      files.forEach((file) => {
         if (file.endsWith('.md') && file !== 'index.md') {
           const nameWithoutExt = path.basename(file, '.md');
           const title = getPageTitle(path.join(dirPath, file), nameWithoutExt);
           items.push({
             text: title,
-            link: `/${dir}/${nameWithoutExt}`
+            link: `/${dir}/${nameWithoutExt}`,
           });
         }
       });
@@ -44,7 +44,7 @@ function autoGenerateSidebar() {
     return {
       text,
       link: `/${dir}/`,
-      items
+      items,
     };
   });
 }
