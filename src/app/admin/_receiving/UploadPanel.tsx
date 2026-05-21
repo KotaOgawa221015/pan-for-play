@@ -11,6 +11,7 @@ type Props = {
   draftFileName?: string;
   onRead: (formData: FormData) => Promise<void>;
   onOpenDraft: () => void;
+  onDeleteDraft: () => void;
 };
 
 export function UploadPanel({
@@ -21,6 +22,7 @@ export function UploadPanel({
   draftFileName,
   onRead,
   onOpenDraft,
+  onDeleteDraft,
 }: Props) {
   const [fileName, setFileName] = useState('');
   const examples = [
@@ -53,12 +55,10 @@ export function UploadPanel({
 
     setFileName(file.name.trim());
 
-    // ファイルが選択されたら自動的に送信処理を開始
     const formData = new FormData();
     formData.append('file', file);
     await onRead(formData);
 
-    // 同じファイルを連続して選択しても発火するように入力値をリセット
     event.target.value = '';
   }
 
@@ -150,13 +150,22 @@ export function UploadPanel({
             読み取り中...
           </div>
         ) : hasDraft && !fileName ? (
-          <button
-            type="button"
-            onClick={onOpenDraft}
-            className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/20"
-          >
-            開く
-          </button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={onDeleteDraft}
+              className="w-1/2 py-4 bg-rose-50 border border-rose-200 text-rose-600 rounded-xl font-bold hover:bg-rose-100 transition dark:bg-rose-950/30 dark:border-rose-900/50 dark:text-rose-400 dark:hover:bg-rose-900/50"
+            >
+              保持中の画像を削除
+            </button>
+            <button
+              type="button"
+              onClick={onOpenDraft}
+              className="w-1/2 py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/20"
+            >
+              開く
+            </button>
+          </div>
         ) : null}
       </form>
     </section>

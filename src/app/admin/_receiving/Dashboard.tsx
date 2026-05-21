@@ -37,7 +37,8 @@ type Action =
   | { type: 'BATCH_ACTION_FINISH' }
   | { type: 'BATCH_ACTION_ERROR'; error: string }
   | { type: 'CLOSE_DRAFT' }
-  | { type: 'OPEN_DRAFT' };
+  | { type: 'OPEN_DRAFT' }
+  | { type: 'DISCARD_DRAFT' };
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
@@ -86,6 +87,13 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         isModalOpen: true,
+      };
+    case 'DISCARD_DRAFT':
+      return {
+        ...state,
+        draft: null,
+        isModalOpen: false,
+        uploadKey: state.uploadKey + 1,
       };
     default:
       return state;
@@ -194,6 +202,7 @@ export function Dashboard({ recentHistory }: Props) {
         draftFileName={draft?.originalFileName}
         onRead={handleRead}
         onOpenDraft={() => dispatch({ type: 'OPEN_DRAFT' })}
+        onDeleteDraft={() => dispatch({ type: 'DISCARD_DRAFT' })}
         message={errorMessage ?? notice}
         isError={Boolean(errorMessage)}
       />
