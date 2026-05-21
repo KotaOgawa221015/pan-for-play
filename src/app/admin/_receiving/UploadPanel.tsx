@@ -163,7 +163,7 @@ export function UploadPanel({
               onClick={onOpenDraft}
               className="w-1/2 py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition shadow-lg shadow-emerald-500/20"
             >
-              画像を開く
+              読み取り結果を開く
             </button>
           </div>
         ) : null}
