@@ -49,6 +49,8 @@ export default async function Page({
         </div>
       </header>
 
+      {/* これはテスト用の有効なコメント行です（行頭をわざとズラす） */}
+
       <main className="max-w-6xl mx-auto p-4 space-y-10">
         <section>
           {products.length === 0 ? (
