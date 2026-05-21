@@ -25,6 +25,12 @@ export function UploadPanel({
   onRead,
 }: Props) {
   const [fileName, setFileName] = useState('');
+  const [expandedImage, setExpandedImage] = useState<{
+    src: string;
+    alt: string;
+    width: number;
+    height: number;
+  } | null>(null);
 
   const goodExamples = [
     {
@@ -109,7 +115,11 @@ export function UploadPanel({
               <div className="grid gap-2 grid-cols-1">
                 {goodExamples.map((example, idx) => (
                   <div key={example.src || idx} className="space-y-1">
-                    <figure className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedImage(example)}
+                      className="block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950"
+                    >
                       <Image
                         src={example.src}
                         alt={example.alt}
@@ -119,7 +129,7 @@ export function UploadPanel({
                         className="h-24 w-full bg-white object-contain"
                         unoptimized
                       />
-                    </figure>
+                    </button>
                     <p className="text-[11px] text-zinc-500 text-center">
                       {example.desc}
                     </p>
@@ -136,7 +146,18 @@ export function UploadPanel({
               <div className="grid gap-2 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
                 {badExamples.map((example, idx) => (
                   <div key={example.alt || idx} className="space-y-1">
-                    <figure className="overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setExpandedImage({
+                          src: example.src,
+                          alt: example.alt,
+                          width: 914,
+                          height: 446,
+                        })
+                      }
+                      className="block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950"
+                    >
                       <Image
                         src={example.src}
                         alt={example.alt}
@@ -145,7 +166,7 @@ export function UploadPanel({
                         className="h-24 w-full bg-white object-contain"
                         unoptimized
                       />
-                    </figure>
+                    </button>
                     <p className="text-[11px] text-zinc-500 text-center">
                       {example.desc}
                     </p>
@@ -204,6 +225,44 @@ export function UploadPanel({
           {isReading ? '読み取り中...' : 'アップロードして読み込む'}
         </button>
       </form>
+
+      {expandedImage ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="拡大画像"
+          tabIndex={-1}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setExpandedImage(null);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+              setExpandedImage(null);
+            }
+          }}
+        >
+          <div className="relative w-full max-w-5xl">
+            <button
+              type="button"
+              onClick={() => setExpandedImage(null)}
+              className="absolute right-2 top-2 z-10 rounded-md bg-black/60 px-3 py-1 text-sm font-semibold text-white hover:bg-black/75"
+            >
+              閉じる
+            </button>
+            <Image
+              src={expandedImage.src}
+              alt={expandedImage.alt}
+              width={expandedImage.width}
+              height={expandedImage.height}
+              className="max-h-[85vh] w-full rounded-xl bg-white object-contain"
+              unoptimized
+            />
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }
