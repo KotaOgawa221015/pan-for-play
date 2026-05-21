@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const docsDir = path.resolve(process.cwd(), 'docs');
+const docsDir = process.cwd();
 
 const categories = [
   {
@@ -58,6 +58,10 @@ function generate() {
     const indexContent = [
       '---',
       'outline: deep',
+      'editLink: false',
+      'lastUpdated: false',
+      'prev: false',
+      'next: false',
       '---',
       `# ${title}`,
       '',

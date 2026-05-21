@@ -1,6 +1,15 @@
+---
+outline: deep
+editLink: false
+lastUpdated: false
+prev: false
+next: false
+---
 # 設定解説一覧
 
-プロジェクトの各種設定ファイルの解説です。
+プロジェクトの各種設定（Biomeやpnpm等）の解説ドキュメントの一覧です。
 
-- [Biomeの設定](./biome.md)
-- [pnpmワークスペースの設定](./pnpm_workspace.md)
+## ドキュメント一覧
+
+- [Biome 設定解説](./biome.md)
+- [pnpm-workspace.yaml 設定メモ](./pnpm_workspace.md)

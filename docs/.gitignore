@@ -1,0 +1,4 @@
+# VitePress
+dist/
+cache/
+/*/index.md
