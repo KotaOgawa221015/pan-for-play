@@ -17,7 +17,9 @@ export function LoginPageClient({
 }: LoginPageClientProps) {
   const showDemoLogin = process.env.NODE_ENV === 'development';
   const [googleLoginError, setGoogleLoginError] = useState<string | null>(null);
+  const [devLoginError, setDevLoginError] = useState<string | null>(null);
   const [isGoogleSignInPending, startGoogleSignInTransition] = useTransition();
+  const [isDevLoginPending, startDevLoginTransition] = useTransition();
 
   const description = 'Googleアカウントでログインしてください';
 
@@ -38,6 +40,23 @@ export function LoginPageClient({
         setGoogleLoginError(
           'Googleログインに失敗しました。しばらくしてから再試行してください。',
         );
+      }
+    });
+  };
+
+  const handleDevLogin = (
+    action: () => Promise<{ error?: string } | undefined>,
+  ) => {
+    setDevLoginError(null);
+
+    startDevLoginTransition(async () => {
+      try {
+        const result = await action();
+        if (result?.error) {
+          setDevLoginError(result.error);
+        }
+      } catch {
+        setDevLoginError('予期せぬエラーが発生しました。');
       }
     });
   };
@@ -91,18 +110,31 @@ export function LoginPageClient({
               </span>
             </div>
 
+            {devLoginError && (
+              <div className="mb-4 p-3 border border-rose-200 bg-rose-50 dark:border-rose-900/50 dark:bg-rose-950/20 rounded-xl text-left">
+                <p
+                  role="alert"
+                  className="text-xs text-rose-600 dark:text-rose-400 font-mono leading-relaxed whitespace-pre-wrap"
+                >
+                  {devLoginError}
+                </p>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => loginAsUserAction()}
-                className="py-3 px-2 bg-zinc-50 border border-zinc-200 text-zinc-600 rounded-xl text-[11px] font-bold hover:bg-zinc-100 hover:text-zinc-900 transition shadow-sm dark:bg-zinc-800/50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                onClick={() => handleDevLogin(loginAsUserAction)}
+                disabled={isDevLoginPending}
+                className="py-3 px-2 bg-zinc-50 border border-zinc-200 text-zinc-600 rounded-xl text-[11px] font-bold hover:bg-zinc-100 hover:text-zinc-900 transition shadow-sm dark:bg-zinc-800/50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 disabled:opacity-50"
               >
                 一般ユーザー
               </button>
               <button
                 type="button"
-                onClick={() => loginAsAdminAction()}
-                className="py-3 px-2 bg-zinc-50 border border-zinc-200 text-zinc-600 rounded-xl text-[11px] font-bold hover:bg-zinc-100 hover:text-zinc-900 transition shadow-sm dark:bg-zinc-800/50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                onClick={() => handleDevLogin(loginAsAdminAction)}
+                disabled={isDevLoginPending}
+                className="py-3 px-2 bg-zinc-50 border border-zinc-200 text-zinc-600 rounded-xl text-[11px] font-bold hover:bg-zinc-100 hover:text-zinc-900 transition shadow-sm dark:bg-zinc-800/50 dark:border-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 disabled:opacity-50"
               >
                 管理者 (Bypass)
               </button>
