@@ -22,6 +22,7 @@ type State = {
   isReading: boolean;
   isApplying: boolean;
   busyBatchId: string | null;
+  uploadKey: number;
 };
 
 type Action =
@@ -52,6 +53,7 @@ function reducer(state: State, action: Action): State {
         isApplying: false,
         draft: null,
         notice: null,
+        uploadKey: state.uploadKey + 1,
       };
     case 'APPLY_ERROR':
       return { ...state, isApplying: false, errorMessage: action.error };
@@ -67,7 +69,7 @@ function reducer(state: State, action: Action): State {
     case 'BATCH_ACTION_ERROR':
       return { ...state, busyBatchId: null, errorMessage: action.error };
     case 'CLOSE_DRAFT':
-      return { ...state, draft: null };
+      return { ...state, draft: null, uploadKey: state.uploadKey + 1 };
     default:
       return state;
   }
@@ -86,10 +88,18 @@ export function Dashboard({ recentHistory }: Props) {
     isReading: false,
     isApplying: false,
     busyBatchId: null,
+    uploadKey: 0,
   });
 
-  const { draft, notice, errorMessage, isReading, isApplying, busyBatchId } =
-    state;
+  const {
+    draft,
+    notice,
+    errorMessage,
+    isReading,
+    isApplying,
+    busyBatchId,
+    uploadKey,
+  } = state;
 
   const refreshPage = () => {
     router.refresh();
@@ -160,6 +170,7 @@ export function Dashboard({ recentHistory }: Props) {
   return (
     <div className="space-y-6">
       <UploadPanel
+        key={uploadKey}
         isReading={isReading}
         onRead={handleRead}
         message={errorMessage ?? notice}
