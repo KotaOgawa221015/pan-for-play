@@ -55,18 +55,6 @@ export default withMermaid(
     title: 'Pancolle Docs',
     description: 'パンコレの開発ドキュメント',
 
-    vite: {
-      optimizeDeps: {
-        include: ['dayjs', '@braintree/sanitize-url'],
-      },
-      resolve: {
-        alias: {
-          dayjs: 'dayjs',
-          '@braintree/sanitize-url': '@braintree/sanitize-url',
-        },
-      },
-    },
-
     themeConfig: {
       lastUpdated: {
         text: '最終更新日',

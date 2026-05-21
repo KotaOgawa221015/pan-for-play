@@ -7,9 +7,13 @@
     "dev": "vitepress dev .",
     "prebuild": "tsx .vitepress/scripts/generate-docs-index.ts",
     "build": "vitepress build .",
-    "preview": "vitepress preview ."
+    "preview": "vitepress preview .",
+    "test:rendered:preview": "GITHUB_ACTIONS=true pnpm build && GITHUB_ACTIONS=true playwright test --config .vitepress/tests/vitepress-preview.config.ts",
+    "test:rendered:dev": "GITHUB_ACTIONS=true playwright test --config .vitepress/tests/vitepress-dev.config.ts",
+    "test:rendered": "pnpm test:rendered:preview && pnpm test:rendered:dev"
   },
   "devDependencies": {
+    "@playwright/test": "catalog:",
     "mermaid": "^11.15.0",
     "nunjucks": "^3.2.4",
     "tsx": "catalog:",

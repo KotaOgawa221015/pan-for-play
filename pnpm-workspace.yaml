@@ -5,6 +5,7 @@ packages:
   - 'docs'
 
 catalog:
+  '@playwright/test': ^1.60.0
   tsx: ^4.21.1
 
 allowBuilds:
