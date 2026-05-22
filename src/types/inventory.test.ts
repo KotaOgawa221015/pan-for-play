@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  isProductStatus,
   PRODUCT_STATUSES,
   STATUS_LABELS,
   STATUS_STYLES,
-  isProductStatus,
 } from './inventory';
 
 describe('inventory product statuses', () => {

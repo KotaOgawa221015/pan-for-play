@@ -1,21 +1,13 @@
 name: Setup Environment
-description: Install Node.js, setup mise for other tools, and install pnpm dependencies
+description: Install Node.js and repository setup
 
 inputs:
   node-version-file:
     description: Node.js version file path
     required: false
     default: .nvmrc
-  install-mise:
-    description: Install mise and tools
-    required: false
-    default: 'true'
-  mise-version:
-    description: mise version to install
-    required: false
-    default: '2026.4.27'
   args:
-    description: Arguments passed to `just setup`
+    description: Arguments passed to `pnpm run setup`
     required: false
     default: '--frozen-lockfile'
 runs:
@@ -30,13 +22,6 @@ runs:
       with:  
         node-version-file: ${{ inputs.node-version-file }}
 
-    - name: Setup mise
-      if: inputs.install-mise == 'true'
-      uses: jdx/mise-action@v4
-      with:
-        version: ${{ inputs.mise-version }}
-        install_args: --locked
-
-    - name: Run just setup
-      run: mise exec -- just setup ${{ inputs.args }}
+    - name: Install dependencies
+      run: pnpm run setup ${{ inputs.args }}
       shell: bash

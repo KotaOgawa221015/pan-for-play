@@ -1,5 +1,5 @@
 set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
-set dotenv-load := true
+set dotenv-load
 
 APP_NAME := env("COMPOSE_PROJECT_NAME", "pancolle")
 
@@ -9,47 +9,8 @@ default: help
 help:
     @echo "Usage: just [recipe]"
     @echo ""
-    @echo "Development tasks for pancolle:"
+    @echo "Docker tasks for pancolle:"
     @just --list | tail -n +2 | awk '{printf "  \033[36m%-20s\033[0m %s\n", $1, substr($0, index($0, $2))}'
-
-# Start development server
-dev:
-    pnpm dev
-
-# Build the application
-build:
-    pnpm build
-
-# Install dependencies and apply database migrations
-setup *args:
-    @if [ ! -f .env ]; then \
-        cp .env.example .env; \
-        echo "Created .env from .env.example"; \
-    fi
-    pnpm install {{ args }}
-    pnpm exec playwright install
-    pnpm exec tsx scripts/db.ts setup
-
-# ==============================================================================
-# Code Quality
-# ==============================================================================
-
-# Apply formatter and safe lint fixes
-fix:
-    pnpm format
-    pnpm lint:fix
-    mise exec -- just --fmt --unstable
-
-# Run formatting checks, lint, and typecheck
-check:
-    pnpm format:check
-    pnpm lint
-    pnpm typecheck
-    mise exec -- just --fmt --check --unstable
-
-# ==============================================================================
-# Docker Environment Commands
-# ==============================================================================
 
 # Start development stack
 up *args:
@@ -102,70 +63,3 @@ build-prod:
     @COMPOSE_PROJECT_NAME={{ APP_NAME }}-prod \
         PANCOLLE_BUILD_TARGET=prod \
         docker compose build --no-cache
-
-# ==============================================================================
-# Prisma / Database
-# ==============================================================================
-
-# Run Prisma migrate dev with optional arguments
-db-migrate *args:
-    pnpm exec tsx scripts/db.ts migrate {{ args }}
-
-db-seed:
-    pnpm exec tsx scripts/db.ts seed
-
-# Reset the database (caution: deletes all data)
-db-reset *args:
-    pnpm exec tsx scripts/db.ts reset {{ args }}
-
-# Open Prisma Studio to browse/edit data
-db-studio:
-    pnpm exec tsx scripts/db.ts studio
-
-# ==============================================================================
-# Testing
-# ==============================================================================
-
-# Run test suite
-test:
-    pnpm test
-
-# Run unit tests
-unit-test:
-    pnpm test:unit
-
-# Run integration tests
-integration-test:
-    pnpm test:integration
-
-# Run Playwright system tests
-system-test:
-    pnpm test:system
-
-# Generate coverage report
-coverage:
-    rm -rf coverage
-    pnpm test:coverage
-
-# ==============================================================================
-# Cleanup
-# ==============================================================================
-
-# Remove repository-local generated artifacts
-clean:
-    sudo rm -rf \
-        .next \
-        coverage \
-        node_modules
-
-# Start VitePress documentation dev server
-docs:
-    pnpm docs:dev
-
-# Build VitePress documentation
-docs-build:
-    pnpm docs:build
-
-# Preview VitePress documentation
-docs-preview:
-    pnpm docs:preview

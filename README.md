@@ -12,7 +12,7 @@ Pancolle is a simple inventory status board for frozen bread and soup. Each prod
 1. Install dependencies and apply database migrations.
 
 ```bash
-just setup
+pnpm run setup
 ```
 
 2. Start the development stack.
@@ -25,11 +25,12 @@ Open http://localhost:3000.
 
 ## Common commands
 
-- just setup
+- pnpm run setup
+- pnpm run fix
+- pnpm run check
+- pnpm run test
 - just up
-- just fix
-- just check
-- just test
+- just down
 
 ## Testing
 
@@ -43,13 +44,13 @@ such as Next.js runtime APIs or Prisma mocked explicitly.
 
 ## Prisma and database
 
-The `just db-*` recipes target local SQLite only.
+The local SQLite commands are:
 
-- just setup
-- just db-migrate
-- just db-seed
-- just db-reset
-- just db-studio
+- pnpm run setup
+- pnpm run db:migrate
+- pnpm run db:seed
+- pnpm run db:reset
+- pnpm exec tsx scripts/db.ts studio
 
 Turso schema changes are explicit scripts. `scripts/turso-migrate.ts` applies existing migration SQL to the configured Turso database. `scripts/turso-recreate.ts --force` destroys and recreates the Turso database, applies migrations, seeds data, and prints a fresh database token for runtime secrets. `DATABASE_URL`, `TURSO_DATABASE_NAME`, and `TURSO_AUTH_TOKEN_EXPIRATION` must be present in `.env`.
 
@@ -60,18 +61,18 @@ pnpm exec tsx scripts/turso-recreate.ts --force
 
 ## Docker
 
-Database initialization is explicit. Apply migrations with `just setup`, then start the development stack.
+Database initialization is explicit. Apply migrations with `pnpm run setup`, then start the development stack.
 
 ```bash
-just setup
+pnpm run setup
 just up
 ```
 
 When `.env` points at Turso, override `DATABASE_URL` to use local SQLite recipes.
 
 ```bash
-DATABASE_URL="file:./data/dev.db" just db-reset
-DATABASE_URL="file:./data/dev.db" just db-seed
+DATABASE_URL="file:./data/dev.db" pnpm run db:reset
+DATABASE_URL="file:./data/dev.db" pnpm run db:seed
 just up-prod
 ```
 
@@ -84,6 +85,6 @@ The same `DATABASE_URL` selects the database for Prisma commands and Docker Comp
 To run a separate local SQLite instance side-by-side, change the database path.
 
 ```bash
-DATABASE_URL="file:./data/staging.db" just setup
+DATABASE_URL="file:./data/staging.db" pnpm run setup
 COMPOSE_PROJECT_NAME=pancolle-staging DATABASE_URL="file:./data/staging.db" just up
 ```

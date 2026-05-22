@@ -1,5 +1,6 @@
 'use client';
 
+import type { ProductCategory } from '@prisma/client';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
 import {
@@ -7,7 +8,6 @@ import {
   PRODUCT_CATEGORIES,
   PRODUCT_CATEGORY_LABELS,
 } from '@/features/product-catalog/category';
-import type { ProductCategory } from '@prisma/client';
 import type {
   ReviewDraft,
   ReviewInput,

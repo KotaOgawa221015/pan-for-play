@@ -1,6 +1,6 @@
-import { config as loadEnv } from 'dotenv';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { config as loadEnv } from 'dotenv';
 
 const testDirectoryPath = path.dirname(fileURLToPath(import.meta.url));
 const docsDirectoryPath = path.resolve(testDirectoryPath, '..', '..');

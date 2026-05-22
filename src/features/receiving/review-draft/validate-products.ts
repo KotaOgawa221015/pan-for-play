@@ -1,6 +1,6 @@
+import { z } from 'zod';
 import { ProductCategorySchema } from '@/features/product-catalog/category';
 import { normalizeProductName } from '@/features/product-catalog/products';
-import { z } from 'zod';
 import type { ReviewInput } from '../types';
 
 const ReviewProductSchema = z.object({

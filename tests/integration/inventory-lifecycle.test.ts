@@ -1,9 +1,9 @@
-import { beforeAll, afterAll, describe, it, expect } from 'vitest';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, '..', '..');
