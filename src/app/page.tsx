@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { FlashMessage } from '@/app/_components/FlashMessage';
 import { InventoryPublicationPanel } from '@/app/_components/InventoryPublicationPanel';
-import { ProductCard } from '@/app/_components/ProductCard';
+// ProductCard の代わりに、新設したアニメーション対応の ProductList をインポートします
+import { ProductList } from '@/app/_components/ProductList';
 import { UserMenu } from '@/app/_components/UserMenu';
 import { getInventoryProducts } from '@/features/inventory/product-inventory';
 import { getCurrentInventoryPublicationSummary } from '@/features/inventory/publication-summary';
@@ -23,9 +24,6 @@ export default async function Page({
     getInventoryProducts(),
     getCurrentInventoryPublicationSummary(),
   ]);
-
-  const availableProducts = products.filter((p) => p.status !== 'SOLD_OUT');
-  const soldOutProducts = products.filter((p) => p.status === 'SOLD_OUT');
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
@@ -54,14 +52,8 @@ export default async function Page({
           {products.length === 0 ? (
             <p className="text-sm text-zinc-400">商品がありません</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {availableProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-              {soldOutProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+            /* 💡 修正ポイント: 不要な波括弧を取り除き、直接コンポーネントを配置します */
+            <ProductList products={products} />
           )}
         </section>
 
