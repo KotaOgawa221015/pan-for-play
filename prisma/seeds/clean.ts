@@ -11,5 +11,6 @@ export async function cleanDatabase(prisma: PrismaClient) {
     prisma.verificationToken.deleteMany(),
     prisma.product.deleteMany(),
     prisma.user.deleteMany(),
+    prisma.fridge.deleteMany(),
   ]);
 }

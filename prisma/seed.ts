@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
 import { PrismaClient } from '@prisma/client';
 import { cleanDatabase } from './seeds/clean.ts';
+import { seedFridgesData } from './seeds/fridges.ts';
 import { seedProductsData } from './seeds/products.ts';
 import { seedPublications } from './seeds/publications.ts';
 import { seedReceivingHistory } from './seeds/receiving.ts';
@@ -40,6 +41,7 @@ const prisma = createPrismaClient(databaseUrl);
 async function main() {
   await cleanDatabase(prisma);
 
+  const defaultFridge = await seedFridgesData(prisma);
   const adminUser = await seedUsersData(prisma);
   const productByName = await seedProductsData(prisma);
 
@@ -47,8 +49,9 @@ async function main() {
     prisma,
     adminUser,
     productByName,
+    defaultFridge,
   );
-  await seedPublications(prisma, adminUser, publications);
+  await seedPublications(prisma, adminUser, publications, defaultFridge);
 
   console.log('Seed data created successfully.');
 }
