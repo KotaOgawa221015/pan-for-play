@@ -3,7 +3,7 @@
 このドキュメントは、現行の在庫データモデルを説明する。
 
 このモデルの中心は、商品ごとの個別確認ではなく、レビュー済み納品書を現在在庫として公開することにある。
-また、複数の冷蔵庫ごとの在庫を管理し、ユーザーはその中からお気に入りの冷蔵庫を1つ選択して登録することができる。
+また、複数の冷蔵庫ごとの在庫を独立して管理し、ユーザーはその中からお気に入りの冷蔵庫を1つ選択して登録することができる。
 
 ## ER図
 
@@ -20,6 +20,7 @@ erDiagram
     USER ||--o{ SESSION : owns
 
     FRIDGE ||--o{ UPLOAD_BATCH : receives
+    FRIDGE ||--o{ INVENTORY_PUBLICATION : hosts
     FRIDGE ||--o{ INVENTORY_STATUS_CHANGE : tracking
     FRIDGE ||--o{ USER : favorited_by
 
@@ -36,6 +37,7 @@ erDiagram
         boolean isDefault
         datetime createdAt
         datetime updatedAt
+        datetime deletedAt "NULL"
     }
 
     PRODUCT {
@@ -113,6 +115,7 @@ erDiagram
 
     INVENTORY_PUBLICATION {
         string id PK
+        string fridgeId FK
         string uploadBatchId FK
         string publishedByUserId FK
         datetime publishedAt
@@ -135,6 +138,7 @@ erDiagram
 ## Fridge と お気に入り冷蔵庫
 
 `Fridge` は複数の冷蔵庫を管理するマスタテーブルである。`isDefault` フラグを用いて、デフォルトとして扱う冷蔵庫（例: 「16F」の冷蔵庫）を定義する。
+また、冷蔵庫の削除要件に対しては過去の履歴（納品書やステータス変更履歴）の参照整合性を保護するため、物理削除ではなく `deletedAt` を用いた **論理削除** を採用する。
 
 ユーザーは、システムに存在する `Fridge` の中から自身がよく確認する冷蔵庫を1つだけ「お気に入り」として選択・登録することができる。この情報は `USER` テーブルの `favoriteFridgeId` に保存される（未選択の場合は `NULL`）。
 
@@ -167,6 +171,7 @@ erDiagram
 `InventoryPublication` は、ある `UploadBatch` を対象の冷蔵庫のトップページ在庫へ反映した出来事を表す。
 
 対象の冷蔵庫トップページの商品集合と数量は、最新の `InventoryPublication` が参照する `UploadBatch` の行から導出する。
+クエリを最適化し、JOINなしで特定の冷蔵庫の最新公開を高速に引くために、直接 `fridgeId` を保持（非正規化）する。
 
 公開履歴は追記型である。過去バッチを再公開する場合も、既存レコードを書き換えず、新しい `InventoryPublication` を追加する。
 
@@ -200,10 +205,19 @@ erDiagram
 
 状態が変わっていない商品に対して、最新公開者を一律に最終変更者として表示しない。
 
+## パフォーマンス最適化（インデックス設計）
+
+すべてのデータアクセスが「特定の冷蔵庫（タブ）」の絞り込みを起点とするため、パフォーマンス劣化を防ぐための複合インデックスを以下の通り設計する。
+
+1. **`InventoryPublication`**: `[fridgeId, publishedAt DESC]` 
+   * 特定の冷蔵庫における最新の公開イベントを瞬時に特定するため。
+2. **`InventoryStatusChange`**: `[fridgeId, productId, changedAt DESC]`
+   * 特定の冷蔵庫における、ある商品の最新の手動・公開ステータス変更を高速に上書き適用するため。
+
 ## 設計上の判断
 
 `InventoryCheck` は現行モデルに存在しない。
 
 このアプリケーションでは、現在在庫を商品ごとの独立観測で積み上げるのではなく、特定の冷蔵庫に対するレビュー済み納品書の反映イベントと、冷蔵庫・商品別状態変更履歴で表現するためである。
 
-この判断により、現在在庫の真実源、公開者の追跡、再公開履歴、商品別状態変更ログの責務が明確に分離される。
+この論理構造と非正規化・インデックスの最適化により、現在在庫の真実源、公開者の追跡、再公開履歴、商品別状態変更ログの責務が明確かつ高速に分離される。
