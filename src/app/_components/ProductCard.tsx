@@ -168,13 +168,29 @@ export function ProductCard({ product }: Props) {
         <button
           type="button"
           onClick={handleCloseAlert}
-          className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm cursor-pointer rounded-xl border border-zinc-200 bg-white p-4 shadow-xl transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700/80"
+          className="group fixed top-6 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 cursor-pointer rounded-xl border border-zinc-200 bg-white p-4 shadow-xl transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700/80"
         >
-          <p className="text-center text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
+          <div className="absolute right-4 top-4 text-zinc-400 transition-colors group-hover:text-zinc-700 dark:group-hover:text-zinc-200">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </div>
+
+          <p className="pr-10 text-center text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
             <span className="font-bold">「{product.name}」</span>
-            を売り切れにしました。
-            <br />
-            一覧の下部に移動しました。
+            を売り切れにしました。一覧の下部に移動しました。
           </p>
         </button>
       )}
