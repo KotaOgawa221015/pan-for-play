@@ -43,6 +43,7 @@ describe('inventory server actions', () => {
 
   it('loads products from the latest inventory publication', async () => {
     inventoryPublicationFindFirst.mockResolvedValue({
+      publishedAt: new Date('2026-05-12T12:00:00.000Z'),
       uploadBatch: {
         lines: [
           {
@@ -78,6 +79,7 @@ describe('inventory server actions', () => {
         status: 'FEW_LEFT',
         lastStatusChangedAt: '2026-05-12T12:10:00.000Z',
         lastStatusChangedByName: 'admin',
+        lastPublishedAt: '2026-05-12T12:00:00.000Z',
       },
       {
         id: 'bread',
@@ -87,6 +89,7 @@ describe('inventory server actions', () => {
         status: 'PLENTIFUL',
         lastStatusChangedAt: '2026-05-12T12:00:00.000Z',
         lastStatusChangedByName: 'admin',
+        lastPublishedAt: '2026-05-12T12:00:00.000Z',
       },
     ]);
 
@@ -117,6 +120,7 @@ describe('inventory server actions', () => {
 
   it('prefers the latest manual status change over the publication-derived status', async () => {
     inventoryPublicationFindFirst.mockResolvedValue({
+      publishedAt: new Date('2026-05-12T12:00:00.000Z'),
       uploadBatch: {
         lines: [
           {
@@ -144,12 +148,14 @@ describe('inventory server actions', () => {
         status: 'SOLD_OUT',
         lastStatusChangedAt: '2026-05-12T12:30:00.000Z',
         lastStatusChangedByName: 'member',
+        lastPublishedAt: '2026-05-12T12:00:00.000Z',
       },
     ]);
   });
 
   it('hides zero-count lines and returns empty when no publication exists', async () => {
     inventoryPublicationFindFirst.mockResolvedValueOnce({
+      publishedAt: new Date('2026-05-12T12:00:00.000Z'),
       uploadBatch: {
         lines: [
           {

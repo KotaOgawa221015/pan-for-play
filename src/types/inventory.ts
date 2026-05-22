@@ -1,5 +1,5 @@
-import { InventoryStatus } from '@prisma/client';
 import type { ProductCategory as PrismaProductCategory } from '@prisma/client';
+import { InventoryStatus } from '@prisma/client';
 import { z } from 'zod';
 
 export type ProductStatus = InventoryStatus;
@@ -12,6 +12,7 @@ export type Product = {
   status: ProductStatus;
   lastStatusChangedAt: string | null;
   lastStatusChangedByName: string | null;
+  lastPublishedAt: string;
 };
 
 export type InventoryPublicationChange = {
