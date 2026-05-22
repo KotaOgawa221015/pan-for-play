@@ -165,36 +165,18 @@ export function ProductCard({ product }: Props) {
       </div>
 
       {showAlert && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-start gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-xl dark:border-zinc-700 dark:bg-zinc-800">
-          <p className="text-sm text-zinc-700 dark:text-zinc-200 leading-relaxed">
+        <button
+          type="button"
+          onClick={handleCloseAlert}
+          className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-sm cursor-pointer rounded-xl border border-zinc-200 bg-white p-4 shadow-xl transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700/80"
+        >
+          <p className="text-center text-sm leading-relaxed text-zinc-700 dark:text-zinc-200">
             <span className="font-bold">「{product.name}」</span>
             を売り切れにしました。
             <br />
             一覧の下部に移動しました。
           </p>
-          <button
-            type="button"
-            onClick={handleCloseAlert}
-            className="rounded-full p-1 text-zinc-400 hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-700 dark:hover:text-zinc-200 transition-colors"
-            aria-label="閉じる"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <title>閉じる</title>
-              <line x1="18" y1="6" x2="6" y2="18"></line>
-              <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-          </button>
-        </div>
+        </button>
       )}
     </>
   );
