@@ -157,14 +157,6 @@ async function applyReceivingReviewInternal(
         count: line.count,
       })),
     });
-    await tx.inventoryStatusChange.deleteMany({
-      where: {
-        fridgeId: batch.fridgeId,
-        createdAt: {
-          lt: publishedAt,
-        },
-      },
-    });
   });
 
   revalidatePath('/');

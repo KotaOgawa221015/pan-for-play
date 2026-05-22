@@ -178,14 +178,41 @@ export function UploadPanel({
 
         {message ? (
           <p
-            className={`rounded-xl px-4 py-3 text-sm ${isError
+            className={`rounded-xl px-4 py-3 text-sm ${
+              isError
                 ? 'bg-rose-50 text-rose-700 border border-rose-100'
                 : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-              }`}
+            }`}
           >
             {message}
           </p>
         ) : null}
+
+        <div className="space-y-2">
+          <label
+            htmlFor="fridgeId"
+            className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
+          >
+            対象の冷蔵庫
+          </label>
+          <select
+            id="fridgeId"
+            name="fridgeId"
+            required
+            defaultValue={fridges.find((f) => f.isDefault)?.id || ''}
+            disabled={isReading}
+            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm"
+          >
+            <option value="" disabled>
+              冷蔵庫を選択してください
+            </option>
+            {fridges.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
         {selectedFile ? (
           <div className="grid grid-cols-2 gap-2">
@@ -202,7 +229,7 @@ export function UploadPanel({
               disabled={isReading}
               className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:bg-zinc-400 transition shadow-lg shadow-emerald-500/20"
             >
-              {isReading ? '読み取り中...' : '内容を読み取る'}
+              {isReading ? '読み取り中...' : 'アップロードして読み込む'}
             </button>
           </div>
         ) : null}
@@ -282,79 +309,6 @@ export function UploadPanel({
             </div>
           </div>
         </div>
-
-        <label className="block border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
-          <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            撮影した納品書の画像を選択してください
-          </span>
-          <span className="block text-xs text-zinc-400 dark:text-zinc-500 mb-4">
-            対応形式: PNGのみ | 最大サイズ: 5MBまで
-          </span>
-          <input
-            id="file"
-            name="file"
-            type="file"
-            accept="image/png"
-            required
-            disabled={isReading}
-            onChange={(event) =>
-              setFileName(event.target.files?.[0]?.name.trim() ?? '')
-            }
-            className="block w-full text-sm text-zinc-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-zinc-900 file:text-white
-              hover:file:bg-zinc-800
-              dark:file:bg-zinc-100 dark:file:text-zinc-900
-              disabled:opacity-50 cursor-pointer mx-auto max-w-xs"
-          />
-        </label>
-
-        {message ? (
-          <p
-            className={`rounded-xl px-4 py-3 text-sm ${isError
-                ? 'bg-rose-50 text-rose-700 border border-rose-100'
-                : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-              }`}
-          >
-            {message}
-          </p>
-        ) : null}
-
-        <div className="space-y-2">
-          <label
-            htmlFor="fridgeId"
-            className="block text-sm font-medium text-zinc-700 dark:text-zinc-300"
-          >
-            対象の冷蔵庫
-          </label>
-          <select
-            id="fridgeId"
-            name="fridgeId"
-            required
-            defaultValue={fridges.find((f) => f.isDefault)?.id || ''}
-            disabled={isReading}
-            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm"
-          >
-            <option value="" disabled>
-              冷蔵庫を選択してください
-            </option>
-            {fridges.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isReading || !fileName}
-          className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:bg-zinc-400 transition shadow-lg shadow-emerald-500/20"
-        >
-          {isReading ? '読み取り中...' : 'アップロードして読み込む'}
-        </button>
       </form>
 
       {expandedImage ? (
