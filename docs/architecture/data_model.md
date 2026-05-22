@@ -3,6 +3,7 @@
 このドキュメントは、現行の在庫データモデルを説明する。
 
 このモデルの中心は、商品ごとの個別確認ではなく、レビュー済み納品書を現在在庫として公開することにある。
+また、複数の冷蔵庫ごとの在庫を管理し、ユーザーはその中からお気に入りの冷蔵庫を1つ選択して登録することができる。
 
 ## ER図
 
@@ -18,12 +19,24 @@ erDiagram
     USER ||--o{ ACCOUNT : links
     USER ||--o{ SESSION : owns
 
+    FRIDGE ||--o{ UPLOAD_BATCH : receives
+    FRIDGE ||--o{ INVENTORY_STATUS_CHANGE : tracking
+    FRIDGE ||--o{ USER : favorited_by
+
     PRODUCT ||--o{ UPLOAD_BATCH_LINE : matched_by
     PRODUCT ||--o{ INVENTORY_STATUS_CHANGE : changes
 
     UPLOAD_BATCH ||--|{ UPLOAD_BATCH_LINE : contains
     UPLOAD_BATCH ||--o{ INVENTORY_PUBLICATION : published_as
     INVENTORY_PUBLICATION ||--|{ INVENTORY_STATUS_CHANGE : records
+
+    FRIDGE {
+        string id PK
+        string name UK
+        boolean isDefault
+        datetime createdAt
+        datetime updatedAt
+    }
 
     PRODUCT {
         string id PK
@@ -36,6 +49,7 @@ erDiagram
 
     USER {
         string id PK
+        string favoriteFridgeId FK "NULL"
         string name
         string email UK
         datetime emailVerified "NULL"
@@ -76,6 +90,7 @@ erDiagram
 
     UPLOAD_BATCH {
         string id PK
+        string fridgeId FK
         string uploadedByUserId FK
         string originalFileName
         string storagePath "NULL"
@@ -107,6 +122,7 @@ erDiagram
     INVENTORY_STATUS_CHANGE {
         string id PK
         string publicationId FK "NULL"
+        string fridgeId FK
         string productId FK
         string changedByUserId FK
         string previousStatus "NULL"
@@ -116,15 +132,21 @@ erDiagram
     }
 ```
 
+## Fridge と お気に入り冷蔵庫
+
+`Fridge` は複数の冷蔵庫を管理するマスタテーブルである。`isDefault` フラグを用いて、デフォルトとして扱う冷蔵庫（例: 「16F」の冷蔵庫）を定義する。
+
+ユーザーは、システムに存在する `Fridge` の中から自身がよく確認する冷蔵庫を1つだけ「お気に入り」として選択・登録することができる。この情報は `USER` テーブルの `favoriteFridgeId` に保存される（未選択の場合は `NULL`）。
+
 ## Product
 
 `Product` は商品マスタである。トップページに表示する名前とカテゴリの権威データを持つ。
 
-現在在庫そのものは `Product` に保持しない。トップページに出す商品集合と数量は最新の納品書反映イベントから決まり、表示状態は商品ごとの最新 `InventoryStatusChange` があればそれを優先する。
+現在在庫そのものは `Product` に保持しない。各冷蔵庫のトップページに出す商品集合と数量は最新の納品書反映イベントから決まり、表示状態は対象の冷蔵庫および商品ごとの最新 `InventoryStatusChange` があればそれを優先する。
 
 ## UploadBatch
 
-`UploadBatch` は1回の納品書読み取り単位である。
+`UploadBatch` は1回の納品書読み取り単位である。対象となる冷蔵庫を特定するために `fridgeId` を保持する。
 
 ここには元ファイル名、処理状態、レビュー済み商品行が属する。`UploadBatch` 自身は現在公開中かどうかを保持しない。
 
@@ -142,9 +164,9 @@ erDiagram
 
 ## InventoryPublication
 
-`InventoryPublication` は、ある `UploadBatch` をトップページ在庫へ反映した出来事を表す。
+`InventoryPublication` は、ある `UploadBatch` を対象の冷蔵庫のトップページ在庫へ反映した出来事を表す。
 
-トップページの商品集合と数量は、最新の `InventoryPublication` が参照する `UploadBatch` の行から導出する。
+対象の冷蔵庫トップページの商品集合と数量は、最新の `InventoryPublication` が参照する `UploadBatch` の行から導出する。
 
 公開履歴は追記型である。過去バッチを再公開する場合も、既存レコードを書き換えず、新しい `InventoryPublication` を追加する。
 
@@ -152,29 +174,29 @@ erDiagram
 
 ## InventoryStatusChange
 
-`InventoryStatusChange` は、ユーザ可視の状態変更だけを記録する。
+`InventoryStatusChange` は、ユーザ可視の状態変更だけを記録する。対象となる冷蔵庫を特定するために `fridgeId` を保持する。
 
 このテーブルは数量差分の監査ログではない。数量が変わっても導出ステータスが同じなら記録しない。
 
 納品書反映では、その納品書に含まれる商品のうち導出ステータスが変わったものだけを記録する。納品書に存在しない商品を `SOLD_OUT` として扱わない。
 
-トップページの商品カードから手動で状態を変更した場合も、このテーブルに記録する。その場合、`publicationId` は `NULL` になる。`VERIFICATION_TOKEN` は独立したトークンテーブルであり `USER` を参照しない。
+トップページの商品カードから手動で状態を変更した場合も、このテーブルに記録する。その場合、`publicationId` は `NULL` になる。
 
 ## 現在在庫の導出
 
-1. 最新の `InventoryPublication` を1件取得する。
+1. 特定の冷蔵庫（`fridgeId`）に対する最新の `InventoryPublication` を1件取得する。
 2. その `uploadBatchId` に属する `UploadBatchLine` を読む。
 3. `matchedProductId` がある行をトップページ表示対象にする。
 4. `count` から納品書由来の在庫ステータスを導出する。`FEW_LEFT` は残数 1〜5 を意味する。
-5. 商品ごとの最新 `InventoryStatusChange` が存在する場合は、その `nextStatus` を表示状態として優先する。
+5. 冷蔵庫および商品ごとの最新 `InventoryStatusChange` が存在する場合は、その `nextStatus` を表示状態として優先する。
 
 ## 変更者追跡
 
-トップページ下部には、最新 `InventoryPublication` の反映者、反映日時、元ファイル名、納品書反映で状態が変わった商品を表示する。
+各冷蔵庫のトップページ下部には、最新 `InventoryPublication` の反映者、反映日時、元ファイル名、納品書反映で状態が変わった商品を表示する。
 
 最新反映後に手動変更された商品があれば、誰がいつどの商品をどの状態へ変更したかを別枠で表示する。
 
-商品カードには、その商品に対する最新の `InventoryStatusChange` から、最終状態変更者と最終状態変更時刻を表示する。
+商品カードには、その冷蔵庫と商品に対する最新の `InventoryStatusChange` から、最終状態変更者と最終状態変更時刻を表示する。
 
 状態が変わっていない商品に対して、最新公開者を一律に最終変更者として表示しない。
 
@@ -182,6 +204,6 @@ erDiagram
 
 `InventoryCheck` は現行モデルに存在しない。
 
-このアプリケーションでは、現在在庫を商品ごとの独立観測で積み上げるのではなく、レビュー済み納品書の反映イベントと商品別状態変更履歴で表現するためである。
+このアプリケーションでは、現在在庫を商品ごとの独立観測で積み上げるのではなく、特定の冷蔵庫に対するレビュー済み納品書の反映イベントと、冷蔵庫・商品別状態変更履歴で表現するためである。
 
 この判断により、現在在庫の真実源、公開者の追跡、再公開履歴、商品別状態変更ログの責務が明確に分離される。
