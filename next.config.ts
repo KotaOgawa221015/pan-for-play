@@ -1,5 +1,7 @@
 import type { NextConfig } from 'next';
 
+const isProd = process.env.NODE_ENV === 'production';
+
 const securityHeaders = [
   {
     key: 'X-Frame-Options',
@@ -33,8 +35,10 @@ const securityHeaders = [
       "base-uri 'self';",
       "form-action 'self';",
       "frame-ancestors 'none';",
-      'upgrade-insecure-requests;',
-    ].join(' '),
+      isProd ? 'upgrade-insecure-requests;' : '',
+    ]
+      .filter(Boolean)
+      .join(' '),
   },
 ];
 
