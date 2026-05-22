@@ -229,6 +229,8 @@ describe('receiving actions', () => {
 
     const formData = new FormData();
 
+    formData.set('fridgeId', 'fridge-1');
+
     formData.set(
       'file',
       new File(['png'], 'invoice.png', { type: 'image/png' }),
@@ -252,6 +254,7 @@ describe('receiving actions', () => {
     ]);
     expect(uploadBatchCreate).toHaveBeenCalledWith({
       data: {
+        fridgeId: 'fridge-1',
         uploadedByUserId: 'user-1',
         originalFileName: 'invoice.png',
         storagePath: null,
@@ -299,6 +302,8 @@ describe('receiving actions', () => {
 
     const formData = new FormData();
 
+    formData.set('fridgeId', 'fridge-1');
+
     formData.set(
       'file',
       new File(['png'], 'invoice.png', { type: 'image/png' }),
@@ -332,6 +337,7 @@ describe('receiving actions', () => {
     ]);
     uploadBatchFindUnique.mockResolvedValue({
       id: 'batch-1',
+      fridgeId: 'fridge-1',
       processingStatus: 'PROCESSED',
       lines: [
         { id: 'line-1', lineNumber: 1 },
@@ -408,6 +414,7 @@ describe('receiving actions', () => {
     });
     expect(inventoryPublicationCreate).toHaveBeenCalledWith({
       data: {
+        fridgeId: 'fridge-1',
         uploadBatchId: 'batch-1',
         publishedByUserId: 'user-1',
         publishedAt: expect.any(Date),
@@ -415,6 +422,7 @@ describe('receiving actions', () => {
     });
     expect(inventoryStatusChangeCreate).toHaveBeenNthCalledWith(1, {
       data: {
+        fridgeId: 'fridge-1',
         publicationId: 'publication-1',
         productId: 'existing-1',
         changedByUserId: 'user-1',
@@ -425,6 +433,7 @@ describe('receiving actions', () => {
     });
     expect(inventoryStatusChangeCreate).toHaveBeenNthCalledWith(2, {
       data: {
+        fridgeId: 'fridge-1',
         publicationId: 'publication-1',
         productId: 'created-1',
         changedByUserId: 'user-1',
@@ -444,6 +453,7 @@ describe('receiving actions', () => {
     ]);
     uploadBatchFindUnique.mockResolvedValue({
       id: 'batch-1',
+      fridgeId: 'fridge-1',
       processingStatus: 'PROCESSED',
       lines: [{ id: 'line-1', lineNumber: 1 }],
     });
@@ -479,6 +489,7 @@ describe('receiving actions', () => {
     expect(inventoryStatusChangeCreate).toHaveBeenCalledTimes(1);
     expect(inventoryStatusChangeCreate).toHaveBeenCalledWith({
       data: {
+        fridgeId: 'fridge-1',
         publicationId: 'publication-1',
         productId: 'existing-1',
         changedByUserId: 'user-1',
@@ -602,6 +613,7 @@ describe('receiving actions', () => {
     uploadBatchFindUnique
       .mockResolvedValueOnce({
         id: 'batch-1',
+        fridgeId: 'fridge-1',
         processingStatus: 'PROCESSED',
         lines: [
           {
@@ -612,6 +624,7 @@ describe('receiving actions', () => {
       })
       .mockResolvedValueOnce({
         id: 'batch-1',
+        fridgeId: 'fridge-1',
         processingStatus: 'PROCESSED',
         _count: {
           inventoryPublications: 0,
@@ -625,6 +638,7 @@ describe('receiving actions', () => {
 
     expect(inventoryPublicationCreate).toHaveBeenCalledWith({
       data: {
+        fridgeId: 'fridge-1',
         uploadBatchId: 'batch-1',
         publishedByUserId: 'user-1',
         publishedAt: expect.any(Date),

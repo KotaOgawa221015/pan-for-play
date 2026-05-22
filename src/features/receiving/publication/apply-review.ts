@@ -148,6 +148,7 @@ async function applyReceivingReviewInternal(
     ]);
 
     await publishInventorySnapshot(tx, {
+      fridgeId: batch.fridgeId,
       uploadBatchId: batch.id,
       publishedByUserId: admin.id,
       publishedAt,
@@ -155,13 +156,6 @@ async function applyReceivingReviewInternal(
         productId: line.matchedProductId,
         count: line.count,
       })),
-    });
-    await tx.inventoryStatusChange.deleteMany({
-      where: {
-        createdAt: {
-          lt: publishedAt,
-        },
-      },
     });
   });
 

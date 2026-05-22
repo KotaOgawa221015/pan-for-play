@@ -8,6 +8,7 @@ type InventoryLine = {
 type InventoryPublicationWriter = {
   inventoryPublication: {
     findFirst(args: {
+      where?: { fridgeId: string };
       orderBy: Array<
         | { publishedAt: 'asc' | 'desc' }
         | { createdAt: 'asc' | 'desc' }
@@ -36,6 +37,7 @@ type InventoryPublicationWriter = {
     } | null>;
     create(args: {
       data: {
+        fridgeId: string;
         uploadBatchId: string;
         publishedByUserId: string;
         publishedAt: Date;
@@ -45,6 +47,7 @@ type InventoryPublicationWriter = {
   inventoryStatusChange: {
     findMany(args: {
       where: {
+        fridgeId?: string;
         productId: {
           in: string[];
         };
@@ -66,6 +69,7 @@ type InventoryPublicationWriter = {
     >;
     create(args: {
       data: {
+        fridgeId: string;
         publicationId: string;
         productId: string;
         changedByUserId: string;
@@ -136,6 +140,7 @@ function getPublishedLines(
 export async function publishInventorySnapshot(
   tx: InventoryPublicationWriter,
   input: {
+    fridgeId: string;
     uploadBatchId: string;
     publishedByUserId: string;
     publishedAt: Date;
@@ -143,6 +148,7 @@ export async function publishInventorySnapshot(
   },
 ) {
   const currentPublication = await tx.inventoryPublication.findFirst({
+    where: { fridgeId: input.fridgeId },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
       uploadBatch: {
@@ -164,6 +170,7 @@ export async function publishInventorySnapshot(
 
   const publication = await tx.inventoryPublication.create({
     data: {
+      fridgeId: input.fridgeId,
       uploadBatchId: input.uploadBatchId,
       publishedByUserId: input.publishedByUserId,
       publishedAt: input.publishedAt,
@@ -177,6 +184,7 @@ export async function publishInventorySnapshot(
   const latestStatusChanges = productIds.length
     ? await tx.inventoryStatusChange.findMany({
         where: {
+          fridgeId: input.fridgeId,
           productId: {
             in: productIds,
           },
@@ -214,6 +222,7 @@ export async function publishInventorySnapshot(
     statusChanges.map((change) =>
       tx.inventoryStatusChange.create({
         data: {
+          fridgeId: input.fridgeId,
           publicationId: publication.id,
           productId: change.productId,
           changedByUserId: change.changedByUserId,

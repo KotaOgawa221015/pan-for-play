@@ -37,6 +37,7 @@ export async function reapplyReceivingBatch(batchId: string) {
     }
 
     await publishInventorySnapshot(tx, {
+      fridgeId: batch.fridgeId,
       uploadBatchId: batch.id,
       publishedByUserId: currentUserId,
       publishedAt,

@@ -2,22 +2,27 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SessionProvider } from 'next-auth/react';
 import { requireCurrentUser } from '@/features/account/session-user';
+import { prisma } from '@/lib/prisma';
 import { ProfileForm } from './profile-form';
 
 export const metadata: Metadata = {
   title: 'マイページ | パンコレ',
-  description: 'プロフィール情報を管理します。',
 };
 
 export default async function ProfilePage() {
   const user = await requireCurrentUser();
+
+  const fridges = await prisma.fridge.findMany({
+    where: { deletedAt: null },
+    orderBy: { name: 'asc' },
+  });
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-8">
       <div className="max-w-xl mx-auto space-y-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -29,20 +34,17 @@ export default async function ProfilePage() {
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
+            aria-hidden="true"
           >
-            <title>戻る</title>
             <path d="m15 18-6-6 6-6" />
           </svg>
-          在庫一覧に戻る
+          戻る
         </Link>
-
         <header className="space-y-1">
           <h1 className="text-2xl font-semibold">マイページ</h1>
-          <p className="text-zinc-500">アカウント情報の管理</p>
         </header>
-
         <SessionProvider>
-          <ProfileForm user={user} />
+          <ProfileForm user={user} fridges={fridges} />
         </SessionProvider>
       </div>
     </div>

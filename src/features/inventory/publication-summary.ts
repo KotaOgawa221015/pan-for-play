@@ -1,8 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import type { InventoryPublicationSummary } from '@/types/inventory';
 
-export async function getCurrentInventoryPublicationSummary(): Promise<InventoryPublicationSummary | null> {
+export async function getCurrentInventoryPublicationSummary(
+  fridgeId: string,
+): Promise<InventoryPublicationSummary | null> {
   const publication = await prisma.inventoryPublication.findFirst({
+    where: { fridgeId },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
       publishedByUser: {
@@ -41,6 +44,7 @@ export async function getCurrentInventoryPublicationSummary(): Promise<Inventory
   const manualChangesAfterPublication =
     await prisma.inventoryStatusChange.findMany({
       where: {
+        fridgeId,
         publicationId: null,
         changedAt: {
           gt: publication.publishedAt,

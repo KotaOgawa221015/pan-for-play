@@ -6,6 +6,7 @@ declare module 'next-auth' {
       id: string;
       role: string;
       deletedAt: Date | null;
+      favoriteFridgeId: string | null;
     } & DefaultSession['user'];
   }
 
@@ -13,12 +14,13 @@ declare module 'next-auth' {
     id?: string;
     role?: string | null;
     deletedAt?: Date | null;
+    favoriteFridgeId?: string | null;
   }
 
-  // AdapterUserにもプロパティを追加
   interface AdapterUser {
     role?: string | null;
     deletedAt?: Date | null;
+    favoriteFridgeId?: string | null;
   }
 }
 
@@ -27,5 +29,6 @@ declare module 'next-auth/jwt' {
     id: string;
     role?: string | null;
     deletedAt?: Date | null;
+    favoriteFridgeId?: string | null;
   }
 }

@@ -107,9 +107,10 @@ function reducer(state: State, action: Action): State {
 
 type Props = {
   recentHistory: HistoryEntry[];
+  fridges: { id: string; name: string; isDefault: boolean }[];
 };
 
-export function Dashboard({ recentHistory }: Props) {
+export function Dashboard({ recentHistory, fridges }: Props) {
   const router = useRouter();
   const [state, dispatch] = useReducer(reducer, {
     draft: null,
@@ -202,6 +203,7 @@ export function Dashboard({ recentHistory }: Props) {
     <div className="space-y-6">
       <UploadPanel
         key={uploadKey}
+        fridges={fridges}
         isReading={isReading}
         hasDraft={draft !== null}
         draftFileName={draft?.originalFileName}

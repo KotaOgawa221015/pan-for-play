@@ -50,7 +50,16 @@ describe('Integration Test: Inventory Lifecycle', () => {
       '@/features/inventory/product-inventory'
     );
 
-    const products = await getInventoryProducts();
+    const { prisma } = await import('@/lib/prisma');
+
+    const defaultFridge = await prisma.fridge.findFirst({
+      where: { isDefault: true },
+    });
+
+    if (!defaultFridge) {
+      throw new Error('Default fridge not found');
+    }
+    const products = await getInventoryProducts(defaultFridge.id);
 
     expect(products.length).toBeGreaterThan(0);
 

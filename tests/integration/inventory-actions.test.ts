@@ -70,7 +70,7 @@ describe('inventory server actions', () => {
       },
     ]);
 
-    await expect(getInventoryProducts()).resolves.toEqual([
+    await expect(getInventoryProducts('fridge-1')).resolves.toEqual([
       {
         id: 'soup',
         name: 'スープ',
@@ -94,6 +94,7 @@ describe('inventory server actions', () => {
     ]);
 
     expect(inventoryPublicationFindFirst).toHaveBeenCalledWith({
+      where: { fridgeId: 'fridge-1' },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       include: {
         uploadBatch: {
@@ -139,7 +140,7 @@ describe('inventory server actions', () => {
       },
     ]);
 
-    await expect(getInventoryProducts()).resolves.toEqual([
+    await expect(getInventoryProducts('fridge-1')).resolves.toEqual([
       {
         id: 'bread',
         name: '食パン',
@@ -167,9 +168,9 @@ describe('inventory server actions', () => {
     });
     inventoryStatusChangeFindMany.mockResolvedValueOnce([]);
 
-    await expect(getInventoryProducts()).resolves.toEqual([]);
+    await expect(getInventoryProducts('fridge-1')).resolves.toEqual([]);
 
     inventoryPublicationFindFirst.mockResolvedValueOnce(null);
-    await expect(getInventoryProducts()).resolves.toEqual([]);
+    await expect(getInventoryProducts('fridge-1')).resolves.toEqual([]);
   });
 });

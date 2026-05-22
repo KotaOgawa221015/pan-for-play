@@ -35,6 +35,20 @@ enum UserRole {
   MEMBER
 }
 
+model Fridge {
+  id                     String                  @id @default(cuid())
+  name                   String                  @unique
+  isDefault              Boolean                 @default(false)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  deletedAt              DateTime?
+
+  users                  User[]
+  uploadBatches          UploadBatch[]
+  inventoryPublications  InventoryPublication[]
+  inventoryStatusChanges InventoryStatusChange[]
+}
+
 model Product {
   id                     String                  @id @default(cuid())
   name                   String                  @unique
@@ -48,6 +62,7 @@ model Product {
 
 model User {
   id                     String                  @id @default(cuid())
+  favoriteFridgeId       String?
   name                   String
   email                  String                  @unique
   emailVerified          DateTime?
@@ -61,6 +76,7 @@ model User {
   inventoryStatusChanges InventoryStatusChange[]
   accounts               Account[]
   sessions               Session[]
+  favoriteFridge         Fridge?                 @relation(fields: [favoriteFridgeId], references: [id])
 }
 //Googleから返される値がスネークケースのため、スネークケースのままにしておく
 model Account {
@@ -102,6 +118,7 @@ model VerificationToken {
 
 model UploadBatch {
   id               String                    @id @default(cuid())
+  fridgeId         String
   uploadedByUserId String
   originalFileName String
   storagePath      String?
@@ -110,6 +127,7 @@ model UploadBatch {
   createdAt        DateTime                  @default(now())
   updatedAt        DateTime                  @updatedAt
 
+  fridge                 Fridge                 @relation(fields: [fridgeId], references: [id])
   uploadedByUser         User                   @relation(fields: [uploadedByUserId], references: [id])
   lines                  UploadBatchLine[]
   inventoryPublications InventoryPublication[]
@@ -136,23 +154,26 @@ model UploadBatchLine {
 
 model InventoryPublication {
   id                String                  @id @default(cuid())
+  fridgeId          String
   uploadBatchId     String
   publishedByUserId String
   publishedAt       DateTime
   createdAt         DateTime                @default(now())
 
+  fridge                 Fridge                  @relation(fields: [fridgeId], references: [id]) 
   uploadBatch            UploadBatch              @relation(fields: [uploadBatchId], references: [id])
   publishedByUser        User                     @relation(fields: [publishedByUserId], references: [id])
   inventoryStatusChanges InventoryStatusChange[]
 
+  @@index([fridgeId, publishedAt(sort: Desc)])
   @@index([uploadBatchId])
   @@index([publishedByUserId])
-  @@index([publishedAt])
 }
 
 model InventoryStatusChange {
   id                String              @id @default(cuid())
   publicationId     String?
+  fridgeId          String
   productId         String
   changedByUserId   String
   previousStatus    InventoryStatus?
@@ -160,11 +181,12 @@ model InventoryStatusChange {
   changedAt         DateTime
   createdAt         DateTime            @default(now())
 
+  fridge        Fridge                @relation(fields: [fridgeId], references: [id])
   publication   InventoryPublication? @relation(fields: [publicationId], references: [id])
   product       Product               @relation(fields: [productId], references: [id])
   changedByUser User                  @relation(fields: [changedByUserId], references: [id])
 
-  @@index([productId, changedAt])
+  @@index([fridgeId, productId, changedAt(sort: Desc)])
   @@index([publicationId, changedAt])
   @@index([changedByUserId])
 }

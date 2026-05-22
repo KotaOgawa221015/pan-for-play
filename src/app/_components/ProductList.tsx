@@ -5,10 +5,11 @@ import { ProductCard } from '@/app/_components/ProductCard';
 import type { Product } from '@/types/inventory';
 
 type Props = {
+  fridgeId: string;
   products: Product[];
 };
 
-export function ProductList({ products }: Props) {
+export function ProductList({ fridgeId, products }: Props) {
   const sortedProducts = [...products].sort((a, b) => {
     const aIsSoldOut = a.status === 'SOLD_OUT';
     const bIsSoldOut = b.status === 'SOLD_OUT';
@@ -38,7 +39,7 @@ export function ProductList({ products }: Props) {
             zIndex: product.status === 'SOLD_OUT' ? 0 : 10,
           }}
         >
-          <ProductCard product={product} />
+          <ProductCard fridgeId={fridgeId} product={product} />
         </motion.div>
       ))}
     </div>

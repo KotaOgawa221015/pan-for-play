@@ -42,6 +42,7 @@ describe('session user', () => {
       name: 'User',
       role: 'MEMBER',
       deletedAt: null,
+      favoriteFridgeId: null,
     });
 
     await expect(requireCurrentUser()).resolves.toEqual({
@@ -49,6 +50,7 @@ describe('session user', () => {
       email: 'user@example.com',
       name: 'User',
       role: 'MEMBER',
+      favoriteFridgeId: null,
     });
     expect(userFindUnique).toHaveBeenCalledWith({
       where: { id: 'user-1' },
@@ -58,6 +60,7 @@ describe('session user', () => {
         name: true,
         role: true,
         deletedAt: true,
+        favoriteFridgeId: true,
       },
     });
   });

@@ -36,6 +36,7 @@ export async function seedReceivingHistory(
   prisma: PrismaClient,
   adminUser: User,
   productByName: Map<string, Product>,
+  defaultFridge: { id: string },
 ): Promise<PublicationSeed[]> {
   const now = new Date();
   const publications: PublicationSeed[] = [];
@@ -45,6 +46,7 @@ export async function seedReceivingHistory(
 
     const batch = await prisma.uploadBatch.create({
       data: {
+        fridgeId: defaultFridge.id,
         uploadedByUserId: adminUser.id,
         originalFileName: history.originalFileName,
         storagePath: null,

@@ -61,12 +61,14 @@ export async function seedPublications(
   prisma: PrismaClient,
   adminUser: User,
   publications: PublicationSeed[],
+  defaultFridge: { id: string },
 ) {
   let previousPublicationLines: PublicationLine[] = [];
 
   for (const publication of publications) {
     const createdPublication = await prisma.inventoryPublication.create({
       data: {
+        fridgeId: defaultFridge.id,
         uploadBatchId: publication.batchId,
         publishedByUserId: adminUser.id,
         publishedAt: publication.publishedAt,
@@ -82,6 +84,7 @@ export async function seedPublications(
     for (const change of statusChanges) {
       await prisma.inventoryStatusChange.create({
         data: {
+          fridgeId: defaultFridge.id,
           publicationId: createdPublication.id,
           productId: change.productId,
           changedByUserId: adminUser.id,

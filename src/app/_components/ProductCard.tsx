@@ -13,6 +13,7 @@ import {
 } from '@/types/inventory';
 
 type Props = {
+  fridgeId: string;
   product: Product;
 };
 
@@ -41,7 +42,7 @@ function formatRelativeTime(value: string): string {
   return `${years}年前`;
 }
 
-export function ProductCard({ product }: Props) {
+export function ProductCard({ fridgeId, product }: Props) {
   const [optimisticStatus, setOptimisticStatus] = useOptimistic(
     product.status,
     (_current, next: ProductStatus) => next,
@@ -65,7 +66,7 @@ export function ProductCard({ product }: Props) {
       setOptimisticStatus(nextStatus);
 
       try {
-        await updateProductStatus(product.id, nextStatus);
+        await updateProductStatus(fridgeId, product.id, nextStatus);
       } catch (error) {
         console.error('Failed to update product status:', error);
       }

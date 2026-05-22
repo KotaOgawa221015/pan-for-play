@@ -14,6 +14,7 @@ const profileUpdateSchema = z.object({
     .trim()
     .min(1, { message: '表示名を入力してください' })
     .max(30, { message: '表示名は30文字以内で入力してください' }),
+  favoriteFridgeId: z.string().optional(),
 });
 
 export async function updateProfileAction(
@@ -26,6 +27,7 @@ export async function updateProfileAction(
 
   const parsed = profileUpdateSchema.safeParse({
     name: formData.get('name'),
+    favoriteFridgeId: formData.get('favoriteFridgeId') || undefined,
   });
 
   if (!parsed.success) {
@@ -33,12 +35,12 @@ export async function updateProfileAction(
     return { error: issue?.message ?? '表示名を入力してください' };
   }
 
-  const { name } = parsed.data;
+  const { name, favoriteFridgeId } = parsed.data;
 
   try {
     await prisma.user.update({
       where: { id: user.id },
-      data: { name },
+      data: { name, favoriteFridgeId },
     });
     revalidatePath('/profile');
     return { success: 'プロフィールを更新しました' };

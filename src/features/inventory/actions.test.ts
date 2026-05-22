@@ -77,10 +77,10 @@ describe('inventory actions', () => {
     inventoryStatusChangeFindFirst.mockResolvedValue(null);
     inventoryStatusChangeCreate.mockResolvedValue({});
 
-    await updateProductStatus('product-1', 'SOLD_OUT');
-
+    await updateProductStatus('fridge-1', 'product-1', 'SOLD_OUT');
     expect(inventoryStatusChangeCreate).toHaveBeenCalledWith({
       data: {
+        fridgeId: 'fridge-1',
         publicationId: null,
         productId: 'product-1',
         changedByUserId: 'user-1',
@@ -103,8 +103,7 @@ describe('inventory actions', () => {
       nextStatus: 'FEW_LEFT',
     });
 
-    await updateProductStatus('product-1', 'FEW_LEFT');
-
+    await updateProductStatus('fridge-1', 'product-1', 'FEW_LEFT');
     expect(inventoryStatusChangeCreate).not.toHaveBeenCalled();
     expect(revalidatePath).toHaveBeenCalledWith('/');
   });
