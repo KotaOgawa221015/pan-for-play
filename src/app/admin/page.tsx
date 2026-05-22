@@ -1,10 +1,10 @@
 import Link from 'next/link';
+import { FlashMessage } from '@/app/_components/FlashMessage';
+import { listEligibleUsers } from '@/features/account/admin-management';
+import { requireAdminUser } from '@/features/account/session-user';
 import { getRecentReceivingHistory } from '@/features/receiving/history/list-recent';
 import { Dashboard } from './_receiving/Dashboard';
-import { listEligibleUsers } from '@/features/account/admin-management';
 import { UserManagementPanel } from './_receiving/UserManagementPanel';
-import { requireAdminUser } from '@/features/account/session-user';
-import { FlashMessage } from '@/app/_components/FlashMessage';
 
 export const dynamic = 'force-dynamic';
 
@@ -32,8 +32,25 @@ export default async function UploadPage({
             <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
               管理画面
             </h1>
-            <Link href="/" className="text-sm text-zinc-500 hover:underline">
-              戻る
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <title>戻る</title>
+                <path d="m15 18-6-6 6-6" />
+              </svg>
+              在庫一覧に戻る
             </Link>
           </header>
           <UserManagementPanel users={users} currentAdminId={currentAdmin.id} />
