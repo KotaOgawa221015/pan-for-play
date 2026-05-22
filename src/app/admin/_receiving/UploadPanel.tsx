@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type Props = {
   isReading: boolean;
@@ -24,13 +24,30 @@ export function UploadPanel({
   isError,
   onRead,
 }: Props) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [expandedImage, setExpandedImage] = useState<{
     src: string;
     alt: string;
     width: number;
     height: number;
   } | null>(null);
+
+  useEffect(() => {
+    if (!selectedFile) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    const nextPreviewUrl = URL.createObjectURL(selectedFile);
+    setPreviewUrl(nextPreviewUrl);
+
+    return () => {
+      URL.revokeObjectURL(nextPreviewUrl);
+    };
+  }, [selectedFile]);
 
   const goodExamples = [
     {
@@ -62,8 +79,16 @@ export function UploadPanel({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!fileName) return;
+    if (!selectedFile) return;
     await onRead(new FormData(event.currentTarget));
+  }
+
+  function clearSelectedFile() {
+    setSelectedFile(null);
+    setFileName('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }
 
   return (
@@ -101,14 +126,94 @@ export function UploadPanel({
           </div>
         ) : null}
 
-        <div className="space-y-4 border-b border-zinc-100 dark:border-zinc-800 pb-6">
+        <label className="block border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
+          {previewUrl ? (
+            <div className="space-y-3">
+              <div className="relative mx-auto h-52 max-w-3xl overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+                <Image
+                  src={previewUrl}
+                  alt="選択した納品書画像のプレビュー"
+                  fill
+                  unoptimized
+                  sizes="(min-width: 768px) 768px, 100vw"
+                  className="object-contain"
+                />
+              </div>
+              <span className="block text-xs text-zinc-500">{fileName}</span>
+              <span className="inline-flex rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
+                別の画像を選択
+              </span>
+            </div>
+          ) : (
+            <>
+              <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+                撮影した納品書の画像を選択してください
+              </span>
+              <span className="block text-xs text-zinc-400 dark:text-zinc-500 mb-4">
+                対応形式: PNGのみ | 最大サイズ: 5MBまで
+              </span>
+              <span className="inline-flex rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
+                ファイルを選択
+              </span>
+            </>
+          )}
+          <input
+            id="file"
+            name="file"
+            type="file"
+            accept="image/png"
+            required
+            disabled={isReading}
+            ref={fileInputRef}
+            onChange={(event) => {
+              const nextFile = event.target.files?.[0] ?? null;
+              setSelectedFile(nextFile);
+              setFileName(nextFile?.name.trim() ?? '');
+            }}
+            className="sr-only"
+          />
+        </label>
+
+        {message ? (
+          <p
+            className={`rounded-xl px-4 py-3 text-sm ${
+              isError
+                ? 'bg-rose-50 text-rose-700 border border-rose-100'
+                : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+            }`}
+          >
+            {message}
+          </p>
+        ) : null}
+
+        {selectedFile ? (
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={clearSelectedFile}
+              disabled={isReading}
+              className="w-full rounded-xl border border-rose-300 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50 dark:border-rose-700 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/50"
+            >
+              削除
+            </button>
+            <button
+              type="submit"
+              disabled={isReading}
+              className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:bg-zinc-400 transition shadow-lg shadow-emerald-500/20"
+            >
+              {isReading ? '読み取り中...' : '内容を読み取る'}
+            </button>
+          </div>
+        ) : null}
+
+        <div className="space-y-4 border-t border-zinc-100 pt-6 dark:border-zinc-800">
           <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
             撮影のポイント
           </h3>
 
           <div className="grid gap-6 md:grid-cols-4">
-            <div className="space-y-3">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+            <div className="space-y-3 rounded-xl border border-emerald-100 bg-emerald-50/50 p-3 dark:border-emerald-900/40 dark:bg-emerald-950/20">
+              <div className="flex items-center justify-center gap-1.5 px-2 py-1 text-center text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                 <span className="text-xs leading-none">⭕</span>
                 読み取り可能な例 (OK)
               </div>
@@ -118,7 +223,7 @@ export function UploadPanel({
                     <button
                       type="button"
                       onClick={() => setExpandedImage(example)}
-                      className="block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950"
+                      className="block w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950"
                     >
                       <Image
                         src={example.src}
@@ -138,8 +243,8 @@ export function UploadPanel({
               </div>
             </div>
 
-            <div className="space-y-3 md:col-span-3">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400">
+            <div className="space-y-3 rounded-xl border border-rose-100 bg-rose-50/50 p-3 dark:border-rose-900/40 dark:bg-rose-950/20 md:col-span-3">
+              <div className="flex items-center justify-center gap-1.5 px-2 py-1 text-center text-xs font-semibold text-rose-600 dark:text-rose-400">
                 <span className="text-xs leading-none">❌</span>
                 エラーになりやすい例 (NG)
               </div>
@@ -156,7 +261,7 @@ export function UploadPanel({
                           height: 446,
                         })
                       }
-                      className="block w-full overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950"
+                      className="block w-full overflow-hidden bg-zinc-50 dark:bg-zinc-950"
                     >
                       <Image
                         src={example.src}
@@ -176,54 +281,6 @@ export function UploadPanel({
             </div>
           </div>
         </div>
-
-        <label className="block border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
-          <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
-            撮影した納品書の画像を選択してください
-          </span>
-          <span className="block text-xs text-zinc-400 dark:text-zinc-500 mb-4">
-            対応形式: PNGのみ | 最大サイズ: 5MBまで
-          </span>
-          <input
-            id="file"
-            name="file"
-            type="file"
-            accept="image/png"
-            required
-            disabled={isReading}
-            onChange={(event) =>
-              setFileName(event.target.files?.[0]?.name.trim() ?? '')
-            }
-            className="block w-full text-sm text-zinc-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-full file:border-0
-              file:text-sm file:font-semibold
-              file:bg-zinc-900 file:text-white
-              hover:file:bg-zinc-800
-              dark:file:bg-zinc-100 dark:file:text-zinc-900
-              disabled:opacity-50 cursor-pointer mx-auto max-w-xs"
-          />
-        </label>
-
-        {message ? (
-          <p
-            className={`rounded-xl px-4 py-3 text-sm ${
-              isError
-                ? 'bg-rose-50 text-rose-700 border border-rose-100'
-                : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
-            }`}
-          >
-            {message}
-          </p>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={isReading || !fileName}
-          className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:bg-zinc-400 transition shadow-lg shadow-emerald-500/20"
-        >
-          {isReading ? '読み取り中...' : 'アップロードして読み込む'}
-        </button>
       </form>
 
       {expandedImage ? (
@@ -257,7 +314,7 @@ export function UploadPanel({
               alt={expandedImage.alt}
               width={expandedImage.width}
               height={expandedImage.height}
-              className="max-h-[85vh] w-full rounded-xl bg-white object-contain"
+              className="max-h-[85vh] w-full bg-white object-contain"
               unoptimized
             />
           </div>

@@ -23,6 +23,7 @@ const {
   extractProductsFromDeliveryNote,
   readDeliveryNoteUpload,
   storeDeliveryNoteImage,
+  deleteStoredDeliveryNoteImage,
   auth,
 } = vi.hoisted(() => ({
   transaction: vi.fn(),
@@ -49,6 +50,7 @@ const {
   extractProductsFromDeliveryNote: vi.fn(),
   readDeliveryNoteUpload: vi.fn(),
   storeDeliveryNoteImage: vi.fn(),
+  deleteStoredDeliveryNoteImage: vi.fn(),
   auth: vi.fn(),
 }));
 
@@ -119,6 +121,10 @@ vi.mock('@/features/receiving/delivery-note/store-image', () => ({
   storeDeliveryNoteImage,
 }));
 
+vi.mock('@/features/receiving/delivery-note/delete-stored-image', () => ({
+  deleteStoredDeliveryNoteImage,
+}));
+
 vi.mock('next/cache', () => ({
   revalidatePath,
 }));
@@ -153,6 +159,7 @@ describe('receiving actions', () => {
     extractProductsFromDeliveryNote.mockReset();
     readDeliveryNoteUpload.mockReset();
     storeDeliveryNoteImage.mockReset();
+    deleteStoredDeliveryNoteImage.mockReset();
     auth.mockReset();
 
     auth.mockResolvedValue({ user: { id: 'user-1', role: 'ADMIN' } });
@@ -268,6 +275,7 @@ describe('receiving actions', () => {
         processedAt: expect.any(Date),
       },
     });
+    expect(deleteStoredDeliveryNoteImage).not.toHaveBeenCalled();
     expect(revalidatePath).toHaveBeenCalledWith('/admin');
   });
 
@@ -309,8 +317,12 @@ describe('receiving actions', () => {
       where: { id: 'batch-1' },
       data: {
         processingStatus: 'FAILED',
+        storagePath: null,
       },
     });
+    expect(deleteStoredDeliveryNoteImage).toHaveBeenCalledWith(
+      '/tmp/project/.tmp/invoice.png',
+    );
   });
 
   it('applies reviewed lines and creates a publication with status changes', async () => {

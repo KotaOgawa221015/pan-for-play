@@ -5,6 +5,7 @@ export async function failReviewBatch(batchId: string) {
     where: { id: batchId },
     data: {
       processingStatus: 'FAILED',
+      storagePath: null,
     },
   });
 }
