@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { FlashMessage } from '@/app/_components/FlashMessage';
 import { InventoryPublicationPanel } from '@/app/_components/InventoryPublicationPanel';
-// ProductCard の代わりに、新設したアニメーション対応の ProductList をインポートします
 import { ProductList } from '@/app/_components/ProductList';
 import { UserMenu } from '@/app/_components/UserMenu';
 import { getInventoryProducts } from '@/features/inventory/product-inventory';
@@ -52,7 +51,6 @@ export default async function Page({
           {products.length === 0 ? (
             <p className="text-sm text-zinc-400">商品がありません</p>
           ) : (
-            /* 💡 修正ポイント: 不要な波括弧を取り除き、直接コンポーネントを配置します */
             <ProductList products={products} />
           )}
         </section>
