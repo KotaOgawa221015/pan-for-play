@@ -11,7 +11,7 @@ export async function loginWithGoogleAction() {
   }
 
   try {
-    await signIn('google', { redirectTo: '/' });
+    await signIn('google', { redirectTo: '/?msg=login_success' });
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
@@ -31,7 +31,7 @@ export async function loginAsUserAction() {
   const _session = await auth();
   if (process.env.NODE_ENV === 'development') {
     try {
-      await signIn('dev-user', { redirectTo: '/' });
+      await signIn('dev-user', { redirectTo: '/?msg=login_success' });
     } catch (error) {
       if (isRedirectError(error)) {
         throw error;
@@ -48,7 +48,7 @@ export async function loginAsAdminAction() {
   const _session = await auth();
   if (process.env.NODE_ENV === 'development') {
     try {
-      await signIn('dev-admin', { redirectTo: '/' });
+      await signIn('dev-admin', { redirectTo: '/?msg=login_success' });
     } catch (error) {
       if (isRedirectError(error)) {
         throw error;
