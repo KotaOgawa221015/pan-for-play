@@ -3,10 +3,9 @@ import { FlashMessage } from '@/app/_components/FlashMessage';
 import { listEligibleUsers } from '@/features/account/admin-management';
 import { requireAdminUser } from '@/features/account/session-user';
 import { getRecentReceivingHistory } from '@/features/receiving/history/list-recent';
+import { prisma } from '@/lib/prisma';
 import { Dashboard } from './_receiving/Dashboard';
 import { UserManagementPanel } from './_receiving/UserManagementPanel';
-
-export const dynamic = 'force-dynamic';
 
 export default async function UploadPage({
   searchParams,
@@ -16,16 +15,18 @@ export default async function UploadPage({
   const { msg } = await searchParams;
   const currentAdmin = await requireAdminUser();
 
-  // eslint-disable-next-line react-doctor/async-parallel react-doctor/server-sequential-independent-await
-  const [recentHistory, users] = await Promise.all([
+  const [recentHistory, users, fridges] = await Promise.all([
     getRecentReceivingHistory(),
     listEligibleUsers(),
+    prisma.fridge.findMany({
+      where: { deletedAt: null },
+      orderBy: { name: 'asc' },
+    }),
   ]);
 
   return (
     <>
       <FlashMessage msg={msg} />
-
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-6">
         <div className="max-w-5xl mx-auto space-y-6">
           <header className="flex items-center justify-between border-b border-zinc-300 dark:border-zinc-800 pb-4 mt-2">
@@ -36,9 +37,9 @@ export default async function UploadPage({
               戻る
             </Link>
           </header>
-          <UserManagementPanel users={users} currentAdminId={currentAdmin.id} />
 
-          <Dashboard recentHistory={recentHistory} />
+          <UserManagementPanel users={users} currentAdminId={currentAdmin.id} />
+          <Dashboard recentHistory={recentHistory} fridges={fridges} />
         </div>
       </div>
     </>

@@ -2,8 +2,11 @@ import { prisma } from '@/lib/prisma';
 import type { Product } from '@/types/inventory';
 import { getProductStatusFromCount } from './counts';
 
-export async function getInventoryProducts(): Promise<Product[]> {
+export async function getInventoryProducts(
+  fridgeId: string,
+): Promise<Product[]> {
   const currentPublication = await prisma.inventoryPublication.findFirst({
+    where: { fridgeId },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
       uploadBatch: {
@@ -12,11 +15,7 @@ export async function getInventoryProducts(): Promise<Product[]> {
             orderBy: { lineNumber: 'asc' },
             include: {
               matchedProduct: {
-                select: {
-                  id: true,
-                  name: true,
-                  category: true,
-                },
+                select: { id: true, name: true, category: true },
               },
             },
           },
@@ -25,20 +24,17 @@ export async function getInventoryProducts(): Promise<Product[]> {
     },
   });
 
-  if (!currentPublication) {
-    return [];
-  }
+  if (!currentPublication) return [];
 
   const visibleLines = currentPublication.uploadBatch.lines.filter(
     (line) => line.matchedProduct && line.count > 0,
   );
 
-  if (visibleLines.length === 0) {
-    return [];
-  }
+  if (visibleLines.length === 0) return [];
 
   const latestStatusChanges = await prisma.inventoryStatusChange.findMany({
     where: {
+      fridgeId,
       productId: {
         in: visibleLines.flatMap((line) =>
           line.matchedProduct ? [line.matchedProduct.id] : [],
@@ -47,11 +43,7 @@ export async function getInventoryProducts(): Promise<Product[]> {
     },
     orderBy: [{ changedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
-      changedByUser: {
-        select: {
-          name: true,
-        },
-      },
+      changedByUser: { select: { name: true } },
     },
   });
 
@@ -64,10 +56,7 @@ export async function getInventoryProducts(): Promise<Product[]> {
 
   const products: Product[] = visibleLines.flatMap((line) => {
     const product = line.matchedProduct;
-
-    if (!product) {
-      return [];
-    }
+    if (!product) return [];
 
     const latestChange = latestChangeByProductId.get(product.id);
 

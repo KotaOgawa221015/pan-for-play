@@ -67,7 +67,9 @@ describe('inventory publication summary', () => {
       },
     ]);
 
-    await expect(getCurrentInventoryPublicationSummary()).resolves.toEqual({
+    await expect(
+      getCurrentInventoryPublicationSummary('fridge-1'),
+    ).resolves.toEqual({
       originalFileName: 'invoice-2026-05-10.jpg',
       publishedAt: '2026-05-12T12:00:00.000Z',
       publishedByName: 'admin',
@@ -105,7 +107,9 @@ describe('inventory publication summary', () => {
   it('returns null when no publication exists', async () => {
     inventoryPublicationFindFirst.mockResolvedValue(null);
 
-    await expect(getCurrentInventoryPublicationSummary()).resolves.toBeNull();
+    await expect(
+      getCurrentInventoryPublicationSummary('fridge-1'),
+    ).resolves.toBeNull();
     expect(inventoryStatusChangeFindMany).not.toHaveBeenCalled();
   });
 });

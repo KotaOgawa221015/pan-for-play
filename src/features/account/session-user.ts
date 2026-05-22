@@ -8,6 +8,7 @@ export type AuthenticatedUser = {
   email: string;
   name: string;
   role: UserRole;
+  favoriteFridgeId: string | null;
 };
 
 export type SessionStatus =
@@ -27,6 +28,7 @@ async function getCurrentUser() {
       name: true,
       role: true,
       deletedAt: true,
+      favoriteFridgeId: true,
     },
   });
 
@@ -39,6 +41,7 @@ async function getCurrentUser() {
     email: user.email,
     name: user.name,
     role: user.role,
+    favoriteFridgeId: user.favoriteFridgeId,
   };
 }
 

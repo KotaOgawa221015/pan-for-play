@@ -9,6 +9,7 @@ import type { ProductStatus } from '@/types/inventory';
 
 async function updateProductStatusInternal(
   user: { id: string },
+  fridgeId: string,
   productId: string,
   nextStatus: ProductStatus,
 ) {
@@ -16,6 +17,7 @@ async function updateProductStatusInternal(
 
   await prisma.$transaction(async (tx) => {
     const currentPublication = await tx.inventoryPublication.findFirst({
+      where: { fridgeId },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       include: {
         uploadBatch: {
@@ -36,6 +38,7 @@ async function updateProductStatusInternal(
 
     const latestStatusChange = await tx.inventoryStatusChange.findFirst({
       where: {
+        fridgeId,
         productId,
       },
       orderBy: [{ changedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
@@ -57,6 +60,7 @@ async function updateProductStatusInternal(
 
     await tx.inventoryStatusChange.create({
       data: {
+        fridgeId,
         publicationId: null,
         productId,
         changedByUserId: user.id,

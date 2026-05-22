@@ -19,9 +19,16 @@ export async function startReceivingReview(formData: FormData) {
   const session = await auth();
   if (!session) throw new Error('Unauthorized');
   const currentUserId = (await requireAdminUser()).id;
+
+  const fridgeId = formData.get('fridgeId');
+  if (typeof fridgeId !== 'string' || !fridgeId.trim()) {
+    throw new Error('対象の冷蔵庫が選択されていません。');
+  }
+
   const uploadedDeliveryNote = await readDeliveryNoteUpload(formData);
   const batch = await createPendingReviewBatch({
     userId: currentUserId,
+    fridgeId,
     fileName: uploadedDeliveryNote.fileName,
   });
   let storagePath: string | null = null;

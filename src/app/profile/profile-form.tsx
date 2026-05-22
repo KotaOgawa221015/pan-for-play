@@ -7,11 +7,22 @@ import {
   updateProfileAction,
 } from '@/features/account/profile';
 
-export function ProfileForm({ user }: { user: { name?: string | null } }) {
-  const [state, pAction, pPending] = useActionState(updateProfileAction, null);
+type Fridge = { id: string; name: string };
 
+export function ProfileForm({
+  user,
+  fridges,
+}: {
+  user: { name?: string | null; favoriteFridgeId?: string | null };
+  fridges: Fridge[];
+}) {
+  const [state, pAction, pPending] = useActionState(updateProfileAction, null);
   const { update } = useSession();
+
   const [name, setName] = useState(user.name || '');
+  const [favoriteFridgeId, setFavoriteFridgeId] = useState(
+    user.favoriteFridgeId || '',
+  );
 
   useEffect(() => {
     if (state?.success) {
@@ -46,6 +57,30 @@ export function ProfileForm({ user }: { user: { name?: string | null } }) {
               className="w-full p-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg"
             />
           </div>
+
+          <div className="space-y-1">
+            <label
+              htmlFor="favoriteFridgeId"
+              className="text-xs font-bold text-zinc-400 uppercase"
+            >
+              お気に入り冷蔵庫
+            </label>
+            <select
+              id="favoriteFridgeId"
+              name="favoriteFridgeId"
+              value={favoriteFridgeId}
+              onChange={(e) => setFavoriteFridgeId(e.target.value)}
+              className="w-full p-2 bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-sm"
+            >
+              <option value="">設定しない</option>
+              {fridges.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <button
             type="submit"
             disabled={pPending}
