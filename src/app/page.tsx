@@ -92,7 +92,7 @@ export default async function Page({
               商品がありません
             </p>
           ) : (
-            <ProductList products={products} />
+            <ProductList fridgeId={activeFridgeId} products={products} />
           )}
         </section>
 
