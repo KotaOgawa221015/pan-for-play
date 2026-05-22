@@ -23,5 +23,5 @@ runs:
         node-version-file: ${{ inputs.node-version-file }}
 
     - name: Install dependencies
-      run: pnpm run setup -- ${{ inputs.args }}
+      run: pnpm run setup ${{ inputs.args }}
       shell: bash
