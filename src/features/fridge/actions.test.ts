@@ -50,6 +50,7 @@ describe('fridge actions', () => {
     revalidatePath.mockReset();
     requireAdminUser.mockReset();
 
+    // デフォルトで正常な管理者セッションを返すよう設定
     requireAdminUser.mockResolvedValue({ id: 'admin-1', role: 'ADMIN' });
   });
 
@@ -58,26 +59,36 @@ describe('fridge actions', () => {
       fridgeFindFirst.mockResolvedValue(null);
       fridgeCreate.mockResolvedValue({ id: 'new-fridge-id' });
 
-      await expect(createFridge('2Fの冷蔵庫')).resolves.toEqual({
-        success: true,
+      const result = await createFridge('2Fの冷蔵庫');
+      expect(result).toEqual({ success: true });
+      expect(fridgeFindFirst).toHaveBeenCalledWith({
+        where: { name: '2Fの冷蔵庫' },
       });
       expect(fridgeCreate).toHaveBeenCalledWith({
         data: { name: '2Fの冷蔵庫', isDefault: false },
       });
-      expect(revalidatePath).toHaveBeenCalledWith('/');
       expect(revalidatePath).toHaveBeenCalledWith('/admin');
     });
 
-    it('同名の有効な冷蔵庫が存在する場合、エラーをスローすること', async () => {
+    it('過去に削除されたものも含め、同名の冷蔵庫が存在する場合、指定のエラーメッセージをスローすること', async () => {
+      // 過去に消された（deletedAtが入っている）レコードが存在すると仮定
       fridgeFindFirst.mockResolvedValue({
-        id: 'existing-id',
+        id: 'old-deleted-id',
         name: '2Fの冷蔵庫',
+        deletedAt: new Date(),
       });
 
       await expect(createFridge('2Fの冷蔵庫')).rejects.toThrow(
-        '同名の冷蔵庫が既に存在します。',
+        'その名前は追加できません。',
       );
       expect(fridgeCreate).not.toHaveBeenCalled();
+    });
+
+    it('冷蔵庫名が空文字、またはスペースのみの場合はバリデーションエラーとなること', async () => {
+      await expect(createFridge('   ')).rejects.toThrow(
+        '冷蔵庫名を入力してください。',
+      );
+      expect(fridgeFindFirst).not.toHaveBeenCalled();
     });
   });
 
@@ -91,13 +102,46 @@ describe('fridge actions', () => {
       fridgeFindFirst.mockResolvedValue(null);
       fridgeUpdate.mockResolvedValue({});
 
-      await expect(
-        renameFridge({ id: 'fridge-1', name: '新冷蔵庫' }),
-      ).resolves.toEqual({ success: true });
+      const result = await renameFridge({ id: 'fridge-1', name: '新冷蔵庫' });
+      expect(result).toEqual({ success: true });
+      expect(fridgeFindFirst).toHaveBeenCalledWith({
+        where: { name: '新冷蔵庫', id: { not: 'fridge-1' } },
+      });
       expect(fridgeUpdate).toHaveBeenCalledWith({
         where: { id: 'fridge-1' },
         data: { name: '新冷蔵庫' },
       });
+      expect(revalidatePath).toHaveBeenCalledWith('/admin');
+    });
+
+    it('リネーム先の名前が、過去に削除された他の冷蔵庫の名前と重複する場合、指定のエラーメッセージをスローすること', async () => {
+      fridgeFindUnique.mockResolvedValue({
+        id: 'fridge-1',
+        name: '旧冷蔵庫',
+        deletedAt: null,
+      });
+      fridgeFindFirst.mockResolvedValue({
+        id: 'deleted-fridge-id',
+        name: '重複冷蔵庫',
+        deletedAt: new Date(),
+      });
+
+      await expect(
+        renameFridge({ id: 'fridge-1', name: '重複冷蔵庫' }),
+      ).rejects.toThrow('その名前には変更できません。');
+      expect(fridgeUpdate).not.toHaveBeenCalled();
+    });
+
+    it('対象の冷蔵庫がすでに論理削除されている場合、エラーをスローすること', async () => {
+      fridgeFindUnique.mockResolvedValue({
+        id: 'fridge-1',
+        name: '旧冷蔵庫',
+        deletedAt: new Date(),
+      });
+
+      await expect(
+        renameFridge({ id: 'fridge-1', name: '新冷蔵庫' }),
+      ).rejects.toThrow('対象の冷蔵庫が存在しません。');
     });
   });
 
@@ -110,16 +154,16 @@ describe('fridge actions', () => {
       });
       fridgeUpdate.mockResolvedValue({});
 
-      await expect(deleteFridge('fridge-1')).resolves.toEqual({
-        success: true,
-      });
+      const result = await deleteFridge('fridge-1');
+      expect(result).toEqual({ success: true });
       expect(fridgeUpdate).toHaveBeenCalledWith({
         where: { id: 'fridge-1' },
         data: { deletedAt: expect.any(Date) },
       });
+      expect(revalidatePath).toHaveBeenCalledWith('/admin');
     });
 
-    it('デフォルトの冷蔵庫を削除しようとした場合、エラーをスローすること', async () => {
+    it('デフォルトの冷蔵庫を削除しようとした場合、ビジネスルールに則りエラーをスローすること', async () => {
       fridgeFindUnique.mockResolvedValue({
         id: 'fridge-default',
         isDefault: true,

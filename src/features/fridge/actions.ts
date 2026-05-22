@@ -15,10 +15,10 @@ export const createFridge = adminAction(async (_admin, name: string) => {
   const validatedName = fridgeNameSchema.parse(name);
 
   const existing = await prisma.fridge.findFirst({
-    where: { name: validatedName, deletedAt: null },
+    where: { name: trimmedName },
   });
   if (existing) {
-    throw new Error('同名の冷蔵庫が既に存在します。');
+    throw new Error('その名前は追加できません。');
   }
 
   await prisma.fridge.create({
@@ -45,10 +45,13 @@ export const renameFridge = adminAction(
     }
 
     const existing = await prisma.fridge.findFirst({
-      where: { name: validatedName, id: { not: id }, deletedAt: null },
+      where: {
+        name: trimmedName,
+        id: { not: id },
+      },
     });
     if (existing) {
-      throw new Error('同名の冷蔵庫が既に存在します。');
+      throw new Error('その名前には変更できません。');
     }
 
     await prisma.fridge.update({
