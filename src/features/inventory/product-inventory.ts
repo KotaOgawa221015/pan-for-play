@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
-import { getProductStatusFromCount } from './counts';
 import type { Product } from '@/types/inventory';
+import { getProductStatusFromCount } from './counts';
 
 export async function getInventoryProducts(): Promise<Product[]> {
   const currentPublication = await prisma.inventoryPublication.findFirst({
@@ -81,6 +81,7 @@ export async function getInventoryProducts(): Promise<Product[]> {
           latestChange?.nextStatus ?? getProductStatusFromCount(line.count),
         lastStatusChangedAt: latestChange?.changedAt.toISOString() ?? null,
         lastStatusChangedByName: latestChange?.changedByUser.name ?? null,
+        lastPublishedAt: currentPublication.publishedAt.toISOString(),
       },
     ];
   });
