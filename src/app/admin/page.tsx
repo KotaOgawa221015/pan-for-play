@@ -5,6 +5,7 @@ import { requireAdminUser } from '@/features/account/session-user';
 import { getRecentReceivingHistory } from '@/features/receiving/history/list-recent';
 import { prisma } from '@/lib/prisma';
 import { Dashboard } from './_receiving/Dashboard';
+import { FridgeManagementPanel } from './_receiving/FridgeManagementPanel';
 import { UserManagementPanel } from './_receiving/UserManagementPanel';
 
 export default async function UploadPage({
@@ -39,6 +40,7 @@ export default async function UploadPage({
           </header>
 
           <UserManagementPanel users={users} currentAdminId={currentAdmin.id} />
+          <FridgeManagementPanel fridges={fridges} />
           <Dashboard recentHistory={recentHistory} fridges={fridges} />
         </div>
       </div>
