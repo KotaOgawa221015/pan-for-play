@@ -1,6 +1,6 @@
-import { devices, type PlaywrightTestConfig } from '@playwright/test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { devices, type PlaywrightTestConfig } from '@playwright/test';
 
 type VitepressServerMode = 'dev' | 'preview';
 

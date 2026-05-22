@@ -1,5 +1,5 @@
-import type { ProductStatus } from '@/types/inventory';
 import { z } from 'zod';
+import type { ProductStatus } from '@/types/inventory';
 
 const inventoryCountSchema = z.number().int().min(0);
 

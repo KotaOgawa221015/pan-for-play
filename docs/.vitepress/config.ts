@@ -1,7 +1,7 @@
-import { defineConfig } from 'vitepress';
-import { withMermaid } from 'vitepress-plugin-mermaid';
 import fs from 'node:fs';
 import path from 'node:path';
+import { defineConfig } from 'vitepress';
+import { withMermaid } from 'vitepress-plugin-mermaid';
 
 const siteBase = process.env.GITHUB_ACTIONS === 'true' ? '/pancolle/' : '/';
 

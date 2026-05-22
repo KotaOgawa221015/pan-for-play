@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
-  ProductCategory,
   type PrismaClient,
   type Product,
+  ProductCategory,
 } from '@prisma/client';
 
 const fixturePath = path.join(

@@ -1,11 +1,11 @@
 'use client';
 
-import { useTransition, useState } from 'react';
-import {
-  promoteToAdmin,
-  demoteFromAdmin,
-} from '@/features/account/admin-management';
 import { UserRole } from '@prisma/client';
+import { useState, useTransition } from 'react';
+import {
+  demoteFromAdmin,
+  promoteToAdmin,
+} from '@/features/account/admin-management';
 
 type EligibleUser = {
   id: string;

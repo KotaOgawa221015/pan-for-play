@@ -1,10 +1,10 @@
 import Link from 'next/link';
+import { FlashMessage } from '@/app/_components/FlashMessage';
+import { listEligibleUsers } from '@/features/account/admin-management';
+import { requireAdminUser } from '@/features/account/session-user';
 import { getRecentReceivingHistory } from '@/features/receiving/history/list-recent';
 import { Dashboard } from './_receiving/Dashboard';
-import { listEligibleUsers } from '@/features/account/admin-management';
 import { UserManagementPanel } from './_receiving/UserManagementPanel';
-import { requireAdminUser } from '@/features/account/session-user';
-import { FlashMessage } from '@/app/_components/FlashMessage';
 
 export const dynamic = 'force-dynamic';
 

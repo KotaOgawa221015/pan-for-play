@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useReducer, startTransition } from 'react';
+import { startTransition, useReducer } from 'react';
 import { deleteReceivingBatch } from '@/features/receiving/history/delete-batch';
 import { applyReceivingReview } from '@/features/receiving/publication/apply-review';
 import { reapplyReceivingBatch } from '@/features/receiving/publication/reapply-batch';

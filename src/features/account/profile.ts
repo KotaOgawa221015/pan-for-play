@@ -1,10 +1,10 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { auth, signOut } from './auth';
 import { requireCurrentUser } from './session-user';
-import { z } from 'zod';
 
 const profileUpdateSchema = z.object({
   name: z

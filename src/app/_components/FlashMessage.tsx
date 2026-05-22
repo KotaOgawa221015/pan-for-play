@@ -1,7 +1,7 @@
 'use client';
 
-import { useReducer, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useEffect, useReducer } from 'react';
 
 type MessagePhase = 'idle' | 'visible' | 'exiting';
 

@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import {
-  STATUS_LABELS,
   type InventoryPublicationChange,
   type InventoryPublicationSummary,
+  STATUS_LABELS,
 } from '@/types/inventory';
 
 type Props = {

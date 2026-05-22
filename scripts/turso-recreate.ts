@@ -1,7 +1,7 @@
-import { existsSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { applyPendingMigrations, createTursoClient } from './turso-database.ts';
+import { existsSync } from 'node:fs';
 import { getTursoRecreateEnv } from '../src/lib/environment.ts';
+import { applyPendingMigrations, createTursoClient } from './turso-database.ts';
 
 const loadEnvFile = (
   process as typeof process & {

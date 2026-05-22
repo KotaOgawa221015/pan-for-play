@@ -1,7 +1,7 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
 import { UserRole } from '@prisma/client';
+import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { adminAction } from '@/features/account/session-user';
 import { prisma } from '@/lib/prisma';
