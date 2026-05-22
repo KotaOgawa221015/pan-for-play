@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FlashMessage } from '@/app/_components/FlashMessage';
 import { InventoryPublicationPanel } from '@/app/_components/InventoryPublicationPanel';
-import { ProductCard } from '@/app/_components/ProductCard';
+import { ProductList } from '@/app/_components/ProductList';
 import { UserMenu } from '@/app/_components/UserMenu';
 import { requireCurrentUser } from '@/features/account/session-user';
 import { getInventoryProducts } from '@/features/inventory/product-inventory';
@@ -42,9 +42,6 @@ export default async function Page({
   const publicationSummary = activeFridgeId
     ? await getCurrentInventoryPublicationSummary(activeFridgeId)
     : null;
-
-  const availableProducts = products.filter((p) => p.status !== 'SOLD_OUT');
-  const soldOutProducts = products.filter((p) => p.status === 'SOLD_OUT');
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
@@ -95,22 +92,7 @@ export default async function Page({
               商品がありません
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {availableProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  fridgeId={activeFridge.id}
-                  product={product}
-                />
-              ))}
-              {soldOutProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  fridgeId={activeFridge.id}
-                  product={product}
-                />
-              ))}
-            </div>
+            <ProductList products={products} />
           )}
         </section>
 
