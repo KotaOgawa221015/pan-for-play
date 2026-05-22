@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/features/account/auth';
 import { requireAdminUser } from '@/features/account/session-user';
 import { listCatalogProducts } from '@/features/product-catalog/products';
+import { deleteStoredDeliveryNoteImage } from './delivery-note/delete-stored-image';
 import { extractProductsFromDeliveryNote } from './delivery-note/extract-products';
 import { readDeliveryNoteUpload } from './delivery-note/read-upload';
 import { storeDeliveryNoteImage } from './delivery-note/store-image';
@@ -23,9 +24,10 @@ export async function startReceivingReview(formData: FormData) {
     userId: currentUserId,
     fileName: uploadedDeliveryNote.fileName,
   });
+  let storagePath: string | null = null;
 
   try {
-    const storagePath = await storeDeliveryNoteImage({
+    storagePath = await storeDeliveryNoteImage({
       batchId: batch.id,
       fileName: batch.originalFileName,
       imageBuffer: uploadedDeliveryNote.imageBuffer,
@@ -58,6 +60,18 @@ export async function startReceivingReview(formData: FormData) {
     return persistedDraft;
   } catch (error) {
     await failReviewBatch(batch.id);
+
+    if (storagePath) {
+      try {
+        await deleteStoredDeliveryNoteImage(storagePath);
+      } catch (cleanupError) {
+        console.error(
+          'Failed to clean up delivery note image after read error:',
+          cleanupError,
+        );
+      }
+    }
+
     revalidatePath('/admin');
 
     if (error instanceof UnreadableDeliveryNoteImageError) {

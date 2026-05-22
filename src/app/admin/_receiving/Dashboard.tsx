@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useReducer, startTransition } from 'react';
+import { startTransition, useReducer } from 'react';
 import { deleteReceivingBatch } from '@/features/receiving/history/delete-batch';
 import { applyReceivingReview } from '@/features/receiving/publication/apply-review';
 import { reapplyReceivingBatch } from '@/features/receiving/publication/reapply-batch';
@@ -53,7 +53,12 @@ function reducer(state: State, action: Action): State {
         uploadKey: state.uploadKey + 1,
       };
     case 'READ_ERROR':
-      return { ...state, isReading: false, errorMessage: action.error };
+      return {
+        ...state,
+        isReading: false,
+        errorMessage: action.error,
+        uploadKey: state.uploadKey + 1,
+      };
     case 'START_APPLYING':
       return { ...state, isApplying: true, errorMessage: null };
     case 'APPLY_SUCCESS':
