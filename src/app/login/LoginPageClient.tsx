@@ -1,5 +1,6 @@
 'use client';
 
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import Link from 'next/link';
 import { useState, useTransition } from 'react';
 import {
@@ -52,7 +53,10 @@ export function LoginPageClient({
         if (result?.error) {
           setDevLoginError(result.error);
         }
-      } catch {
+      } catch (error) {
+        if (isRedirectError(error)) {
+          throw error;
+        }
         setDevLoginError('予期せぬエラーが発生しました。');
       }
     });
