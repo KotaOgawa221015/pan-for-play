@@ -1,5 +1,5 @@
 name: Setup Environment
-description: Install Node.js, setup mise for other tools, and install pnpm dependencies
+description: Install Node.js and repository dependencies
 
 inputs:
   node-version-file:
@@ -15,7 +15,7 @@ inputs:
     required: false
     default: '2026.4.27'
   args:
-    description: Arguments passed to `just setup`
+    description: Arguments passed to `pnpm install`
     required: false
     default: '--frozen-lockfile'
 runs:
@@ -37,6 +37,14 @@ runs:
         version: ${{ inputs.mise-version }}
         install_args: --locked
 
-    - name: Run just setup
-      run: mise exec -- just setup ${{ inputs.args }}
+    - name: Install dependencies
+      run: pnpm install ${{ inputs.args }}
+      shell: bash
+
+    - name: Install Playwright Browsers
+      run: pnpm exec playwright install
+      shell: bash
+
+    - name: Setup Development Database
+      run: pnpm exec tsx scripts/db.ts setup
       shell: bash
