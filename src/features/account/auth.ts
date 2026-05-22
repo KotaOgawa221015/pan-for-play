@@ -87,11 +87,12 @@ export function authorizeRouteAccess({
     cleanPath === '/terms' ||
     cleanPath === '/privacy';
   const isOnSessionClearPage = cleanPath === '/session/clear';
+  const isOnLoginPage = cleanPath === '/login';
   const isOnAdminRoute =
     cleanPath === '/admin' || cleanPath.startsWith('/admin/');
 
   if (user?.deletedAt) {
-    if (isOnSessionClearPage) return true;
+    if (isOnSessionClearPage || isOnLoginPage) return true;
     return Response.redirect(new URL('/session/clear', nextUrl));
   }
 
