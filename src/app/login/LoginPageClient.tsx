@@ -34,12 +34,9 @@ export function LoginPageClient({
     }
 
     startGoogleSignInTransition(async () => {
-      try {
-        await loginWithGoogleAction();
-      } catch {
-        setGoogleLoginError(
-          'Googleログインに失敗しました。しばらくしてから再試行してください。',
-        );
+      const result = await loginWithGoogleAction();
+      if (result?.error) {
+        setGoogleLoginError(result.error);
       }
     });
   };
