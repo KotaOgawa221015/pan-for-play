@@ -13,7 +13,7 @@ import {
 } from '@/types/inventory';
 
 type Props = {
-  product: Product;
+  product: Product & { lastPublishedAt?: string };
 };
 
 function formatRelativeTime(value: string): string {
@@ -126,13 +126,17 @@ export function ProductCard({ product }: Props) {
             {STATUS_LABELS[optimisticStatus]}
           </span>
 
-          {changedLabel && product.lastStatusChangedByName ? (
+          {isPending ? (
+            <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
+              更新中...
+            </span>
+          ) : changedLabel && product.lastStatusChangedByName ? (
             <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
               状態変更 {product.lastStatusChangedByName}・{changedLabel}
             </span>
-          ) : isPending ? (
+          ) : product.lastPublishedAt ? (
             <span className="text-[10px] text-zinc-400 font-medium mt-1 whitespace-nowrap">
-              更新中...
+              納品書反映・{formatRelativeTime(product.lastPublishedAt)}
             </span>
           ) : null}
         </div>
