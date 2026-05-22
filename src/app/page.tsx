@@ -26,7 +26,7 @@ export default async function Page({
 
   const fridges = await prisma.fridge.findMany({
     where: { deletedAt: null },
-    orderBy: { name: 'asc' },
+    orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
   });
   const activeFridgeId =
     queryFridgeId ||

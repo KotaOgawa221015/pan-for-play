@@ -21,7 +21,7 @@ export default async function UploadPage({
     listEligibleUsers(),
     prisma.fridge.findMany({
       where: { deletedAt: null },
-      orderBy: { name: 'asc' },
+      orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
     }),
   ]);
 
