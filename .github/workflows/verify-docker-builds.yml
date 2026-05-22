@@ -4,9 +4,9 @@ on:
   push:
     branches: ["main"]
     paths:
-      - 'Dockerfile'
+      - 'docker/Dockerfile'
       - '.dockerignore'
-      - 'compose.yaml'
+      - 'docker/compose.yaml'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'prisma/**'
@@ -15,9 +15,9 @@ on:
   pull_request:
     branches: ["main"]
     paths:
-      - 'Dockerfile'
+      - 'docker/Dockerfile'
       - '.dockerignore'
-      - 'compose.yaml'
+      - 'docker/compose.yaml'
       - 'package.json'
       - 'pnpm-lock.yaml'
       - 'prisma/**'
@@ -45,7 +45,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Docker Build Check (${{ matrix.target }})
-        run: docker build --target "${{ matrix.target }}" -t "pancolle-ci:${{ matrix.target }}" .
+        run: docker build --file docker/Dockerfile --target "${{ matrix.target }}" -t "pancolle-ci:${{ matrix.target }}" .
 
       - name: Docker Run Check (${{ matrix.target }})
         env:

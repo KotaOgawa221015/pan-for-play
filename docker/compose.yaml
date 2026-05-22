@@ -1,7 +1,8 @@
 services:
   web:
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
       target: ${PANCOLLE_BUILD_TARGET:-prod}
     ports:
       - "${PANCOLLE_HOST_IP:-127.0.0.1}:${PANCOLLE_PORT:-3000}:3000"
@@ -10,9 +11,11 @@ services:
       AUTH_GOOGLE_SECRET: ${AUTH_GOOGLE_SECRET:-}
       AUTH_SECRET: ${AUTH_SECRET:-}
       DATABASE_URL: ${DATABASE_URL:-file:./data/prod.db}
+    env_file:
+      - ../.env
     volumes:
-      - .:/app
-      - ./data:/app/data
+      - ..:/app
+      - ../data:/app/data
       - /app/node_modules
       - /app/.next
     healthcheck:
