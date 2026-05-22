@@ -16,7 +16,7 @@
     "setup": "bash -euo pipefail -c '(test -f .env || cp .env.example .env) && pnpm install \"$@\" && pnpm exec playwright install && pnpm exec tsx scripts/db.ts setup' _",
     "check": "biome check . && pnpm run typecheck",
     "fix": "biome check --write .",
-    "clean": "rm -rf .tmp coverage node_modules dist",
+    "clean": "sudo rm -rf .tmp coverage node_modules dist",
     "typecheck": "prisma generate && next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:unit": "vitest run src/",
