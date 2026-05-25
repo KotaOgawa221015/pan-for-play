@@ -2,6 +2,13 @@
 
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
+import {
+  browserAcceptValue,
+  isHeicExtension,
+  maxUploadBytes,
+  parseExtension,
+  uploadFormatLabel,
+} from '@/features/receiving/delivery-note/image-format';
 
 type Props = {
   fridges: { id: string; name: string; isDefault: boolean }[];
@@ -15,6 +22,14 @@ type Props = {
   onRead: (formData: FormData) => Promise<void>;
 };
 
+function isHeicFile(file: File): boolean {
+  if (file.type.toLowerCase() === 'image/heic') {
+    return true;
+  }
+  const extension = parseExtension(file.name.trim());
+  return isHeicExtension(extension);
+}
+
 export function UploadPanel({
   fridges,
   isReading,
@@ -26,6 +41,7 @@ export function UploadPanel({
   isError,
   onRead,
 }: Props) {
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState('');
@@ -36,9 +52,13 @@ export function UploadPanel({
     width: number;
     height: number;
   } | null>(null);
+  const isBusy = isReading;
+  const shownMessage = uploadError ?? message;
+  const shownAsError = uploadError ? true : isError;
+  const selectedFileIsHeic = selectedFile ? isHeicFile(selectedFile) : false;
 
   useEffect(() => {
-    if (!selectedFile) {
+    if (!selectedFile || isHeicFile(selectedFile)) {
       setPreviewUrl(null);
       return;
     }
@@ -82,12 +102,15 @@ export function UploadPanel({
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedFile) return;
-    await onRead(new FormData(event.currentTarget));
+    const formData = new FormData(event.currentTarget);
+    formData.set('file', selectedFile);
+    await onRead(formData);
   }
 
   function clearSelectedFile() {
     setSelectedFile(null);
     setFileName('');
+    setUploadError(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -100,8 +123,7 @@ export function UploadPanel({
           画像アップロード
         </h2>
         <p className="text-xs text-zinc-500">
-          PNG
-          の納品書画像を選択すると、読取結果をレビュー用モーダルで確認できます。
+          納品書画像を選択すると、読取結果をレビュー用モーダルで確認できます。
         </p>
       </div>
 
@@ -129,7 +151,19 @@ export function UploadPanel({
         ) : null}
 
         <label className="block border-2 border-dashed border-zinc-200 dark:border-zinc-700 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors">
-          {previewUrl ? (
+          {selectedFileIsHeic ? (
+            <div className="space-y-3">
+              <span className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                {fileName}
+              </span>
+              <span className="block text-xs text-zinc-500">
+                HEIC画像はアップロード後にJPGへ変換して読み取ります。
+              </span>
+              <span className="inline-flex rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
+                別の画像を選択
+              </span>
+            </div>
+          ) : previewUrl ? (
             <div className="space-y-3">
               <div className="relative mx-auto h-52 max-w-3xl overflow-hidden bg-zinc-50 dark:bg-zinc-950">
                 <Image
@@ -152,7 +186,7 @@ export function UploadPanel({
                 撮影した納品書の画像を選択してください
               </span>
               <span className="block text-xs text-zinc-400 dark:text-zinc-500 mb-4">
-                対応形式: PNGのみ | 最大サイズ: 5MBまで
+                対応形式: {uploadFormatLabel} | 最大サイズ: 5MBまで
               </span>
               <span className="inline-flex rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
                 ファイルを選択
@@ -163,28 +197,43 @@ export function UploadPanel({
             id="file"
             name="file"
             type="file"
-            accept="image/png"
+            accept={browserAcceptValue}
             required
-            disabled={isReading}
+            disabled={isBusy}
             ref={fileInputRef}
             onChange={(event) => {
               const nextFile = event.target.files?.[0] ?? null;
+              setUploadError(null);
+
+              if (!nextFile) {
+                clearSelectedFile();
+                return;
+              }
+
+              if (nextFile.size > maxUploadBytes) {
+                clearSelectedFile();
+                setUploadError(
+                  '納品書画像は 5MB 以下でアップロードしてください。',
+                );
+                return;
+              }
+
               setSelectedFile(nextFile);
-              setFileName(nextFile?.name.trim() ?? '');
+              setFileName(nextFile.name.trim());
             }}
             className="sr-only"
           />
         </label>
 
-        {message ? (
+        {shownMessage ? (
           <p
             className={`rounded-xl px-4 py-3 text-sm ${
-              isError
+              shownAsError
                 ? 'bg-rose-50 text-rose-700 border border-rose-100'
                 : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
             }`}
           >
-            {message}
+            {shownMessage}
           </p>
         ) : null}
 
@@ -200,7 +249,7 @@ export function UploadPanel({
             name="fridgeId"
             required
             defaultValue={fridges.find((f) => f.isDefault)?.id || ''}
-            disabled={isReading}
+            disabled={isBusy}
             className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm"
           >
             <option value="" disabled>
@@ -218,15 +267,15 @@ export function UploadPanel({
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
-              onClick={clearSelectedFile}
-              disabled={isReading}
+              onClick={() => clearSelectedFile()}
+              disabled={isBusy}
               className="w-full rounded-xl border border-rose-300 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50 dark:border-rose-700 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/50"
             >
               削除
             </button>
             <button
               type="submit"
-              disabled={isReading}
+              disabled={isBusy}
               className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:bg-zinc-400 transition shadow-lg shadow-emerald-500/20"
             >
               {isReading ? '読み取り中...' : '内容を読み取る'}
