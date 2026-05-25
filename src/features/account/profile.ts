@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { auth, signOut } from './auth';
@@ -14,7 +15,7 @@ const profileUpdateSchema = z.object({
     .trim()
     .min(1, { message: '表示名を入力してください' })
     .max(30, { message: '表示名は30文字以内で入力してください' }),
-  favoriteFridgeId: z.string().optional(),
+  favoriteFridgeId: z.string().nullable(),
 });
 
 export async function updateProfileAction(
@@ -27,7 +28,11 @@ export async function updateProfileAction(
 
   const parsed = profileUpdateSchema.safeParse({
     name: formData.get('name'),
-    favoriteFridgeId: formData.get('favoriteFridgeId') || undefined,
+    favoriteFridgeId: (() => {
+      const raw = formData.get('favoriteFridgeId');
+      if (typeof raw !== 'string') return null;
+      return raw.trim() ? raw : null;
+    })(),
   });
 
   if (!parsed.success) {
@@ -43,10 +48,11 @@ export async function updateProfileAction(
       data: { name, favoriteFridgeId },
     });
     revalidatePath('/profile');
-    return { success: 'プロフィールを更新しました' };
   } catch {
     return { error: '更新に失敗しました' };
   }
+
+  redirect('/profile?msg=profile_update_success');
 }
 
 export async function deleteAccountAction() {

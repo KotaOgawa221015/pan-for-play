@@ -32,6 +32,7 @@ export function FlashMessage({ msg }: { msg?: string }) {
     'logout_success',
     'session_invalid',
     'apply_success',
+    'profile_update_success',
   ];
   const isTriggered = Boolean(msg && validMessages.includes(msg));
 
@@ -73,6 +74,7 @@ export function FlashMessage({ msg }: { msg?: string }) {
     logout_success: 'ログアウトしました',
     session_invalid: 'セッションが無効です。再ログインしてください。',
     apply_success: '納品書が適用されました',
+    profile_update_success: 'プロフィールを更新しました',
   };
 
   return (
