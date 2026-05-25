@@ -1,7 +1,12 @@
-import path from 'node:path';
 import { z } from 'zod';
-
-const MAX_DELIVERY_NOTE_BYTES = 5 * 1024 * 1024;
+import { convertHeicUploadToJpeg } from './convert-heic-upload';
+import {
+  isHeicExtension,
+  isUploadExtension,
+  maxUploadBytes,
+  parseExtension,
+  uploadFormatLabel,
+} from './image-format';
 
 const deliveryNoteUploadSchema = z
   .object({
@@ -21,10 +26,10 @@ const deliveryNoteUploadSchema = z
       return;
     }
 
-    if (path.extname(fileName).toLowerCase() !== '.png') {
+    if (!isUploadExtension(parseExtension(fileName))) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: '納品書画像は PNG のみ対応しています。',
+        message: `納品書画像は ${uploadFormatLabel} のみ対応しています。`,
         path: ['file'],
       });
     }
@@ -37,7 +42,7 @@ const deliveryNoteUploadSchema = z
       });
     }
 
-    if (data.file.size > MAX_DELIVERY_NOTE_BYTES) {
+    if (data.file.size > maxUploadBytes) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: '納品書画像は 5MB 以下でアップロードしてください。',
@@ -61,9 +66,17 @@ export async function readDeliveryNoteUpload(formData: FormData): Promise<{
 
   const fileEntry = parsed.data.file;
   const fileName = fileEntry.name.trim();
+  const imageBuffer = Buffer.from(await fileEntry.arrayBuffer());
+
+  if (isHeicExtension(parseExtension(fileName))) {
+    return convertHeicUploadToJpeg({
+      fileName,
+      imageBuffer,
+    });
+  }
 
   return {
     fileName,
-    imageBuffer: Buffer.from(await fileEntry.arrayBuffer()),
+    imageBuffer,
   };
 }
