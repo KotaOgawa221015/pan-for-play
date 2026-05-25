@@ -99,6 +99,7 @@ export function FridgeManagementPanel({ fridges }: Props) {
       try {
         const result = await deleteFridge(selectedId);
         if (result.success) {
+          alert(`冷蔵庫「${selectedFridge.name}」を削除しました。`);
           setMessage({
             type: 'success',
             text: `冷蔵庫「${selectedFridge.name}」を削除しました。`,
@@ -106,6 +107,7 @@ export function FridgeManagementPanel({ fridges }: Props) {
           setSelectedId('');
         }
       } catch (err) {
+        alert(err instanceof Error ? err.message : '削除に失敗しました。');
         setMessage({
           type: 'error',
           text: err instanceof Error ? err.message : '削除に失敗しました。',
@@ -116,8 +118,8 @@ export function FridgeManagementPanel({ fridges }: Props) {
 
   return (
     <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">
-        冷蔵庫（保管場所）管理
+      <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-6">
+        冷蔵庫管理
       </h2>
 
       {message && (
