@@ -1,8 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useState } from 'react';
 import {
   deleteAccountAction,
   updateProfileAction,
@@ -17,28 +15,17 @@ export function ProfileForm({
   user: { name?: string | null; favoriteFridgeId?: string | null };
   fridges: Fridge[];
 }) {
-  const router = useRouter();
-  const [state, pAction, pPending] = useActionState(updateProfileAction, null);
-  const { update } = useSession();
+  const [, pAction, pPending] = useActionState(updateProfileAction, null);
 
-  const [name, setName] = useState(user.name || '');
+  const initialName = user.name || '';
+  const initialFavoriteFridgeId = user.favoriteFridgeId || '';
+  const [name, setName] = useState(initialName);
   const [favoriteFridgeId, setFavoriteFridgeId] = useState(
-    user.favoriteFridgeId || '',
+    initialFavoriteFridgeId,
   );
-
-  useEffect(() => {
-    if (!state?.success) {
-      return;
-    }
-
-    const trimmedName = name.trim();
-    void update({
-      name: trimmedName || undefined,
-      favoriteFridgeId: favoriteFridgeId || null,
-    });
-
-    router.replace('/profile?msg=profile_update_success', { scroll: false });
-  }, [state?.success, update, name, favoriteFridgeId, router]);
+  const hasChanges =
+    name.trim() !== initialName.trim() ||
+    favoriteFridgeId !== initialFavoriteFridgeId;
 
   const handleDeleteAccount = async () => {
     if (confirm('本当に退会しますか？この操作は取り消せません。')) {
@@ -93,7 +80,7 @@ export function ProfileForm({
 
           <button
             type="submit"
-            disabled={pPending}
+            disabled={pPending || !hasChanges}
             className="bg-zinc-900 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-zinc-800 transition disabled:opacity-50"
           >
             保存する

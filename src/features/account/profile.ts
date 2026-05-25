@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { auth, signOut } from './auth';
@@ -47,10 +48,11 @@ export async function updateProfileAction(
       data: { name, favoriteFridgeId },
     });
     revalidatePath('/profile');
-    return { success: 'プロフィールを更新しました' };
   } catch {
     return { error: '更新に失敗しました' };
   }
+
+  redirect('/profile?msg=profile_update_success');
 }
 
 export async function deleteAccountAction() {

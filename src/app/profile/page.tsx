@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { SessionProvider } from 'next-auth/react';
 import { FlashMessage } from '@/app/_components/FlashMessage';
 import { requireCurrentUser } from '@/features/account/session-user';
 import { prisma } from '@/lib/prisma';
@@ -51,9 +50,7 @@ export default async function ProfilePage({
           <header className="space-y-1">
             <h1 className="text-2xl font-semibold">マイページ</h1>
           </header>
-          <SessionProvider>
-            <ProfileForm user={user} fridges={fridges} />
-          </SessionProvider>
+          <ProfileForm user={user} fridges={fridges} />
         </div>
       </div>
     </>
