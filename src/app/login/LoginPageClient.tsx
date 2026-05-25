@@ -35,9 +35,16 @@ export function LoginPageClient({
     }
 
     startGoogleSignInTransition(async () => {
-      const result = await loginWithGoogleAction();
-      if (result?.error) {
-        setGoogleLoginError(result.error);
+      try {
+        const result = await loginWithGoogleAction();
+        if (result?.error) {
+          setGoogleLoginError(result.error);
+        }
+      } catch (error) {
+        if (isRedirectError(error)) {
+          throw error;
+        }
+        setGoogleLoginError('予期せぬエラーが発生しました。');
       }
     });
   };
@@ -96,12 +103,14 @@ export function LoginPageClient({
           に同意したものとみなされます。
         </p>
         {googleLoginError && (
-          <p
-            role="alert"
-            className="text-xs text-rose-600 dark:text-rose-400 leading-relaxed"
-          >
-            {googleLoginError}
-          </p>
+          <div className="p-3 border border-rose-200 bg-rose-50 dark:border-rose-900/50 dark:bg-rose-950/20 rounded-xl text-left">
+            <p
+              role="alert"
+              className="text-xs text-rose-600 dark:text-rose-400 font-mono leading-relaxed whitespace-pre-wrap"
+            >
+              {googleLoginError}
+            </p>
+          </div>
         )}
         {showDemoLogin && (
           <div className="pt-6 border-t border-zinc-100 dark:border-zinc-800">
