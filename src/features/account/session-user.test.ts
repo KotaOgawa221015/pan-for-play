@@ -65,15 +65,15 @@ describe('session user', () => {
     });
   });
 
-  it('redirects to login when session user does not exist in database', async () => {
+  it('redirects to session clear when session user does not exist in database', async () => {
     auth.mockResolvedValue({ user: { id: 'missing-user' } });
     userFindUnique.mockResolvedValue(null);
 
     await expect(requireCurrentUser()).rejects.toThrow('REDIRECT');
-    expect(redirect).toHaveBeenCalledWith('/login');
+    expect(redirect).toHaveBeenCalledWith('/session/clear');
   });
 
-  it('redirects to login when session user is soft deleted', async () => {
+  it('redirects to session clear when session user is soft deleted', async () => {
     auth.mockResolvedValue({ user: { id: 'deleted-user' } });
     userFindUnique.mockResolvedValue({
       id: 'deleted-user',
@@ -84,6 +84,6 @@ describe('session user', () => {
     });
 
     await expect(requireCurrentUser()).rejects.toThrow('REDIRECT');
-    expect(redirect).toHaveBeenCalledWith('/login');
+    expect(redirect).toHaveBeenCalledWith('/session/clear');
   });
 });

@@ -16,9 +16,9 @@ export type SessionStatus =
   | { status: 'invalid' }
   | { status: 'authenticated'; user: AuthenticatedUser };
 
-async function getCurrentUser() {
+async function getSessionStatus(): Promise<SessionStatus> {
   const session = await auth();
-  if (!session?.user?.id) return null;
+  if (!session?.user?.id) return { status: 'anonymous' };
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
@@ -33,26 +33,33 @@ async function getCurrentUser() {
   });
 
   if (!user || user.deletedAt) {
-    return null;
+    return { status: 'invalid' };
   }
 
   return {
-    id: user.id,
-    email: user.email,
-    name: user.name,
-    role: user.role,
-    favoriteFridgeId: user.favoriteFridgeId,
+    status: 'authenticated',
+    user: {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      favoriteFridgeId: user.favoriteFridgeId,
+    },
   };
 }
 
 export async function requireCurrentUser() {
-  const user = await getCurrentUser();
+  const sessionStatus = await getSessionStatus();
 
-  if (!user) {
+  if (sessionStatus.status === 'anonymous') {
     redirect('/login');
   }
 
-  return user;
+  if (sessionStatus.status === 'invalid') {
+    redirect('/session/clear');
+  }
+
+  return sessionStatus.user;
 }
 
 export async function requireAdminUser() {

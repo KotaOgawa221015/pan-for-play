@@ -229,7 +229,7 @@ export function UploadPanel({
               disabled={isReading}
               className="w-full py-4 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 disabled:bg-zinc-400 transition shadow-lg shadow-emerald-500/20"
             >
-              {isReading ? '読み取り中...' : 'アップロードして読み込む'}
+              {isReading ? '読み取り中...' : '内容を読み取る'}
             </button>
           </div>
         ) : null}

@@ -80,6 +80,37 @@ describe('account auth', () => {
     );
   });
 
+  it('allows login page for soft-deleted users to prevent redirect loops', () => {
+    const result = authorizeRouteAccess({
+      auth: {
+        user: {
+          id: 'user-1',
+          deletedAt: new Date(),
+        },
+      } as never,
+      request: createRequest('/login'),
+    });
+
+    expect(result).toBe(true);
+  });
+
+  it('redirects soft-deleted users to session clear on protected routes', () => {
+    const result = authorizeRouteAccess({
+      auth: {
+        user: {
+          id: 'user-1',
+          deletedAt: new Date(),
+        },
+      } as never,
+      request: createRequest('/'),
+    });
+
+    expect(result).toBeInstanceOf(Response);
+    expect((result as Response).headers.get('location')).toBe(
+      'https://example.com/session/clear',
+    );
+  });
+
   it('allows server action requests to continue to action-level authorization', () => {
     const result = authorizeRouteAccess({
       auth: null,
