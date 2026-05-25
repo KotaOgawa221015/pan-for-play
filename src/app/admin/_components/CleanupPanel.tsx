@@ -35,20 +35,22 @@ export function CleanupPanel() {
   };
 
   return (
-    <div className="mt-12 border-t pt-8 border-gray-200">
-      <h3 className="text-lg font-bold text-gray-700 mb-4">
-        データメンテナンス（管理者専用）
-      </h3>
-      <p className="text-sm text-gray-500 mb-6">
-        削除または退会から30日以上が経過した古いデータをデータベースから完全に消去し、ストレージ容量を解放します。
-      </p>
+    <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm">
+      <div className="mb-6 space-y-2">
+        <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
+          データメンテナンス
+        </h2>
+        <p className="text-xs text-zinc-500">
+          削除または退会から30日以上が経過した古いデータをデータベースから完全に消去し、ストレージ容量を解放します。
+        </p>
+      </div>
 
-      <div className="flex flex-wrap gap-4">
+      <div className="flex flex-col gap-4">
         <button
           type="button"
           onClick={handleFridgeCleanup}
           disabled={isFridgeLoading}
-          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-sm font-medium shadow disabled:bg-gray-400 transition"
+          className="w-full rounded-xl border border-rose-300 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-700 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/50"
         >
           {isFridgeLoading
             ? '冷蔵庫データクリーンアップ中...'
@@ -59,13 +61,13 @@ export function CleanupPanel() {
           type="button"
           onClick={handleUserCleanup}
           disabled={isUserLoading}
-          className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded text-sm font-medium shadow disabled:bg-gray-400 transition"
+          className="w-full rounded-xl border border-rose-300 bg-rose-50 px-5 py-4 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:opacity-50 dark:border-rose-700 dark:bg-rose-950/30 dark:text-rose-300 dark:hover:bg-rose-950/50"
         >
           {isUserLoading
             ? 'ユーザークリーンアップ中...'
             : '退会ユーザーのクリーンアップ'}
         </button>
       </div>
-    </div>
+    </section>
   );
 }
