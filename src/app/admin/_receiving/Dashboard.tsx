@@ -263,6 +263,23 @@ export function Dashboard({ recentHistory, fridges }: Props) {
     });
   };
 
+  const requestDeleteBatch = (batchId: string) => {
+    const targetEntry = recentHistory.find((entry) => entry.id === batchId);
+    const label = targetEntry?.originalFileName ?? 'この納品書';
+    if (
+      !confirm(
+        `「${label}」を削除しますか？\nこの納品書を適用中の冷蔵庫は、削除後に未適用になります。`,
+      )
+    ) {
+      return;
+    }
+
+    runBatchAction(batchId, () => deleteReceivingBatch(batchId), {
+      success: 'delete_success',
+      failed: 'delete_failed',
+    });
+  };
+
   return (
     <div className="space-y-6">
       <UploadPanel
@@ -282,12 +299,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
         entries={recentHistory}
         busyBatchId={busyBatchId}
         onReapply={openReapplyModal}
-        onDelete={(batchId) =>
-          runBatchAction(batchId, () => deleteReceivingBatch(batchId), {
-            success: 'delete_success',
-            failed: 'delete_failed',
-          })
-        }
+        onDelete={requestDeleteBatch}
       />
 
       <ReapplyModal

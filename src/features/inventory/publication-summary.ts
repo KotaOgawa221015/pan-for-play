@@ -7,11 +7,6 @@ export async function getCurrentInventoryPublicationSummary(
   const publication = await prisma.inventoryPublication.findFirst({
     where: {
       fridgeId,
-      uploadBatch: {
-        is: {
-          deletedAt: null,
-        },
-      },
     },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
@@ -22,6 +17,7 @@ export async function getCurrentInventoryPublicationSummary(
       },
       uploadBatch: {
         select: {
+          deletedAt: true,
           originalFileName: true,
         },
       },
@@ -44,7 +40,7 @@ export async function getCurrentInventoryPublicationSummary(
     },
   });
 
-  if (!publication) {
+  if (!publication || publication.uploadBatch.deletedAt) {
     return null;
   }
 

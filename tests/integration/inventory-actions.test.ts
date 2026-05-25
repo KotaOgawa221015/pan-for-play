@@ -96,17 +96,13 @@ describe('inventory server actions', () => {
     expect(inventoryPublicationFindFirst).toHaveBeenCalledWith({
       where: {
         fridgeId: 'fridge-1',
-        uploadBatch: {
-          is: {
-            deletedAt: null,
-          },
-        },
       },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       select: {
         publishedAt: true,
         uploadBatch: {
           select: {
+            deletedAt: true,
             lines: {
               orderBy: {
                 lineNumber: 'asc',
@@ -180,5 +176,23 @@ describe('inventory server actions', () => {
 
     inventoryPublicationFindFirst.mockResolvedValueOnce(null);
     await expect(getInventoryProducts('fridge-1')).resolves.toEqual([]);
+  });
+
+  it('returns empty when the latest publication references a deleted delivery note', async () => {
+    inventoryPublicationFindFirst.mockResolvedValue({
+      publishedAt: new Date('2026-05-12T12:00:00.000Z'),
+      uploadBatch: {
+        deletedAt: new Date('2026-05-12T12:10:00.000Z'),
+        lines: [
+          {
+            count: 8,
+            matchedProduct: { id: 'bread', name: '食パン', category: 'BREAD' },
+          },
+        ],
+      },
+    });
+
+    await expect(getInventoryProducts('fridge-1')).resolves.toEqual([]);
+    expect(inventoryStatusChangeFindMany).not.toHaveBeenCalled();
   });
 });

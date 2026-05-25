@@ -4,16 +4,14 @@ import type { HistoryEntry } from '../types';
 export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
   const [currentPublication, batches] = await Promise.all([
     prisma.inventoryPublication.findFirst({
-      where: {
-        uploadBatch: {
-          is: {
-            deletedAt: null,
-          },
-        },
-      },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       select: {
         uploadBatchId: true,
+        uploadBatch: {
+          select: {
+            deletedAt: true,
+          },
+        },
       },
     }),
     prisma.uploadBatch.findMany({
@@ -74,7 +72,10 @@ export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
       appliedFridgeNames,
       lastPublishedByName:
         batch.inventoryPublications[0]?.publishedByUser.name ?? null,
-      isCurrent: currentPublication?.uploadBatchId === batch.id,
+      isCurrent:
+        Boolean(currentPublication) &&
+        !currentPublication?.uploadBatch.deletedAt &&
+        currentPublication?.uploadBatchId === batch.id,
       lines: batch.lines.map((line) => ({
         id: line.id,
         name: line.rawText,

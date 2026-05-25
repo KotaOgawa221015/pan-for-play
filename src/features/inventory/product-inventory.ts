@@ -8,17 +8,13 @@ export async function getInventoryProducts(
   const currentPublication = await prisma.inventoryPublication.findFirst({
     where: {
       fridgeId,
-      uploadBatch: {
-        is: {
-          deletedAt: null,
-        },
-      },
     },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     select: {
       publishedAt: true,
       uploadBatch: {
         select: {
+          deletedAt: true,
           lines: {
             orderBy: { lineNumber: 'asc' },
             include: {
@@ -32,7 +28,8 @@ export async function getInventoryProducts(
     },
   });
 
-  if (!currentPublication) return [];
+  if (!currentPublication || currentPublication.uploadBatch.deletedAt)
+    return [];
 
   const visibleLines = currentPublication.uploadBatch.lines.filter(
     (line) => line.matchedProduct && line.count > 0,
