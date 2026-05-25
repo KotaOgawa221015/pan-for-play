@@ -1,7 +1,8 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import {
   deleteAccountAction,
   updateProfileAction,
@@ -16,6 +17,7 @@ export function ProfileForm({
   user: { name?: string | null; favoriteFridgeId?: string | null };
   fridges: Fridge[];
 }) {
+  const router = useRouter();
   const [state, pAction, pPending] = useActionState(updateProfileAction, null);
   const { update } = useSession();
 
@@ -23,7 +25,6 @@ export function ProfileForm({
   const [favoriteFridgeId, setFavoriteFridgeId] = useState(
     user.favoriteFridgeId || '',
   );
-  const lastSyncedNameRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!state?.success) {
@@ -31,13 +32,13 @@ export function ProfileForm({
     }
 
     const trimmedName = name.trim();
-    if (!trimmedName || lastSyncedNameRef.current === trimmedName) {
-      return;
-    }
+    void update({
+      name: trimmedName || undefined,
+      favoriteFridgeId: favoriteFridgeId || null,
+    });
 
-    lastSyncedNameRef.current = trimmedName;
-    void update({ name: trimmedName });
-  }, [state?.success, update, name]);
+    router.replace('/profile?msg=profile_update_success', { scroll: false });
+  }, [state?.success, update, name, favoriteFridgeId, router]);
 
   const handleDeleteAccount = async () => {
     if (confirm('本当に退会しますか？この操作は取り消せません。')) {

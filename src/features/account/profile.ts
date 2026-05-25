@@ -14,7 +14,7 @@ const profileUpdateSchema = z.object({
     .trim()
     .min(1, { message: '表示名を入力してください' })
     .max(30, { message: '表示名は30文字以内で入力してください' }),
-  favoriteFridgeId: z.string().optional(),
+  favoriteFridgeId: z.string().nullable(),
 });
 
 export async function updateProfileAction(
@@ -27,7 +27,11 @@ export async function updateProfileAction(
 
   const parsed = profileUpdateSchema.safeParse({
     name: formData.get('name'),
-    favoriteFridgeId: formData.get('favoriteFridgeId') || undefined,
+    favoriteFridgeId: (() => {
+      const raw = formData.get('favoriteFridgeId');
+      if (typeof raw !== 'string') return null;
+      return raw.trim() ? raw : null;
+    })(),
   });
 
   if (!parsed.success) {
