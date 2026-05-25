@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -121,7 +121,6 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
         uploadedByUserId: userActive.id,
         originalFileName: 'receipt.png',
         storagePath: dummyFilePath,
-        processingStatus: 'PROCESSED',
       },
     });
 
@@ -130,7 +129,6 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
         fridgeId: fridgeActive.id,
         uploadedByUserId: userTarget.id,
         originalFileName: 'user_history.png',
-        processingStatus: 'PROCESSED',
       },
     });
 
