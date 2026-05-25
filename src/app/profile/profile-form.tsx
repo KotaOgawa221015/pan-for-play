@@ -1,7 +1,7 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useActionState, useEffect, useState } from 'react';
+import { useActionState, useEffect, useRef, useState } from 'react';
 import {
   deleteAccountAction,
   updateProfileAction,
@@ -23,12 +23,21 @@ export function ProfileForm({
   const [favoriteFridgeId, setFavoriteFridgeId] = useState(
     user.favoriteFridgeId || '',
   );
+  const lastSyncedNameRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (state?.success) {
-      update({ name: name.trim() });
+    if (!state?.success) {
+      return;
     }
-  }, [state, update, name]);
+
+    const trimmedName = name.trim();
+    if (!trimmedName || lastSyncedNameRef.current === trimmedName) {
+      return;
+    }
+
+    lastSyncedNameRef.current = trimmedName;
+    void update({ name: trimmedName });
+  }, [state?.success, update, name]);
 
   const handleDeleteAccount = async () => {
     if (confirm('本当に退会しますか？この操作は取り消せません。')) {
