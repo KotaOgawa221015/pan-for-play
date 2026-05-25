@@ -11,7 +11,6 @@ export async function createPendingReviewBatch(input: {
       uploadedByUserId: input.userId,
       originalFileName: input.fileName,
       storagePath: null,
-      processingStatus: 'PENDING',
     },
     select: {
       id: true,

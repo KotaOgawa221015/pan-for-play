@@ -6,11 +6,15 @@ export async function getInventoryProducts(
   fridgeId: string,
 ): Promise<Product[]> {
   const currentPublication = await prisma.inventoryPublication.findFirst({
-    where: { fridgeId },
+    where: {
+      fridgeId,
+    },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-    include: {
+    select: {
+      publishedAt: true,
       uploadBatch: {
-        include: {
+        select: {
+          deletedAt: true,
           lines: {
             orderBy: { lineNumber: 'asc' },
             include: {
@@ -24,7 +28,8 @@ export async function getInventoryProducts(
     },
   });
 
-  if (!currentPublication) return [];
+  if (!currentPublication || currentPublication.uploadBatch.deletedAt)
+    return [];
 
   const visibleLines = currentPublication.uploadBatch.lines.filter(
     (line) => line.matchedProduct && line.count > 0,

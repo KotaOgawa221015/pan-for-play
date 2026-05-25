@@ -17,11 +17,14 @@ async function updateProductStatusInternal(
 
   await prisma.$transaction(async (tx) => {
     const currentPublication = await tx.inventoryPublication.findFirst({
-      where: { fridgeId },
+      where: {
+        fridgeId,
+      },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-      include: {
+      select: {
         uploadBatch: {
-          include: {
+          select: {
+            deletedAt: true,
             lines: {
               where: {
                 matchedProductId: productId,
@@ -46,6 +49,10 @@ async function updateProductStatusInternal(
         nextStatus: true,
       },
     });
+
+    if (currentPublication?.uploadBatch.deletedAt) {
+      throw new Error('現在の在庫ボードに存在しない商品は更新できません。');
+    }
 
     const publicationLine = currentPublication?.uploadBatch.lines[0];
     if (!publicationLine) {

@@ -7,9 +7,17 @@ export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       select: {
         uploadBatchId: true,
+        uploadBatch: {
+          select: {
+            deletedAt: true,
+          },
+        },
       },
     }),
     prisma.uploadBatch.findMany({
+      where: {
+        deletedAt: null,
+      },
       orderBy: { createdAt: 'desc' },
       take: 10,
       include: {
@@ -30,6 +38,11 @@ export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
             { id: 'desc' },
           ],
           include: {
+            fridge: {
+              select: {
+                name: true,
+              },
+            },
             publishedByUser: {
               select: {
                 name: true,
@@ -41,24 +54,34 @@ export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
     }),
   ]);
 
-  return batches.map((batch) => ({
-    id: batch.id,
-    originalFileName: batch.originalFileName,
-    processingStatus: batch.processingStatus,
-    createdAt: batch.createdAt.toISOString(),
-    processedAt: batch.processedAt?.toISOString() ?? null,
-    lineCount: batch.lines.length,
-    publicationCount: batch.inventoryPublications.length,
-    lastPublishedAt:
-      batch.inventoryPublications[0]?.publishedAt.toISOString() ?? null,
-    lastPublishedByName:
-      batch.inventoryPublications[0]?.publishedByUser.name ?? null,
-    isCurrent: currentPublication?.uploadBatchId === batch.id,
-    lines: batch.lines.map((line) => ({
-      id: line.id,
-      name: line.rawText,
-      count: line.count,
-      matchedProductName: line.matchedProduct?.name ?? null,
-    })),
-  }));
+  return batches.map((batch) => {
+    const appliedFridgeNames = [
+      ...new Set(
+        batch.inventoryPublications.map(
+          (publication) => publication.fridge.name,
+        ),
+      ),
+    ];
+
+    return {
+      id: batch.id,
+      originalFileName: batch.originalFileName,
+      createdAt: batch.createdAt.toISOString(),
+      processedAt: batch.processedAt?.toISOString() ?? null,
+      hasPublication: batch.inventoryPublications.length > 0,
+      appliedFridgeNames,
+      lastPublishedByName:
+        batch.inventoryPublications[0]?.publishedByUser.name ?? null,
+      isCurrent:
+        Boolean(currentPublication) &&
+        !currentPublication?.uploadBatch.deletedAt &&
+        currentPublication?.uploadBatchId === batch.id,
+      lines: batch.lines.map((line) => ({
+        id: line.id,
+        name: line.rawText,
+        count: line.count,
+        matchedProductName: line.matchedProduct?.name ?? null,
+      })),
+    };
+  });
 }

@@ -5,7 +5,9 @@ export async function getCurrentInventoryPublicationSummary(
   fridgeId: string,
 ): Promise<InventoryPublicationSummary | null> {
   const publication = await prisma.inventoryPublication.findFirst({
-    where: { fridgeId },
+    where: {
+      fridgeId,
+    },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
       publishedByUser: {
@@ -15,6 +17,7 @@ export async function getCurrentInventoryPublicationSummary(
       },
       uploadBatch: {
         select: {
+          deletedAt: true,
           originalFileName: true,
         },
       },
@@ -37,7 +40,7 @@ export async function getCurrentInventoryPublicationSummary(
     },
   });
 
-  if (!publication) {
+  if (!publication || publication.uploadBatch.deletedAt) {
     return null;
   }
 

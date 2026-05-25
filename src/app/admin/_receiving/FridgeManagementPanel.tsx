@@ -88,7 +88,7 @@ export function FridgeManagementPanel({ fridges }: Props) {
 
     if (
       !confirm(
-        `本当に「${selectedFridge.name}」を削除しますか？\n※過去の在庫データや履歴との整合性を保つため、論理削除されます。`,
+        `本当に「${selectedFridge.name}」を削除しますか？\n削除すると、この冷蔵庫は選択肢に表示されなくなり、お気に入り登録者はデフォルト冷蔵庫に切り替わります。`,
       )
     ) {
       return;
@@ -99,6 +99,7 @@ export function FridgeManagementPanel({ fridges }: Props) {
       try {
         const result = await deleteFridge(selectedId);
         if (result.success) {
+          alert(`冷蔵庫「${selectedFridge.name}」を削除しました。`);
           setMessage({
             type: 'success',
             text: `冷蔵庫「${selectedFridge.name}」を削除しました。`,
@@ -106,6 +107,7 @@ export function FridgeManagementPanel({ fridges }: Props) {
           setSelectedId('');
         }
       } catch (err) {
+        alert(err instanceof Error ? err.message : '削除に失敗しました。');
         setMessage({
           type: 'error',
           text: err instanceof Error ? err.message : '削除に失敗しました。',
@@ -116,8 +118,8 @@ export function FridgeManagementPanel({ fridges }: Props) {
 
   return (
     <div className="bg-white shadow rounded-lg p-6 border border-gray-200">
-      <h2 className="text-xl font-bold text-gray-900 mb-6">
-        冷蔵庫（保管場所）管理
+      <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-6">
+        冷蔵庫管理
       </h2>
 
       {message && (
@@ -178,18 +180,6 @@ export function FridgeManagementPanel({ fridges }: Props) {
 
               <div className="flex space-x-3 pt-2">
                 <button
-                  type="submit"
-                  disabled={
-                    isPending ||
-                    !renameName.trim() ||
-                    renameName === selectedFridge.name
-                  }
-                  className="flex-1 justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  名前を変更
-                </button>
-
-                <button
                   type="button"
                   onClick={handleDelete}
                   disabled={isPending || selectedFridge.isDefault}
@@ -201,6 +191,18 @@ export function FridgeManagementPanel({ fridges }: Props) {
                   }
                 >
                   削除
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={
+                    isPending ||
+                    !renameName.trim() ||
+                    renameName === selectedFridge.name
+                  }
+                  className="flex-1 justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+                >
+                  名前を変更
                 </button>
               </div>
             </form>

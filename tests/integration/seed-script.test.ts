@@ -98,9 +98,6 @@ describe('seed script', () => {
       },
     });
     expect(batches).toHaveLength(receivingHistoryFixture.batches.length);
-    expect(
-      batches.every((batch) => batch.processingStatus === 'PROCESSED'),
-    ).toBe(true);
 
     const publications = await prisma.inventoryPublication.findMany({
       orderBy: { publishedAt: 'asc' },

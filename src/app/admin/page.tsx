@@ -57,9 +57,9 @@ export default async function UploadPage({
             </Link>
           </header>
 
+          <Dashboard recentHistory={recentHistory} fridges={fridges} />
           <UserManagementPanel users={users} currentAdminId={currentAdmin.id} />
           <FridgeManagementPanel fridges={fridges} />
-          <Dashboard recentHistory={recentHistory} fridges={fridges} />
           <CleanupPanel />
         </div>
       </div>

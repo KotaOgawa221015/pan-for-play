@@ -19,9 +19,12 @@ type Props = {
   currentAdminId: string;
 };
 
+const USERS_PER_PAGE = 20;
+
 export function UserManagementPanel({ users, currentAdminId }: Props) {
   const [isPending, startTransition] = useTransition();
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const filteredUsers = users.filter((user) => {
     const query = searchQuery.toLowerCase().trim();
@@ -30,6 +33,16 @@ export function UserManagementPanel({ users, currentAdminId }: Props) {
       user.email.toLowerCase().includes(query)
     );
   });
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredUsers.length / USERS_PER_PAGE),
+  );
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * USERS_PER_PAGE;
+  const pagedUsers = filteredUsers.slice(
+    startIndex,
+    startIndex + USERS_PER_PAGE,
+  );
 
   const handlePromote = (userId: string, userName: string) => {
     if (!confirm(`本当に ${userName} を管理者に昇格させますか？`)) return;
@@ -83,7 +96,10 @@ export function UserManagementPanel({ users, currentAdminId }: Props) {
           type="text"
           placeholder="名前またはメールアドレスで検索..."
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            setCurrentPage(1);
+          }}
           className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-500 transition"
         />
       </div>
@@ -94,7 +110,7 @@ export function UserManagementPanel({ users, currentAdminId }: Props) {
             該当するユーザーが見つかりません。
           </p>
         ) : (
-          filteredUsers.map((user) => {
+          pagedUsers.map((user) => {
             const isAdmin = user.role === UserRole.ADMIN;
             const isSelf = user.id === currentAdminId;
 
@@ -146,6 +162,39 @@ export function UserManagementPanel({ users, currentAdminId }: Props) {
           })
         )}
       </div>
+
+      {filteredUsers.length > USERS_PER_PAGE ? (
+        <div className="mt-4 flex items-center justify-between gap-3 text-xs text-zinc-500">
+          <p>
+            {startIndex + 1}-
+            {Math.min(startIndex + USERS_PER_PAGE, filteredUsers.length)} /{' '}
+            {filteredUsers.length}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={safeCurrentPage === 1}
+              className="rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 transition"
+            >
+              前へ
+            </button>
+            <span className="text-zinc-600 dark:text-zinc-400">
+              {safeCurrentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
+              disabled={safeCurrentPage === totalPages}
+              className="rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 transition"
+            >
+              次へ
+            </button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

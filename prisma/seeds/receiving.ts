@@ -50,7 +50,6 @@ export async function seedReceivingHistory(
         uploadedByUserId: adminUser.id,
         originalFileName: history.originalFileName,
         storagePath: null,
-        processingStatus: 'PROCESSED',
         processedAt,
       },
     });

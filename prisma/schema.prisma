@@ -17,12 +17,6 @@ enum ProductCategory {
   SOUP
 }
 
-enum UploadBatchProcessingStatus {
-  PENDING
-  PROCESSED
-  FAILED
-}
-
 enum UploadBatchLineMatchStatus {
   MATCHED
   UNMATCHED
@@ -122,8 +116,8 @@ model UploadBatch {
   uploadedByUserId String
   originalFileName String
   storagePath      String?
-  processingStatus UploadBatchProcessingStatus @default(PENDING)
   processedAt      DateTime?
+  deletedAt        DateTime?
   createdAt        DateTime                  @default(now())
   updatedAt        DateTime                  @updatedAt
 

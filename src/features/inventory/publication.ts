@@ -8,15 +8,24 @@ type InventoryLine = {
 type InventoryPublicationWriter = {
   inventoryPublication: {
     findFirst(args: {
-      where?: { fridgeId: string };
+      where?: {
+        fridgeId: string;
+        uploadBatch?: {
+          is: {
+            deletedAt: Date | null;
+          };
+        };
+      };
       orderBy: Array<
         | { publishedAt: 'asc' | 'desc' }
         | { createdAt: 'asc' | 'desc' }
         | { id: 'asc' | 'desc' }
       >;
-      include: {
+      select: {
+        uploadBatchId: true;
         uploadBatch: {
-          include: {
+          select: {
+            deletedAt: true;
             lines: {
               select: {
                 count: true;
@@ -29,6 +38,7 @@ type InventoryPublicationWriter = {
     }): Promise<{
       uploadBatchId: string;
       uploadBatch: {
+        deletedAt: Date | null;
         lines: Array<{
           count: number;
           matchedProductId: string | null;
@@ -121,6 +131,7 @@ function buildStatusChanges(input: {
 function getPublishedLines(
   publication: {
     uploadBatch: {
+      deletedAt: Date | null;
       lines: Array<{
         count: number;
         matchedProductId: string | null;
@@ -128,6 +139,10 @@ function getPublishedLines(
     };
   } | null,
 ) {
+  if (publication?.uploadBatch.deletedAt) {
+    return [];
+  }
+
   return (
     publication?.uploadBatch.lines.flatMap((line) =>
       line.matchedProductId
@@ -148,11 +163,15 @@ export async function publishInventorySnapshot(
   },
 ) {
   const currentPublication = await tx.inventoryPublication.findFirst({
-    where: { fridgeId: input.fridgeId },
+    where: {
+      fridgeId: input.fridgeId,
+    },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-    include: {
+    select: {
+      uploadBatchId: true,
       uploadBatch: {
-        include: {
+        select: {
+          deletedAt: true,
           lines: {
             select: {
               count: true,
@@ -164,7 +183,11 @@ export async function publishInventorySnapshot(
     },
   });
 
-  if (currentPublication?.uploadBatchId === input.uploadBatchId) {
+  if (
+    currentPublication &&
+    !currentPublication.uploadBatch.deletedAt &&
+    currentPublication.uploadBatchId === input.uploadBatchId
+  ) {
     throw new Error('この納品書はすでに現在の在庫として公開されています。');
   }
 
