@@ -28,8 +28,11 @@ async function applyReceivingReviewInternal(
   const publishedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
-    const batch = await tx.uploadBatch.findUnique({
-      where: { id: parsedInput.batchId },
+    const batch = await tx.uploadBatch.findFirst({
+      where: {
+        id: parsedInput.batchId,
+        deletedAt: null,
+      },
       include: {
         lines: {
           orderBy: { lineNumber: 'asc' },
@@ -41,8 +44,8 @@ async function applyReceivingReviewInternal(
       throw new Error('対象の納品書履歴が存在しません。');
     }
 
-    if (batch.processingStatus !== 'PROCESSED') {
-      throw new Error('レビュー待ちの納品書だけを適用できます。');
+    if (batch.lines.length === 0) {
+      throw new Error('反映対象の納品書行が存在しません。');
     }
 
     const batchLineIds = new Set(batch.lines.map((line) => line.id));

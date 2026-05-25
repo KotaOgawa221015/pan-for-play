@@ -8,9 +8,10 @@ export async function getInventoryProducts(
   const currentPublication = await prisma.inventoryPublication.findFirst({
     where: { fridgeId },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-    include: {
+    select: {
+      publishedAt: true,
       uploadBatch: {
-        include: {
+        select: {
           lines: {
             orderBy: { lineNumber: 'asc' },
             include: {

@@ -19,9 +19,9 @@ async function updateProductStatusInternal(
     const currentPublication = await tx.inventoryPublication.findFirst({
       where: { fridgeId },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-      include: {
+      select: {
         uploadBatch: {
-          include: {
+          select: {
             lines: {
               where: {
                 matchedProductId: productId,

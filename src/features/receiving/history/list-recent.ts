@@ -10,6 +10,9 @@ export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
       },
     }),
     prisma.uploadBatch.findMany({
+      where: {
+        deletedAt: null,
+      },
       orderBy: { createdAt: 'desc' },
       take: 10,
       include: {
@@ -44,11 +47,9 @@ export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
   return batches.map((batch) => ({
     id: batch.id,
     originalFileName: batch.originalFileName,
-    processingStatus: batch.processingStatus,
     createdAt: batch.createdAt.toISOString(),
     processedAt: batch.processedAt?.toISOString() ?? null,
-    lineCount: batch.lines.length,
-    publicationCount: batch.inventoryPublications.length,
+    hasPublication: batch.inventoryPublications.length > 0,
     lastPublishedAt:
       batch.inventoryPublications[0]?.publishedAt.toISOString() ?? null,
     lastPublishedByName:

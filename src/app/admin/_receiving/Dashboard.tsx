@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { startTransition, useReducer } from 'react';
+import { startTransition, useReducer, useState } from 'react';
 import { deleteReceivingBatch } from '@/features/receiving/history/delete-batch';
 import { applyReceivingReview } from '@/features/receiving/publication/apply-review';
 import { reapplyReceivingBatch } from '@/features/receiving/publication/reapply-batch';
@@ -12,6 +12,7 @@ import type {
   ReviewInput,
 } from '@/features/receiving/types';
 import { HistoryList } from './HistoryList';
+import { ReapplyModal } from './ReapplyModal';
 import { ReviewModal } from './ReviewModal';
 import { UploadPanel } from './UploadPanel';
 
@@ -112,6 +113,9 @@ type Props = {
 
 export function Dashboard({ recentHistory, fridges }: Props) {
   const router = useRouter();
+  const [reapplyBatchId, setReapplyBatchId] = useState<string | null>(null);
+  const [reapplyFridgeId, setReapplyFridgeId] = useState('');
+  const [isReapplying, setIsReapplying] = useState(false);
   const [state, dispatch] = useReducer(reducer, {
     draft: null,
     isModalOpen: false,
@@ -137,6 +141,9 @@ export function Dashboard({ recentHistory, fridges }: Props) {
   const refreshPage = () => {
     router.refresh();
   };
+  const defaultFridgeId = fridges.find((fridge) => fridge.isDefault)?.id ?? '';
+  const selectedReapplyEntry =
+    recentHistory.find((entry) => entry.id === reapplyBatchId) ?? null;
 
   const handleRead = async (formData: FormData) => {
     dispatch({ type: 'START_READING' });
@@ -199,6 +206,53 @@ export function Dashboard({ recentHistory, fridges }: Props) {
     });
   };
 
+  const openReapplyModal = (batchId: string) => {
+    setReapplyBatchId(batchId);
+    setReapplyFridgeId(defaultFridgeId);
+  };
+
+  const closeReapplyModal = () => {
+    if (isReapplying) {
+      return;
+    }
+    setReapplyBatchId(null);
+  };
+
+  const submitReapply = () => {
+    if (!reapplyBatchId || !reapplyFridgeId) {
+      return;
+    }
+
+    const targetBatchId = reapplyBatchId;
+    const targetFridgeId = reapplyFridgeId;
+    dispatch({ type: 'START_BATCH_ACTION', batchId: targetBatchId });
+    setIsReapplying(true);
+
+    startTransition(async () => {
+      try {
+        await reapplyReceivingBatch({
+          batchId: targetBatchId,
+          fridgeId: targetFridgeId,
+        });
+        dispatch({ type: 'BATCH_ACTION_FINISH' });
+        setReapplyBatchId(null);
+        router.replace('/admin?msg=reapply_success', { scroll: false });
+      } catch (error) {
+        dispatch({
+          type: 'BATCH_ACTION_ERROR',
+          error:
+            error instanceof Error
+              ? error.message
+              : '納品書の再適用に失敗しました。',
+        });
+        router.replace('/admin?msg=reapply_failed', { scroll: false });
+      } finally {
+        setIsReapplying(false);
+        refreshPage();
+      }
+    });
+  };
+
   return (
     <div className="space-y-6">
       <UploadPanel
@@ -217,12 +271,22 @@ export function Dashboard({ recentHistory, fridges }: Props) {
       <HistoryList
         entries={recentHistory}
         busyBatchId={busyBatchId}
-        onReapply={(batchId) =>
-          runBatchAction(batchId, () => reapplyReceivingBatch(batchId))
-        }
+        onReapply={openReapplyModal}
         onDelete={(batchId) =>
           runBatchAction(batchId, () => deleteReceivingBatch(batchId))
         }
+      />
+
+      <ReapplyModal
+        isOpen={reapplyBatchId !== null}
+        fileName={selectedReapplyEntry?.originalFileName ?? null}
+        lines={selectedReapplyEntry?.lines ?? []}
+        fridges={fridges}
+        selectedFridgeId={reapplyFridgeId}
+        isSubmitting={isReapplying}
+        onSelectFridge={setReapplyFridgeId}
+        onClose={closeReapplyModal}
+        onSubmit={submitReapply}
       />
 
       {isModalOpen && (

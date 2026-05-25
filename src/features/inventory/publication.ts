@@ -14,9 +14,10 @@ type InventoryPublicationWriter = {
         | { createdAt: 'asc' | 'desc' }
         | { id: 'asc' | 'desc' }
       >;
-      include: {
+      select: {
+        uploadBatchId: true;
         uploadBatch: {
-          include: {
+          select: {
             lines: {
               select: {
                 count: true;
@@ -150,9 +151,10 @@ export async function publishInventorySnapshot(
   const currentPublication = await tx.inventoryPublication.findFirst({
     where: { fridgeId: input.fridgeId },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-    include: {
+    select: {
+      uploadBatchId: true,
       uploadBatch: {
-        include: {
+        select: {
           lines: {
             select: {
               count: true,

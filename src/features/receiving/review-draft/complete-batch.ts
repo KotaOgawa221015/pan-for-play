@@ -21,16 +21,11 @@ export async function completeReviewBatch(input: {
       select: {
         id: true,
         originalFileName: true,
-        processingStatus: true,
       },
     });
 
     if (!batch) {
       throw new Error('レビュー対象の納品書履歴が存在しません。');
-    }
-
-    if (batch.processingStatus !== 'PENDING') {
-      throw new Error('未処理の納品書だけをレビュー作成できます。');
     }
 
     const catalogByName = new Map(
@@ -81,7 +76,6 @@ export async function completeReviewBatch(input: {
     await tx.uploadBatch.update({
       where: { id: input.batchId },
       data: {
-        processingStatus: 'PROCESSED',
         processedAt: input.processedAt,
       },
     });

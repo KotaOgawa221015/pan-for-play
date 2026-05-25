@@ -10,31 +10,26 @@ export async function deleteReceivingBatch(batchId: string) {
   if (!session) throw new Error('Unauthorized');
   await requireAdminUser();
 
+  const now = new Date();
+
   await prisma.$transaction(async (tx) => {
     const batch = await tx.uploadBatch.findUnique({
       where: { id: batchId },
-      include: {
-        _count: {
-          select: {
-            inventoryPublications: true,
-          },
-        },
+      select: {
+        id: true,
+        deletedAt: true,
       },
     });
 
-    if (!batch) {
+    if (!batch || batch.deletedAt) {
       throw new Error('対象の納品書履歴が存在しません。');
     }
 
-    if (batch._count.inventoryPublications > 0) {
-      throw new Error('公開履歴から参照されている納品書は削除できません。');
-    }
-
-    await tx.uploadBatchLine.deleteMany({
-      where: { uploadBatchId: batch.id },
-    });
-    await tx.uploadBatch.delete({
+    await tx.uploadBatch.update({
       where: { id: batch.id },
+      data: {
+        deletedAt: now,
+      },
     });
   });
 

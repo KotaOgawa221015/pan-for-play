@@ -96,9 +96,10 @@ describe('inventory server actions', () => {
     expect(inventoryPublicationFindFirst).toHaveBeenCalledWith({
       where: { fridgeId: 'fridge-1' },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-      include: {
+      select: {
+        publishedAt: true,
         uploadBatch: {
-          include: {
+          select: {
             lines: {
               orderBy: {
                 lineNumber: 'asc',

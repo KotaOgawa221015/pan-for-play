@@ -4,6 +4,7 @@ const {
   transaction,
   uploadBatchCreate,
   uploadBatchUpdate,
+  uploadBatchFindFirst,
   uploadBatchFindUnique,
   uploadBatchDelete,
   uploadBatchLineCreate,
@@ -16,6 +17,7 @@ const {
   inventoryStatusChangeDeleteMany,
   productCreate,
   productUpdate,
+  fridgeFindFirst,
   revalidatePath,
   requireAdminUser,
   listCatalogProducts,
@@ -29,6 +31,7 @@ const {
   transaction: vi.fn(),
   uploadBatchCreate: vi.fn(),
   uploadBatchUpdate: vi.fn(),
+  uploadBatchFindFirst: vi.fn(),
   uploadBatchFindUnique: vi.fn(),
   uploadBatchDelete: vi.fn(),
   uploadBatchLineCreate: vi.fn(),
@@ -41,6 +44,7 @@ const {
   inventoryStatusChangeDeleteMany: vi.fn(),
   productCreate: vi.fn(),
   productUpdate: vi.fn(),
+  fridgeFindFirst: vi.fn(),
   revalidatePath: vi.fn(),
   requireAdminUser: vi.fn(),
   listCatalogProducts: vi.fn(),
@@ -60,6 +64,7 @@ vi.mock('@/lib/prisma', () => ({
     uploadBatch: {
       create: uploadBatchCreate,
       update: uploadBatchUpdate,
+      findFirst: uploadBatchFindFirst,
       findUnique: uploadBatchFindUnique,
       delete: uploadBatchDelete,
     },
@@ -80,6 +85,9 @@ vi.mock('@/lib/prisma', () => ({
     product: {
       create: productCreate,
       update: productUpdate,
+    },
+    fridge: {
+      findFirst: fridgeFindFirst,
     },
   },
 }));
@@ -140,6 +148,7 @@ describe('receiving actions', () => {
     transaction.mockReset();
     uploadBatchCreate.mockReset();
     uploadBatchUpdate.mockReset();
+    uploadBatchFindFirst.mockReset();
     uploadBatchFindUnique.mockReset();
     uploadBatchDelete.mockReset();
     uploadBatchLineCreate.mockReset();
@@ -152,6 +161,7 @@ describe('receiving actions', () => {
     inventoryStatusChangeDeleteMany.mockReset();
     productCreate.mockReset();
     productUpdate.mockReset();
+    fridgeFindFirst.mockReset();
     revalidatePath.mockReset();
     requireAdminUser.mockReset();
     listCatalogProducts.mockReset();
@@ -169,6 +179,7 @@ describe('receiving actions', () => {
         uploadBatch: {
           create: uploadBatchCreate,
           update: uploadBatchUpdate,
+          findFirst: uploadBatchFindFirst,
           findUnique: uploadBatchFindUnique,
           delete: uploadBatchDelete,
         },
@@ -189,6 +200,9 @@ describe('receiving actions', () => {
         product: {
           create: productCreate,
           update: productUpdate,
+        },
+        fridge: {
+          findFirst: fridgeFindFirst,
         },
       }),
     );
@@ -215,7 +229,6 @@ describe('receiving actions', () => {
     uploadBatchFindUnique.mockResolvedValue({
       id: 'batch-1',
       originalFileName: 'invoice.png',
-      processingStatus: 'PENDING',
     });
     uploadBatchLineCreate.mockImplementation(async ({ data }) => ({
       id: `line-${data.lineNumber}`,
@@ -258,7 +271,6 @@ describe('receiving actions', () => {
         uploadedByUserId: 'user-1',
         originalFileName: 'invoice.png',
         storagePath: null,
-        processingStatus: 'PENDING',
       },
       select: {
         id: true,
@@ -274,7 +286,6 @@ describe('receiving actions', () => {
     expect(uploadBatchUpdate).toHaveBeenNthCalledWith(2, {
       where: { id: 'batch-1' },
       data: {
-        processingStatus: 'PROCESSED',
         processedAt: expect.any(Date),
       },
     });
@@ -298,6 +309,12 @@ describe('receiving actions', () => {
       id: 'batch-1',
       originalFileName: 'invoice.png',
     });
+    uploadBatchFindUnique.mockResolvedValue({
+      id: 'batch-1',
+      _count: {
+        inventoryPublications: 0,
+      },
+    });
     uploadBatchUpdate.mockResolvedValue({});
 
     const formData = new FormData();
@@ -318,12 +335,11 @@ describe('receiving actions', () => {
         storagePath: '/tmp/project/.tmp/invoice.png',
       },
     });
-    expect(uploadBatchUpdate).toHaveBeenNthCalledWith(2, {
+    expect(uploadBatchLineDeleteMany).toHaveBeenCalledWith({
+      where: { uploadBatchId: 'batch-1' },
+    });
+    expect(uploadBatchDelete).toHaveBeenCalledWith({
       where: { id: 'batch-1' },
-      data: {
-        processingStatus: 'FAILED',
-        storagePath: null,
-      },
     });
     expect(deleteStoredDeliveryNoteImage).toHaveBeenCalledWith(
       '/tmp/project/.tmp/invoice.png',
@@ -335,10 +351,9 @@ describe('receiving actions', () => {
     listCatalogProducts.mockResolvedValue([
       { id: 'existing-1', name: 'クラムチャウダー', category: 'BREAD' },
     ]);
-    uploadBatchFindUnique.mockResolvedValue({
+    uploadBatchFindFirst.mockResolvedValue({
       id: 'batch-1',
       fridgeId: 'fridge-1',
-      processingStatus: 'PROCESSED',
       lines: [
         { id: 'line-1', lineNumber: 1 },
         { id: 'line-2', lineNumber: 2 },
@@ -451,10 +466,9 @@ describe('receiving actions', () => {
     listCatalogProducts.mockResolvedValue([
       { id: 'existing-1', name: 'クラムチャウダー', category: 'SOUP' },
     ]);
-    uploadBatchFindUnique.mockResolvedValue({
+    uploadBatchFindFirst.mockResolvedValue({
       id: 'batch-1',
       fridgeId: 'fridge-1',
-      processingStatus: 'PROCESSED',
       lines: [{ id: 'line-1', lineNumber: 1 }],
     });
     inventoryPublicationFindFirst.mockResolvedValue({
@@ -505,9 +519,8 @@ describe('receiving actions', () => {
     listCatalogProducts.mockResolvedValue([
       { id: 'existing-1', name: '食パン', category: 'BREAD' },
     ]);
-    uploadBatchFindUnique.mockResolvedValue({
+    uploadBatchFindFirst.mockResolvedValue({
       id: 'batch-1',
-      processingStatus: 'PROCESSED',
       lines: [{ id: 'line-1', lineNumber: 1 }],
     });
     inventoryPublicationFindFirst.mockResolvedValue({
@@ -592,6 +605,9 @@ describe('receiving actions', () => {
 
   it('reapplies and deletes batches through history actions', async () => {
     requireAdminUser.mockResolvedValue({ id: 'user-1', role: 'ADMIN' });
+    fridgeFindFirst.mockResolvedValue({
+      id: 'fridge-2',
+    });
     inventoryPublicationFindFirst
       .mockResolvedValueOnce({
         uploadBatchId: 'batch-2',
@@ -610,45 +626,42 @@ describe('receiving actions', () => {
     });
     inventoryStatusChangeFindMany.mockResolvedValue([]);
     inventoryStatusChangeCreate.mockResolvedValue({});
-    uploadBatchFindUnique
-      .mockResolvedValueOnce({
-        id: 'batch-1',
-        fridgeId: 'fridge-1',
-        processingStatus: 'PROCESSED',
-        lines: [
-          {
-            matchedProductId: 'product-1',
-            count: 3,
-          },
-        ],
-      })
-      .mockResolvedValueOnce({
-        id: 'batch-1',
-        fridgeId: 'fridge-1',
-        processingStatus: 'PROCESSED',
-        _count: {
-          inventoryPublications: 0,
+    uploadBatchFindFirst.mockResolvedValueOnce({
+      id: 'batch-1',
+      fridgeId: 'fridge-1',
+      lines: [
+        {
+          matchedProductId: 'product-1',
+          count: 3,
         },
-      });
+      ],
+    });
+    uploadBatchFindUnique.mockResolvedValueOnce({
+      id: 'batch-1',
+      deletedAt: null,
+    });
     uploadBatchLineDeleteMany.mockResolvedValue({});
-    uploadBatchDelete.mockResolvedValue({});
+    uploadBatchUpdate.mockResolvedValue({});
 
-    await reapplyReceivingBatch('batch-1');
+    await reapplyReceivingBatch({
+      batchId: 'batch-1',
+      fridgeId: 'fridge-2',
+    });
     await deleteReceivingBatch('batch-1');
 
     expect(inventoryPublicationCreate).toHaveBeenCalledWith({
       data: {
-        fridgeId: 'fridge-1',
+        fridgeId: 'fridge-2',
         uploadBatchId: 'batch-1',
         publishedByUserId: 'user-1',
         publishedAt: expect.any(Date),
       },
     });
-    expect(uploadBatchLineDeleteMany).toHaveBeenCalledWith({
-      where: { uploadBatchId: 'batch-1' },
-    });
-    expect(uploadBatchDelete).toHaveBeenCalledWith({
+    expect(uploadBatchUpdate).toHaveBeenCalledWith({
       where: { id: 'batch-1' },
+      data: {
+        deletedAt: expect.any(Date),
+      },
     });
   });
 });

@@ -1,7 +1,4 @@
-import type {
-  ProductCategory,
-  UploadBatchProcessingStatus,
-} from '@prisma/client';
+import type { ProductCategory } from '@prisma/client';
 import type { CatalogProduct } from '@/features/product-catalog/products';
 
 export type ReviewLine = {
@@ -40,11 +37,9 @@ type HistoryLine = {
 export type HistoryEntry = {
   id: string;
   originalFileName: string;
-  processingStatus: UploadBatchProcessingStatus;
   createdAt: string;
   processedAt: string | null;
-  lineCount: number;
-  publicationCount: number;
+  hasPublication: boolean;
   lastPublishedAt: string | null;
   lastPublishedByName: string | null;
   isCurrent: boolean;

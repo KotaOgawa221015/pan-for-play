@@ -66,7 +66,14 @@ export async function startReceivingReview(formData: FormData) {
 
     return persistedDraft;
   } catch (error) {
-    await failReviewBatch(batch.id);
+    try {
+      await failReviewBatch(batch.id);
+    } catch (cleanupError) {
+      console.error('Failed to roll back review batch after read error:', {
+        batchId: batch.id,
+        cleanupError,
+      });
+    }
 
     if (storagePath) {
       try {
