@@ -77,6 +77,23 @@ export default async function Page({
         </div>
 
         <div className="absolute right-6 top-6 flex items-center gap-4">
+          {user.role === 'ADMIN' && (
+            <Link
+              href="/admin"
+              className="group bg-white p-2 border border-zinc-300 text-zinc-500 hover:text-zinc-800 hover:border-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shadow-sm flex items-center justify-center"
+              aria-label="管理者ページ"
+            >
+              <span
+                aria-hidden="true"
+                className="block h-5 w-5 bg-zinc-500 transition-colors group-hover:bg-zinc-800 dark:bg-zinc-400 dark:group-hover:bg-zinc-200"
+                style={{
+                  WebkitMask:
+                    "url('/admin-gear.svg') center / contain no-repeat",
+                  mask: "url('/admin-gear.svg') center / contain no-repeat",
+                }}
+              />
+            </Link>
+          )}
           <UserMenu />
         </div>
       </header>
