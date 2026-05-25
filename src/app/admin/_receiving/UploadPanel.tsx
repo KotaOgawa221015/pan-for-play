@@ -70,7 +70,7 @@ export function UploadPanel({
     {
       src: '/receiving-examples/delivery_slip_tilted.png',
       alt: '誤り例（傾き）',
-      desc: 'テーブルが傾いている',
+      desc: '画像が傾いている',
     },
     {
       src: '/receiving-examples/delivery_slip_excessive .png',
