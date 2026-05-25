@@ -1,6 +1,5 @@
 'use server';
 
-import { existsSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { auth } from '@/features/account/auth';

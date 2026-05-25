@@ -6,13 +6,12 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const { testPrisma, authMock, databaseUrl, testDir } = vi.hoisted(() => {
   const _path = require('node:path');
-  const _fs = require('node:fs');
 
   const rootDir = _path.resolve(__dirname, '..', '..');
   const tmpDir = _path.join(rootDir, '.tmp');
-  _fs.mkdirSync(tmpDir, { recursive: true });
+  mkdirSync(tmpDir, { recursive: true });
 
-  const testDir = _fs.mkdtempSync(_path.join(tmpDir, 'cleanup-action-test-'));
+  const testDir = mkdtempSync(_path.join(tmpDir, 'cleanup-action-test-'));
   const databaseUrl = `file:${_path.join(testDir, 'cleanup.db')}`;
 
   const { PrismaClient } = require('@prisma/client');
@@ -140,9 +139,9 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
     const userActionResult = await cleanupUsersAction();
     expect(userActionResult.success).toBe(true);
 
-    const remainingFridges = await testPrisma.fridge.findMany({
+    const remainingFridges = (await testPrisma.fridge.findMany({
       select: { id: true },
-    });
+    })) as { id: string }[];
     const fridgeIds = remainingFridges.map((f) => f.id);
     expect(fridgeIds).not.toContain(fridgeTarget.id);
     expect(fridgeIds).toContain(fridgeKeep.id);
@@ -150,9 +149,9 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
 
     expect(existsSync(dummyFilePath)).toBe(false);
 
-    const remainingUsers = await testPrisma.user.findMany({
+    const remainingUsers = (await testPrisma.user.findMany({
       select: { id: true },
-    });
+    })) as { id: string }[];
     const userIds = remainingUsers.map((u) => u.id);
     expect(userIds).not.toContain(userTarget.id);
     expect(userIds).toContain(userKeep.id);
