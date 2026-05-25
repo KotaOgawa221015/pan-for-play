@@ -31,9 +31,7 @@
     "docs:dev": "cd docs && pnpm dev",
     "docs:build": "cd docs && pnpm build",
     "docs:preview": "cd docs && pnpm preview",
-    "prepare": "husky",
-    "db:cleanup-fridges": "tsx scripts/cleanup-deleted-fridges.ts",
-    "db:cleanup-users": "tsx scripts/cleanup-deleted-users.ts"
+    "prepare": "husky"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.2",
