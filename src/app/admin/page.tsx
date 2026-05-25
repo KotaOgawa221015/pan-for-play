@@ -31,13 +31,19 @@ export default async function UploadPage({
       <FlashMessage msg={msg} />
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 p-6">
         <div className="max-w-5xl mx-auto space-y-6">
-          <header className="flex items-center justify-between border-b border-zinc-300 dark:border-zinc-800 pb-4 mt-2">
-            <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+          <header className="mt-2 grid items-center gap-3 border-b border-zinc-300 pb-4 dark:border-zinc-800 md:grid-cols-[1fr_auto_1fr]">
+            <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 md:justify-self-start">
               管理画面
             </h1>
             <Link
+              href="/admin/qr"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-950/60 md:justify-self-center"
+            >
+              サイトのQRコードを発行
+            </Link>
+            <Link
               href="/"
-              className="inline-flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+              className="inline-flex items-center justify-end gap-2 text-sm text-zinc-500 transition-colors hover:text-zinc-900 dark:hover:text-zinc-100 md:justify-self-end"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
