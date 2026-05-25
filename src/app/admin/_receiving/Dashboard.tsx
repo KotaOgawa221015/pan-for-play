@@ -149,8 +149,12 @@ export function Dashboard({ recentHistory, fridges }: Props) {
     dispatch({ type: 'START_READING' });
 
     try {
-      const nextDraft = await startReceivingReview(formData);
-      dispatch({ type: 'READ_SUCCESS', draft: nextDraft });
+      const result = await startReceivingReview(formData);
+      if (result.ok) {
+        dispatch({ type: 'READ_SUCCESS', draft: result.draft });
+      } else {
+        dispatch({ type: 'READ_ERROR', error: result.error });
+      }
     } catch (error) {
       dispatch({
         type: 'READ_ERROR',
