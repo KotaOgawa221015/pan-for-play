@@ -9,6 +9,8 @@ import { Dashboard } from './_receiving/Dashboard';
 import { FridgeManagementPanel } from './_receiving/FridgeManagementPanel';
 import { UserManagementPanel } from './_receiving/UserManagementPanel';
 
+export const runtime = 'nodejs';
+
 export default async function UploadPage({
   searchParams,
 }: {
