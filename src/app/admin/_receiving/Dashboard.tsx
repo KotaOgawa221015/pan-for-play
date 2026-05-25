@@ -185,13 +185,20 @@ export function Dashboard({ recentHistory, fridges }: Props) {
     }
   };
 
-  const runBatchAction = (batchId: string, action: () => Promise<void>) => {
+  const runBatchAction = (
+    batchId: string,
+    action: () => Promise<void>,
+    messages?: { success: string; failed: string },
+  ) => {
     dispatch({ type: 'START_BATCH_ACTION', batchId });
 
     startTransition(async () => {
       try {
         await action();
         dispatch({ type: 'BATCH_ACTION_FINISH' });
+        if (messages) {
+          router.replace(`/admin?msg=${messages.success}`, { scroll: false });
+        }
       } catch (error) {
         dispatch({
           type: 'BATCH_ACTION_ERROR',
@@ -200,6 +207,9 @@ export function Dashboard({ recentHistory, fridges }: Props) {
               ? error.message
               : '履歴の更新に失敗しました。',
         });
+        if (messages) {
+          router.replace(`/admin?msg=${messages.failed}`, { scroll: false });
+        }
       } finally {
         refreshPage();
       }
@@ -273,7 +283,10 @@ export function Dashboard({ recentHistory, fridges }: Props) {
         busyBatchId={busyBatchId}
         onReapply={openReapplyModal}
         onDelete={(batchId) =>
-          runBatchAction(batchId, () => deleteReceivingBatch(batchId))
+          runBatchAction(batchId, () => deleteReceivingBatch(batchId), {
+            success: 'delete_success',
+            failed: 'delete_failed',
+          })
         }
       />
 

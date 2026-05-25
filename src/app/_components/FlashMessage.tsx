@@ -34,6 +34,8 @@ export function FlashMessage({ msg }: { msg?: string }) {
     'apply_success',
     'reapply_success',
     'reapply_failed',
+    'delete_success',
+    'delete_failed',
     'profile_update_success',
   ];
   const isTriggered = Boolean(msg && validMessages.includes(msg));
@@ -67,7 +69,8 @@ export function FlashMessage({ msg }: { msg?: string }) {
   const isAlert =
     msg === 'logout_success' ||
     msg === 'session_invalid' ||
-    msg === 'reapply_failed';
+    msg === 'reapply_failed' ||
+    msg === 'delete_failed';
 
   const styles = isAlert
     ? 'bg-rose-50 border-rose-100 text-rose-700 dark:bg-rose-950/40 dark:border-rose-900/50 dark:text-rose-400'
@@ -81,6 +84,8 @@ export function FlashMessage({ msg }: { msg?: string }) {
     apply_success: '納品書が適用されました',
     reapply_success: '納品書を再適用しました',
     reapply_failed: '納品書の再適用に失敗しました',
+    delete_success: '納品書を削除しました',
+    delete_failed: '納品書の削除に失敗しました',
     profile_update_success: 'プロフィールを更新しました',
   };
 

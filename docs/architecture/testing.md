@@ -25,7 +25,10 @@ src/
 tests/
   integration/
     inventory-actions.test.ts
-    receiving-actions.test.ts
+    receiving/
+      start-review.test.ts
+      apply-review.test.ts
+      history-actions.test.ts
     seed-script.test.ts
 ```
 
@@ -39,7 +42,11 @@ tests/
 
 `tests/integration/inventory-publication-summary.test.ts` はトップページ下部に表示する公開サマリ取得契約を検証する。
 
-`tests/integration/receiving-actions.test.ts` はレビュー下書き作成、公開イベント作成、再公開、削除制約を検証する。
+`tests/integration/receiving/start-review.test.ts` はレビュー下書き作成を検証する。
+
+`tests/integration/receiving/apply-review.test.ts` は公開イベント作成と在庫反映を検証する。
+
+`tests/integration/receiving/history-actions.test.ts` は再公開と削除制約を検証する。
 
 `tests/integration/seed-script.test.ts` はカタログ商品 fixture と公開履歴 fixture に基づくシード整合性を検証する。
 
