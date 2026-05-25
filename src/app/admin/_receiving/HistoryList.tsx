@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import type { HistoryEntry } from '@/features/receiving/types';
 
 type Props = {
@@ -8,6 +9,8 @@ type Props = {
   onReapply: (batchId: string) => void;
   onDelete: (batchId: string) => void;
 };
+
+const ENTRIES_PER_PAGE = 5;
 
 const dateTimeFormatter = new Intl.DateTimeFormat('ja-JP', {
   dateStyle: 'medium',
@@ -29,6 +32,12 @@ export function HistoryList({
   onReapply,
   onDelete,
 }: Props) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const totalPages = Math.max(1, Math.ceil(entries.length / ENTRIES_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * ENTRIES_PER_PAGE;
+  const pagedEntries = entries.slice(startIndex, startIndex + ENTRIES_PER_PAGE);
+
   return (
     <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm">
       <div className="mb-6 space-y-2">
@@ -44,7 +53,7 @@ export function HistoryList({
         <p className="text-sm text-zinc-400">まだ履歴はありません。</p>
       ) : (
         <div className="space-y-4">
-          {entries.map((entry) => {
+          {pagedEntries.map((entry) => {
             const isBusy = busyBatchId === entry.id;
 
             return (
@@ -116,6 +125,41 @@ export function HistoryList({
               </article>
             );
           })}
+
+          {entries.length > ENTRIES_PER_PAGE ? (
+            <div className="flex items-center justify-between gap-3 text-xs text-zinc-500">
+              <p>
+                {startIndex + 1}-
+                {Math.min(startIndex + ENTRIES_PER_PAGE, entries.length)} /{' '}
+                {entries.length}
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  disabled={safeCurrentPage === 1}
+                  className="rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 transition"
+                >
+                  前へ
+                </button>
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  {safeCurrentPage} / {totalPages}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+                  }
+                  disabled={safeCurrentPage === totalPages}
+                  className="rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 transition"
+                >
+                  次へ
+                </button>
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
     </section>
