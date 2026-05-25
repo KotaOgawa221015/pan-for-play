@@ -6,12 +6,13 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 const { testPrisma, authMock, databaseUrl, testDir } = vi.hoisted(() => {
   const _path = require('node:path');
+  const _fs = require('node:fs');
 
   const rootDir = _path.resolve(__dirname, '..', '..');
   const tmpDir = _path.join(rootDir, '.tmp');
-  mkdirSync(tmpDir, { recursive: true });
+  _fs.mkdirSync(tmpDir, { recursive: true });
 
-  const testDir = mkdtempSync(_path.join(tmpDir, 'cleanup-action-test-'));
+  const testDir = _fs.mkdtempSync(_path.join(tmpDir, 'cleanup-action-test-'));
   const databaseUrl = `file:${_path.join(testDir, 'cleanup.db')}`;
 
   const { PrismaClient } = require('@prisma/client');
