@@ -45,7 +45,7 @@ const STATUS_CATALOG: Record<
     },
   },
   FEW_LEFT: {
-    label: '残りわずか',
+    label: 'わずか',
     styles: {
       active: 'bg-amber-500 text-white border-amber-500',
       inactive: 'border-amber-200 text-amber-700 hover:border-amber-400',
@@ -53,7 +53,7 @@ const STATUS_CATALOG: Record<
     },
   },
   SOLD_OUT: {
-    label: '売り切れ',
+    label: '完売',
     styles: {
       active: 'bg-rose-500 text-white border-rose-500',
       inactive: 'border-rose-200 text-rose-700 hover:border-rose-400',
