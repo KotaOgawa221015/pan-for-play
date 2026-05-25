@@ -2,11 +2,17 @@ import { prisma } from '@/lib/prisma';
 import type { HistoryEntry } from '../types';
 
 export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
-  const [currentPublication, batches] = await Promise.all([
-    prisma.inventoryPublication.findFirst({
+  const [publications, batches] = await Promise.all([
+    prisma.inventoryPublication.findMany({
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       select: {
+        fridgeId: true,
         uploadBatchId: true,
+        fridge: {
+          select: {
+            name: true,
+          },
+        },
         uploadBatch: {
           select: {
             deletedAt: true,
@@ -54,28 +60,35 @@ export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
     }),
   ]);
 
-  return batches.map((batch) => {
-    const appliedFridgeNames = [
-      ...new Set(
-        batch.inventoryPublications.map(
-          (publication) => publication.fridge.name,
-        ),
-      ),
-    ];
+  const seenFridgeIds = new Set<string>();
+  const currentFridgeNamesByBatchId = new Map<string, string[]>();
+  for (const publication of publications) {
+    if (seenFridgeIds.has(publication.fridgeId)) {
+      continue;
+    }
 
+    seenFridgeIds.add(publication.fridgeId);
+    if (publication.uploadBatch.deletedAt) {
+      continue;
+    }
+
+    const fridgeNames =
+      currentFridgeNamesByBatchId.get(publication.uploadBatchId) ?? [];
+    fridgeNames.push(publication.fridge.name);
+    currentFridgeNamesByBatchId.set(publication.uploadBatchId, fridgeNames);
+  }
+
+  return batches.map((batch) => {
     return {
       id: batch.id,
       originalFileName: batch.originalFileName,
       createdAt: batch.createdAt.toISOString(),
       processedAt: batch.processedAt?.toISOString() ?? null,
       hasPublication: batch.inventoryPublications.length > 0,
-      appliedFridgeNames,
+      appliedFridgeNames: currentFridgeNamesByBatchId.get(batch.id) ?? [],
       lastPublishedByName:
         batch.inventoryPublications[0]?.publishedByUser.name ?? null,
-      isCurrent:
-        Boolean(currentPublication) &&
-        !currentPublication?.uploadBatch.deletedAt &&
-        currentPublication?.uploadBatchId === batch.id,
+      isCurrent: currentFridgeNamesByBatchId.has(batch.id),
       lines: batch.lines.map((line) => ({
         id: line.id,
         name: line.rawText,
