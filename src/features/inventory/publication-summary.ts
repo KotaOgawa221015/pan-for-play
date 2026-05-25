@@ -5,7 +5,14 @@ export async function getCurrentInventoryPublicationSummary(
   fridgeId: string,
 ): Promise<InventoryPublicationSummary | null> {
   const publication = await prisma.inventoryPublication.findFirst({
-    where: { fridgeId },
+    where: {
+      fridgeId,
+      uploadBatch: {
+        is: {
+          deletedAt: null,
+        },
+      },
+    },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     include: {
       publishedByUser: {

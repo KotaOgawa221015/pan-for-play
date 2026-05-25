@@ -70,7 +70,8 @@ export function FlashMessage({ msg }: { msg?: string }) {
     msg === 'logout_success' ||
     msg === 'session_invalid' ||
     msg === 'reapply_failed' ||
-    msg === 'delete_failed';
+    msg === 'delete_failed' ||
+    msg === 'delete_success';
 
   const styles = isAlert
     ? 'bg-rose-50 border-rose-100 text-rose-700 dark:bg-rose-950/40 dark:border-rose-900/50 dark:text-rose-400'

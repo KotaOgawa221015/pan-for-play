@@ -94,7 +94,14 @@ describe('inventory server actions', () => {
     ]);
 
     expect(inventoryPublicationFindFirst).toHaveBeenCalledWith({
-      where: { fridgeId: 'fridge-1' },
+      where: {
+        fridgeId: 'fridge-1',
+        uploadBatch: {
+          is: {
+            deletedAt: null,
+          },
+        },
+      },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       select: {
         publishedAt: true,

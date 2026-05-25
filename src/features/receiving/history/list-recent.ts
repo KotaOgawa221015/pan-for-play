@@ -4,6 +4,13 @@ import type { HistoryEntry } from '../types';
 export async function getRecentReceivingHistory(): Promise<HistoryEntry[]> {
   const [currentPublication, batches] = await Promise.all([
     prisma.inventoryPublication.findFirst({
+      where: {
+        uploadBatch: {
+          is: {
+            deletedAt: null,
+          },
+        },
+      },
       orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       select: {
         uploadBatchId: true,

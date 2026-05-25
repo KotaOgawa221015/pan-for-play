@@ -6,7 +6,14 @@ export async function getInventoryProducts(
   fridgeId: string,
 ): Promise<Product[]> {
   const currentPublication = await prisma.inventoryPublication.findFirst({
-    where: { fridgeId },
+    where: {
+      fridgeId,
+      uploadBatch: {
+        is: {
+          deletedAt: null,
+        },
+      },
+    },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     select: {
       publishedAt: true,

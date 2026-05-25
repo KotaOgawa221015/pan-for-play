@@ -8,7 +8,14 @@ type InventoryLine = {
 type InventoryPublicationWriter = {
   inventoryPublication: {
     findFirst(args: {
-      where?: { fridgeId: string };
+      where?: {
+        fridgeId: string;
+        uploadBatch?: {
+          is: {
+            deletedAt: Date | null;
+          };
+        };
+      };
       orderBy: Array<
         | { publishedAt: 'asc' | 'desc' }
         | { createdAt: 'asc' | 'desc' }
@@ -149,7 +156,14 @@ export async function publishInventorySnapshot(
   },
 ) {
   const currentPublication = await tx.inventoryPublication.findFirst({
-    where: { fridgeId: input.fridgeId },
+    where: {
+      fridgeId: input.fridgeId,
+      uploadBatch: {
+        is: {
+          deletedAt: null,
+        },
+      },
+    },
     orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
     select: {
       uploadBatchId: true,
