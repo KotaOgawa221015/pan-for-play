@@ -40,7 +40,7 @@ export type HistoryEntry = {
   createdAt: string;
   processedAt: string | null;
   hasPublication: boolean;
-  lastPublishedFridgeName: string | null;
+  appliedFridgeNames: string[];
   lastPublishedByName: string | null;
   isCurrent: boolean;
   lines: HistoryLine[];

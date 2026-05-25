@@ -66,8 +66,12 @@ export function HistoryList({
                         <dd>{formatDateTime(entry.createdAt)}</dd>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <dt className="text-zinc-400">最終公開</dt>
-                        <dd>{formatDateTime(entry.lastPublishedAt)}</dd>
+                        <dt className="text-zinc-400">適用中</dt>
+                        <dd>
+                          {entry.appliedFridgeNames.length > 0
+                            ? entry.appliedFridgeNames.join('、')
+                            : '未適用'}
+                        </dd>
                       </div>
                       <div className="flex items-center gap-1.5">
                         <dt className="text-zinc-400">公開者</dt>
