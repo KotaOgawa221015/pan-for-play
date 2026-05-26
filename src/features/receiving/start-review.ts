@@ -14,8 +14,31 @@ import { createPendingReviewBatch } from './review-draft/create-pending-batch';
 import { failReviewBatch } from './review-draft/fail-batch';
 import { prepareReviewDraft } from './review-draft/prepare';
 import { storeReviewBatchImagePath } from './review-draft/store-image-path';
+import type { ReviewDraft } from './types';
 
-export async function startReceivingReview(formData: FormData) {
+export type StartReceivingReviewResult =
+  | { ok: true; draft: ReviewDraft }
+  | { ok: false; error: string };
+
+export async function startReceivingReview(
+  formData: FormData,
+): Promise<StartReceivingReviewResult> {
+  try {
+    const draft = await runReceivingReviewStart(formData);
+    return { ok: true, draft };
+  } catch (error) {
+    console.error('Failed to start receiving review:', error);
+    return {
+      ok: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : '納品書の読み取りに失敗しました。',
+    };
+  }
+}
+
+async function runReceivingReviewStart(formData: FormData) {
   const session = await auth();
   if (!session) throw new Error('Unauthorized');
   const currentUserId = (await requireAdminUser()).id;

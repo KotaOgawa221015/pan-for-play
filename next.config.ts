@@ -58,9 +58,26 @@ const nextConfig: NextConfig = {
     '@prisma/adapter-better-sqlite3',
     '@prisma/adapter-libsql',
     '@libsql/client',
+    'heic-convert',
+    'heic-decode',
     'jimp',
+    'jpeg-js',
+    'libheif-js',
+    'pngjs',
     'tesseract.js',
   ],
+  outputFileTracingIncludes: {
+    '/admin': [
+      './node_modules/heic-convert/**/*',
+      './node_modules/heic-decode/**/*',
+      './node_modules/jpeg-js/**/*',
+      './node_modules/libheif-js/**/*',
+      './node_modules/pngjs/**/*',
+    ],
+  },
+  outputFileTracingExcludes: {
+    '/admin': ['./.tmp/**/*'],
+  },
   allowedDevOrigins: ['127.0.0.1'],
 
   images: {

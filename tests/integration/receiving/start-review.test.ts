@@ -182,19 +182,23 @@ describe('receiving start review', () => {
       new File(['png'], 'invoice.png', { type: 'image/png' }),
     );
 
-    const draft = await startReceivingReview(formData);
+    const result = await startReceivingReview(formData);
 
-    expect(draft.batchId).toBe('batch-1');
-    expect(draft.originalFileName).toBe('invoice.png');
-    expect(draft.sourceImageUrl).toBe('/admin/receiving-images/batch-1');
-    expect(draft.catalog).toEqual([
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
+    expect(result.draft.batchId).toBe('batch-1');
+    expect(result.draft.originalFileName).toBe('invoice.png');
+    expect(result.draft.sourceImageUrl).toBe('/admin/receiving-images/batch-1');
+    expect(result.draft.catalog).toEqual([
       { id: 'product-1', name: 'クラムチャウダー', category: 'SOUP' },
     ]);
-    expect(draft.products.map((product) => product.name)).toEqual([
+    expect(result.draft.products.map((product) => product.name)).toEqual([
       'クラムチャウダー',
       '新作パン',
     ]);
-    expect(draft.products.map((product) => product.category)).toEqual([
+    expect(result.draft.products.map((product) => product.category)).toEqual([
       'SOUP',
       'BREAD',
     ]);
@@ -259,9 +263,11 @@ describe('receiving start review', () => {
       new File(['png'], 'invoice.png', { type: 'image/png' }),
     );
 
-    await expect(startReceivingReview(formData)).rejects.toThrow(
-      '納品書を読み取れませんでした。見本のように納品書全体が写るよう撮影し直して、もう一度アップロードしてください。',
-    );
+    await expect(startReceivingReview(formData)).resolves.toEqual({
+      ok: false,
+      error:
+        '納品書を読み取れませんでした。見本のように納品書全体が写るよう撮影し直して、もう一度アップロードしてください。',
+    });
     expect(uploadBatchUpdate).toHaveBeenNthCalledWith(1, {
       where: { id: 'batch-1' },
       data: {
