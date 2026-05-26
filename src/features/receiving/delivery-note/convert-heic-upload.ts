@@ -1,4 +1,3 @@
-import { createRequire } from 'node:module';
 import { toJpegName } from './image-format';
 
 type ConvertHeic = (options: {
@@ -6,8 +5,6 @@ type ConvertHeic = (options: {
   format: 'JPEG';
   quality: number;
 }) => Promise<Buffer | Uint8Array | ArrayBuffer>;
-
-const require = createRequire(import.meta.url);
 
 export class HeicUploadConversionError extends Error {
   constructor(options?: { cause?: unknown }) {
@@ -27,7 +24,7 @@ export async function convertHeicUploadToJpeg(input: {
   imageBuffer: Buffer;
 }> {
   try {
-    const convert = input.convert ?? (require('heic-convert') as ConvertHeic);
+    const convert = input.convert ?? (await loadHeicConverter());
     const converted = await convert({
       buffer: input.imageBuffer,
       format: 'JPEG',
@@ -44,4 +41,9 @@ export async function convertHeicUploadToJpeg(input: {
   } catch (error) {
     throw new HeicUploadConversionError({ cause: error });
   }
+}
+
+async function loadHeicConverter(): Promise<ConvertHeic> {
+  const module = await import('heic-convert');
+  return module.default;
 }
