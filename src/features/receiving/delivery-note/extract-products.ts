@@ -25,10 +25,7 @@ const tesseractCachePath = path.join(
   getWritableRuntimeDirectory(),
   'tesseract-cache',
 );
-const tesseractWorkerPath = path.join(
-  process.cwd(),
-  'src/features/receiving/delivery-note/ocr-worker.cjs',
-);
+const tesseractWorkerPath = path.join(process.cwd(), 'dist/ocr-worker.cjs');
 
 export const extractProductsFromDeliveryNote: ExtractDeliveryNoteProducts =
   async ({ fileName, imageBuffer }) => {
