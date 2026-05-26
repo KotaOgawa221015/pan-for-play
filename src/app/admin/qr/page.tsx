@@ -73,6 +73,15 @@ export default function QRPage() {
               </p>
             </div>
 
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">
+                Site URL
+              </p>
+              <p className="font-mono text-sm text-zinc-500 dark:text-zinc-400">
+                {siteUrl || 'Loading...'}
+              </p>
+            </div>
+
             <div className="rounded-[2rem] border-4 border-zinc-200 bg-white p-6 dark:border-zinc-800 print:border-zinc-200">
               {siteUrl ? (
                 <QRCodeSVG value={siteUrl} size={160} level="H" />
@@ -81,13 +90,11 @@ export default function QRPage() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">
-                Site URL
-              </p>
-              <p className="font-mono text-sm text-zinc-500 dark:text-zinc-400">
-                {siteUrl || 'Loading...'}
-              </p>
+            <div className="space-y-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+              <p>【在庫表示の目安】</p>
+              <p>十分：6個以上</p>
+              <p>わずか：1〜5個</p>
+              <p>完売：0個</p>
             </div>
           </div>
         </div>
