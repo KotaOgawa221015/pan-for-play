@@ -12,7 +12,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
-  title: 'パンコレ',
+  title: 'Pan for PLAY',
   description: '冷凍庫のパンとスープの在庫を管理するアプリ',
 };
 
@@ -52,7 +52,7 @@ export default async function Page({
         <div className="max-w-6xl mx-auto relative flex flex-col items-center justify-center">
           <div className="flex items-center justify-center gap-2 mb-1">
             <span className="text-lg">🍞</span>
-            <h1 className="font-semibold text-xl">パンコレ</h1>
+            <h1 className="font-semibold text-xl">Pan for PLAY</h1>
           </div>
           <span className="text-[13.5px] text-zinc-500 font-mono uppercase tracking-widest mb-6">
             ~冷凍庫のパンとスープ、いつでもひと目で~

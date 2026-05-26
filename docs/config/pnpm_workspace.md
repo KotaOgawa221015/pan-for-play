@@ -1,6 +1,6 @@
 # pnpm-workspace.yaml 設定メモ
 
-Pancolle では、pnpm のプロジェクト設定を `pnpm-workspace.yaml` に集約する。
+Pan for PLAY では、pnpm のプロジェクト設定を `pnpm-workspace.yaml` に集約する。
 
 目的は、依存関係の再現性を保ちつつ、公開直後のパッケージ、推移依存の特殊な参照、未レビューの build script を避けること。
 

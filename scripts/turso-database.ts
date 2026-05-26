@@ -19,7 +19,7 @@ const projectRoot = path.resolve(
   '..',
 );
 const migrationsDir = path.join(projectRoot, 'prisma', 'migrations');
-const migrationsTableName = '__pancolle_migrations';
+const migrationsTableName = '__pan_for_play_migrations';
 
 function getDatabaseUrl(): string {
   return requireDatabaseUrl();

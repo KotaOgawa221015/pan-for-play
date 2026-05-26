@@ -10,8 +10,8 @@ type DocsPlaywrightConfigOptions = {
 };
 
 const usesGithubPagesBase = process.env.GITHUB_ACTIONS === 'true';
-const docsSiteBase = usesGithubPagesBase ? '/pancolle/' : '/';
-const docsBrowserBasePath = usesGithubPagesBase ? '/pancolle' : '';
+const docsSiteBase = usesGithubPagesBase ? '/pan-for-play/' : '/';
+const docsBrowserBasePath = usesGithubPagesBase ? '/pan-for-play' : '';
 const docsDirectoryPath = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   '..',

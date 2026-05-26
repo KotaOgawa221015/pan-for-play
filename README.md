@@ -1,6 +1,6 @@
-# Pancolle
+# Pan for PLAY
 
-Pancolle is a simple inventory status board for frozen bread and soup. Each product has three status levels: plentiful, few left, and sold out. Users can update status from the top-page cards with a single tap, and reviewed delivery notes can refresh the current board in bulk.
+Pan for PLAY is a simple inventory status board for frozen bread and soup. Each product has three status levels: plentiful, few left, and sold out. Users can update status from the top-page cards with a single tap, and reviewed delivery notes can refresh the current board in bulk.
 
 ## Requirements
 
@@ -86,5 +86,5 @@ To run a separate local SQLite instance side-by-side, change the database path.
 
 ```bash
 DATABASE_URL="file:./data/staging.db" pnpm run setup
-COMPOSE_PROJECT_NAME=pancolle-staging DATABASE_URL="file:./data/staging.db" just up
+COMPOSE_PROJECT_NAME=pan-for-play-staging DATABASE_URL="file:./data/staging.db" just up
 ```

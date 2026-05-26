@@ -78,7 +78,7 @@ export async function cleanupUsersAction() {
       const userIds = targetUsers.map((u) => u.id);
 
       let placeholderUser = await tx.user.findUnique({
-        where: { email: 'deleted-user@pancolle.local' },
+        where: { email: 'deleted-user@pan-for-play.local' },
       });
 
       if (!placeholderUser) {
@@ -86,7 +86,7 @@ export async function cleanupUsersAction() {
           data: {
             id: 'deleted-user-placeholder',
             name: '削除済みユーザー',
-            email: 'deleted-user@pancolle.local',
+            email: 'deleted-user@pan-for-play.local',
             role: 'MEMBER',
           },
         });
