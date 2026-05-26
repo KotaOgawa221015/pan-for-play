@@ -52,7 +52,7 @@ export default async function Page({
             <span className="text-lg">🍞</span>
             <h1 className="font-semibold text-xl">パンコレ</h1>
           </div>
-          <span className="text-[13.5px] text-zinc-500 font-mono uppercase tracking-widest mb-4">
+          <span className="text-[13.5px] text-zinc-500 font-mono uppercase tracking-widest mb-6">
             ~冷凍庫のパンとスープ、いつでもひと目で~
           </span>
 
@@ -74,6 +74,27 @@ export default async function Page({
               ))}
             </div>
           )}
+
+          <div className="flex flex-wrap gap-4 items-center justify-center mt-4">
+            <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider bg-emerald-50 text-emerald-700">
+                十分
+              </span>
+              <span>6個以上</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider bg-amber-50 text-amber-700">
+                わずか
+              </span>
+              <span>1〜5個</span>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-600 dark:text-zinc-400">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider bg-rose-50 text-rose-700">
+                完売
+              </span>
+              <span>0個</span>
+            </div>
+          </div>
         </div>
 
         <div className="absolute right-6 top-6 flex items-center gap-4">
