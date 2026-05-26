@@ -1,7 +1,5 @@
 'use server';
 
-import { rm } from 'node:fs/promises';
-import path from 'node:path';
 import { auth } from '@/features/account/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -30,14 +28,6 @@ export async function cleanupFridgesAction() {
 
       const fridgeIds = targetFridges.map((f) => f.id);
 
-      const batches = await tx.uploadBatch.findMany({
-        where: { fridgeId: { in: fridgeIds } },
-        select: { storagePath: true },
-      });
-      const filePaths = batches
-        .map((b) => b.storagePath)
-        .filter(Boolean) as string[];
-
       await tx.user.updateMany({
         where: { favoriteFridgeId: { in: fridgeIds } },
         data: { favoriteFridgeId: null },
@@ -55,16 +45,6 @@ export async function cleanupFridgesAction() {
         where: { fridgeId: { in: fridgeIds } },
       });
       await tx.fridge.deleteMany({ where: { id: { in: fridgeIds } } });
-
-      for (const filePath of filePaths) {
-        try {
-          await rm(filePath, { force: true });
-          const dirPath = path.dirname(filePath);
-          await rm(dirPath, { force: true, recursive: true });
-        } catch (fileErr) {
-          console.error(`ファイル削除失敗 (${filePath}):`, fileErr);
-        }
-      }
 
       return `${targetFridges.length}件の削除済み冷蔵庫データを完全に消去しました。`;
     });

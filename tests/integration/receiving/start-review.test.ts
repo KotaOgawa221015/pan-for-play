@@ -16,8 +16,7 @@ const {
   normalizeProductName,
   extractProductsFromDeliveryNote,
   readDeliveryNoteUpload,
-  storeDeliveryNoteImage,
-  deleteStoredDeliveryNoteImage,
+  storeReviewBatchSourceImage,
   auth,
 } = vi.hoisted(() => ({
   transaction: vi.fn(),
@@ -37,8 +36,7 @@ const {
   ),
   extractProductsFromDeliveryNote: vi.fn(),
   readDeliveryNoteUpload: vi.fn(),
-  storeDeliveryNoteImage: vi.fn(),
-  deleteStoredDeliveryNoteImage: vi.fn(),
+  storeReviewBatchSourceImage: vi.fn(),
   auth: vi.fn(),
 }));
 
@@ -85,12 +83,8 @@ vi.mock('@/features/receiving/delivery-note/read-upload', () => ({
   readDeliveryNoteUpload,
 }));
 
-vi.mock('@/features/receiving/delivery-note/store-image', () => ({
-  storeDeliveryNoteImage,
-}));
-
-vi.mock('@/features/receiving/delivery-note/delete-stored-image', () => ({
-  deleteStoredDeliveryNoteImage,
+vi.mock('@/features/receiving/review-draft/store-source-image', () => ({
+  storeReviewBatchSourceImage,
 }));
 
 vi.mock('next/cache', () => ({
@@ -117,8 +111,7 @@ describe('receiving start review', () => {
     normalizeProductName.mockClear();
     extractProductsFromDeliveryNote.mockReset();
     readDeliveryNoteUpload.mockReset();
-    storeDeliveryNoteImage.mockReset();
-    deleteStoredDeliveryNoteImage.mockReset();
+    storeReviewBatchSourceImage.mockReset();
     auth.mockReset();
 
     auth.mockResolvedValue({ user: { id: 'user-1', role: 'ADMIN' } });
@@ -149,8 +142,9 @@ describe('receiving start review', () => {
     readDeliveryNoteUpload.mockResolvedValue({
       fileName: 'invoice.png',
       imageBuffer: Buffer.from('png'),
+      mimeType: 'image/png',
     });
-    storeDeliveryNoteImage.mockResolvedValue('/tmp/project/.tmp/invoice.png');
+    storeReviewBatchSourceImage.mockResolvedValue(undefined);
     extractProductsFromDeliveryNote.mockResolvedValue([
       { name: 'クラムチャウダー', count: 4 },
       { name: '新作パン', count: 9 },
@@ -207,26 +201,24 @@ describe('receiving start review', () => {
         fridgeId: 'fridge-1',
         uploadedByUserId: 'user-1',
         originalFileName: 'invoice.png',
-        storagePath: null,
       },
       select: {
         id: true,
         originalFileName: true,
       },
     });
+    expect(uploadBatchUpdate).toHaveBeenCalledTimes(1);
     expect(uploadBatchUpdate).toHaveBeenNthCalledWith(1, {
-      where: { id: 'batch-1' },
-      data: {
-        storagePath: '/tmp/project/.tmp/invoice.png',
-      },
-    });
-    expect(uploadBatchUpdate).toHaveBeenNthCalledWith(2, {
       where: { id: 'batch-1' },
       data: {
         processedAt: expect.any(Date),
       },
     });
-    expect(deleteStoredDeliveryNoteImage).not.toHaveBeenCalled();
+    expect(storeReviewBatchSourceImage).toHaveBeenCalledWith({
+      batchId: 'batch-1',
+      imageBuffer: Buffer.from('png'),
+      mimeType: 'image/png',
+    });
     expect(revalidatePath).toHaveBeenCalledWith('/admin');
   });
 
@@ -235,8 +227,9 @@ describe('receiving start review', () => {
     readDeliveryNoteUpload.mockResolvedValue({
       fileName: 'invoice.png',
       imageBuffer: Buffer.from('png'),
+      mimeType: 'image/png',
     });
-    storeDeliveryNoteImage.mockResolvedValue('/tmp/project/.tmp/invoice.png');
+    storeReviewBatchSourceImage.mockResolvedValue(undefined);
     extractProductsFromDeliveryNote.mockRejectedValue(
       new UnreadableDeliveryNoteImageError(
         '商品名行数と数量行数が一致しません: invoice.png (3件 / 7件)',
@@ -268,20 +261,17 @@ describe('receiving start review', () => {
       error:
         '納品書を読み取れませんでした。見本のように納品書全体が写るよう撮影し直して、もう一度アップロードしてください。',
     });
-    expect(uploadBatchUpdate).toHaveBeenNthCalledWith(1, {
-      where: { id: 'batch-1' },
-      data: {
-        storagePath: '/tmp/project/.tmp/invoice.png',
-      },
-    });
+    expect(uploadBatchUpdate).not.toHaveBeenCalled();
     expect(uploadBatchLineDeleteMany).toHaveBeenCalledWith({
       where: { uploadBatchId: 'batch-1' },
     });
     expect(uploadBatchDelete).toHaveBeenCalledWith({
       where: { id: 'batch-1' },
     });
-    expect(deleteStoredDeliveryNoteImage).toHaveBeenCalledWith(
-      '/tmp/project/.tmp/invoice.png',
-    );
+    expect(storeReviewBatchSourceImage).toHaveBeenCalledWith({
+      batchId: 'batch-1',
+      imageBuffer: Buffer.from('png'),
+      mimeType: 'image/png',
+    });
   });
 });

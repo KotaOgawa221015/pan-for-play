@@ -22,6 +22,7 @@ export async function convertHeicUploadToJpeg(input: {
 }): Promise<{
   fileName: string;
   imageBuffer: Buffer;
+  mimeType: string;
 }> {
   try {
     const convert = input.convert ?? (await loadHeicConverter());
@@ -37,6 +38,7 @@ export async function convertHeicUploadToJpeg(input: {
         converted instanceof ArrayBuffer
           ? Buffer.from(converted)
           : Buffer.from(converted),
+      mimeType: 'image/jpeg',
     };
   } catch (error) {
     throw new HeicUploadConversionError({ cause: error });
