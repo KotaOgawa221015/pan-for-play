@@ -25,7 +25,7 @@ function flashMessageReducer(state: State, action: Action): State {
 }
 
 export function FlashMessage({ msg }: { msg?: string }) {
-  const router = useRouter();
+  const { replace } = useRouter();
   const validMessages = [
     'login_success',
     'signup_success',
@@ -55,14 +55,14 @@ export function FlashMessage({ msg }: { msg?: string }) {
     }, 2400);
 
     const removeTimer = setTimeout(() => {
-      router.replace(window.location.pathname, { scroll: false });
+      replace(window.location.pathname, { scroll: false });
     }, 2900);
 
     return () => {
       clearTimeout(exitTimer);
       clearTimeout(removeTimer);
     };
-  }, [isTriggered, router]);
+  }, [isTriggered, replace]);
 
   if (state.phase === 'idle' || !msg) return null;
 

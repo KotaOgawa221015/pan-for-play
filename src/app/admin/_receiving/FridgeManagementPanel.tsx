@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import {
   createFridge,
   deleteFridge,
@@ -29,14 +29,12 @@ export function FridgeManagementPanel({ fridges }: Props) {
 
   const selectedFridge = fridges.find((f) => f.id === selectedId);
 
-  useEffect(() => {
-    if (selectedFridge) {
-      setRenameName(selectedFridge.name);
-    } else {
-      setRenameName('');
-    }
+  const handleSelectChange = (id: string) => {
+    setSelectedId(id);
+    const fridge = fridges.find((f) => f.id === id);
+    setRenameName(fridge ? fridge.name : '');
     setMessage(null);
-  }, [selectedFridge]);
+  };
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,6 +103,7 @@ export function FridgeManagementPanel({ fridges }: Props) {
             text: `冷蔵庫「${selectedFridge.name}」を削除しました。`,
           });
           setSelectedId('');
+          setRenameName('');
         }
       } catch (err) {
         alert(err instanceof Error ? err.message : '削除に失敗しました。');
@@ -146,7 +145,7 @@ export function FridgeManagementPanel({ fridges }: Props) {
             <select
               id="fridge-select"
               value={selectedId}
-              onChange={(e) => setSelectedId(e.target.value)}
+              onChange={(e) => handleSelectChange(e.target.value)}
               disabled={isPending}
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm disabled:bg-gray-100"
             >
@@ -178,12 +177,13 @@ export function FridgeManagementPanel({ fridges }: Props) {
                 />
               </div>
 
-              <div className="flex space-x-3 pt-2">
+              <div className="flex gap-x-3 pt-2">
                 <button
                   type="button"
                   onClick={handleDelete}
                   disabled={isPending || selectedFridge.isDefault}
                   className="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+                  aria-label="選択中の冷蔵庫を削除"
                   title={
                     selectedFridge.isDefault
                       ? 'デフォルトの冷蔵庫は削除できません'
@@ -201,6 +201,7 @@ export function FridgeManagementPanel({ fridges }: Props) {
                     renameName === selectedFridge.name
                   }
                   className="flex-1 justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+                  aria-label="冷蔵庫の名前を変更"
                 >
                   名前を変更
                 </button>
@@ -233,6 +234,7 @@ export function FridgeManagementPanel({ fridges }: Props) {
               type="submit"
               disabled={isPending || !newName.trim()}
               className="w-full justify-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600 disabled:bg-gray-300 disabled:cursor-not-allowed"
+              aria-label="新しい冷蔵庫を追加"
             >
               新規追加
             </button>

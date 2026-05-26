@@ -114,7 +114,7 @@ type Props = {
 const readActionTimeoutMs = 15_000;
 
 export function Dashboard({ recentHistory, fridges }: Props) {
-  const router = useRouter();
+  const { refresh, replace } = useRouter();
   const [reapplyBatchId, setReapplyBatchId] = useState<string | null>(null);
   const [reapplyFridgeId, setReapplyFridgeId] = useState('');
   const [isReapplying, setIsReapplying] = useState(false);
@@ -141,7 +141,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
   } = state;
 
   const refreshPage = () => {
-    router.refresh();
+    refresh();
   };
   const defaultFridgeId = fridges.find((fridge) => fridge.isDefault)?.id ?? '';
   const selectedReapplyEntry =
@@ -194,7 +194,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
     try {
       await applyReceivingReview(input);
       dispatch({ type: 'APPLY_SUCCESS' });
-      router.replace('/admin?msg=apply_success', { scroll: false });
+      replace('/admin?msg=apply_success', { scroll: false });
     } catch (error) {
       dispatch({
         type: 'APPLY_ERROR',
@@ -221,7 +221,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
         await action();
         dispatch({ type: 'BATCH_ACTION_FINISH' });
         if (messages) {
-          router.replace(`/admin?msg=${messages.success}`, { scroll: false });
+          replace(`/admin?msg=${messages.success}`, { scroll: false });
         }
       } catch (error) {
         dispatch({
@@ -232,7 +232,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
               : '履歴の更新に失敗しました。',
         });
         if (messages) {
-          router.replace(`/admin?msg=${messages.failed}`, { scroll: false });
+          replace(`/admin?msg=${messages.failed}`, { scroll: false });
         }
       } finally {
         refreshPage();
@@ -270,7 +270,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
         });
         dispatch({ type: 'BATCH_ACTION_FINISH' });
         setReapplyBatchId(null);
-        router.replace('/admin?msg=reapply_success', { scroll: false });
+        replace('/admin?msg=reapply_success', { scroll: false });
       } catch (error) {
         dispatch({
           type: 'BATCH_ACTION_ERROR',
@@ -279,7 +279,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
               ? error.message
               : '納品書の再適用に失敗しました。',
         });
-        router.replace('/admin?msg=reapply_failed', { scroll: false });
+        replace('/admin?msg=reapply_failed', { scroll: false });
       } finally {
         setIsReapplying(false);
         refreshPage();
