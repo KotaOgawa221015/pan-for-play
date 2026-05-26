@@ -1,5 +1,6 @@
 'use client';
 
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { useActionState, useState } from 'react';
 import {
   deleteAccountAction,
@@ -16,6 +17,7 @@ export function ProfileForm({
   fridges: Fridge[];
 }) {
   const [, pAction, pPending] = useActionState(updateProfileAction, null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const initialName = user.name || '';
   const initialFavoriteFridgeId = user.favoriteFridgeId || '';
@@ -28,8 +30,22 @@ export function ProfileForm({
     favoriteFridgeId !== initialFavoriteFridgeId;
 
   const handleDeleteAccount = async () => {
+    if (isDeleting) return;
+
     if (confirm('本当に退会しますか？この操作は取り消せません。')) {
-      await deleteAccountAction();
+      setIsDeleting(true);
+      try {
+        const result = await deleteAccountAction();
+        if (result?.error) {
+          setIsDeleting(false);
+        }
+      } catch (error) {
+        if (isRedirectError(error)) {
+          throw error;
+        }
+
+        setIsDeleting(false);
+      }
     }
   };
 
@@ -90,9 +106,10 @@ export function ProfileForm({
       <button
         type="button"
         onClick={handleDeleteAccount}
-        className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-rose-700 transition"
+        disabled={isDeleting}
+        className="bg-rose-600 text-white px-6 py-2 rounded-lg font-bold text-sm hover:bg-rose-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        退会する
+        {isDeleting ? '退会処理中...' : '退会する'}
       </button>
     </div>
   );
