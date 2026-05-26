@@ -14,13 +14,14 @@ export default async function ProfilePage({
 }: {
   searchParams: Promise<{ msg?: string }>;
 }) {
-  const { msg } = await searchParams;
-  const user = await requireCurrentUser();
-
-  const fridges = await prisma.fridge.findMany({
-    where: { deletedAt: null },
-    orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
-  });
+  const [{ msg }, user, fridges] = await Promise.all([
+    searchParams,
+    requireCurrentUser(),
+    prisma.fridge.findMany({
+      where: { deletedAt: null },
+      orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+    }),
+  ]);
 
   return (
     <>

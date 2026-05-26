@@ -16,17 +16,17 @@ export default async function UploadPage({
 }: {
   searchParams: Promise<{ msg?: string }>;
 }) {
-  const { msg } = await searchParams;
-  const currentAdmin = await requireAdminUser();
-
-  const [recentHistory, users, fridges] = await Promise.all([
-    getRecentReceivingHistory(),
-    listEligibleUsers(),
-    prisma.fridge.findMany({
-      where: { deletedAt: null },
-      orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
-    }),
-  ]);
+  const [{ msg }, currentAdmin, recentHistory, users, fridges] =
+    await Promise.all([
+      searchParams,
+      requireAdminUser(),
+      getRecentReceivingHistory(),
+      listEligibleUsers(),
+      prisma.fridge.findMany({
+        where: { deletedAt: null },
+        orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+      }),
+    ]);
 
   return (
     <>
