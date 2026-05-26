@@ -15,20 +15,17 @@ async function verifyAdmin() {
 export async function cleanupFridgesAction() {
   await verifyAdmin();
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
   try {
     const message = await prisma.$transaction(async (tx) => {
       const targetFridges = await tx.fridge.findMany({
         where: {
-          deletedAt: { lt: thirtyDaysAgo, not: null },
+          deletedAt: { not: null },
         },
         select: { id: true, name: true },
       });
 
       if (targetFridges.length === 0) {
-        return '対象となる古い冷蔵庫データはありませんでした。';
+        return '対象となる削除済みの冷蔵庫データはありませんでした。';
       }
 
       const fridgeIds = targetFridges.map((f) => f.id);
@@ -69,7 +66,7 @@ export async function cleanupFridgesAction() {
         }
       }
 
-      return `${targetFridges.length}件の冷蔵庫データを完全に削除しました。`;
+      return `${targetFridges.length}件の削除済み冷蔵庫データを完全に消去しました。`;
     });
 
     return { success: true, message };
@@ -85,20 +82,17 @@ export async function cleanupFridgesAction() {
 export async function cleanupUsersAction() {
   await verifyAdmin();
 
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
   try {
     const message = await prisma.$transaction(async (tx) => {
       const targetUsers = await tx.user.findMany({
         where: {
-          deletedAt: { lt: thirtyDaysAgo, not: null },
+          deletedAt: { not: null },
         },
         select: { id: true, name: true },
       });
 
       if (targetUsers.length === 0) {
-        return '対象となる古い退会ユーザーデータはありませんでした。';
+        return '対象となる退会済みユーザーデータはありませんでした。';
       }
 
       const userIds = targetUsers.map((u) => u.id);

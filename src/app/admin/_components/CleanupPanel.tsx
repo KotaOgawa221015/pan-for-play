@@ -12,7 +12,7 @@ export function CleanupPanel() {
 
   const handleFridgeCleanup = async () => {
     const confirmed = window.confirm(
-      '削除から30日以上が経過した冷蔵庫データ、および関連する納品書などの物理ファイルを完全に削除します。\nこの操作は取り消せません。実行しますか？',
+      '削除された冷蔵庫データ、および関連する納品書などの物理ファイルを完全に削除します。\nこの操作は取り消せません。実行しますか？',
     );
     if (!confirmed) return;
 
@@ -24,7 +24,7 @@ export function CleanupPanel() {
 
   const handleUserCleanup = async () => {
     const confirmed = window.confirm(
-      '退会から30日以上が経過したユーザーの個人情報をデータベースから物理削除します。\n（利用規約に基づき、過去の操作履歴は「削除済みユーザー」に引き継がれます）\nこの操作は取り消せません。実行しますか？',
+      '退会したユーザーの個人情報をデータベースから物理削除します。\n（利用規約に基づき、過去の操作履歴は「削除済みユーザー」に引き継がれます）\nこの操作は取り消せません。実行しますか？',
     );
     if (!confirmed) return;
 
@@ -41,7 +41,7 @@ export function CleanupPanel() {
           データメンテナンス
         </h2>
         <p className="text-xs text-zinc-500">
-          削除または退会から30日以上が経過した古いデータをデータベースから完全に消去し、ストレージ容量を解放します。
+          削除または退会したデータをデータベースから完全に消去し、ストレージ容量を解放します。
         </p>
       </div>
 

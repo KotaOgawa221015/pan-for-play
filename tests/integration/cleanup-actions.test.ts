@@ -68,20 +68,13 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
     }
   });
 
-  it('管理者画面からクリーンアップを実行した際、30日以上経過した冷蔵庫とユーザーデータが安全に処理されること', async () => {
+  it('管理者画面からクリーンアップを実行した際、論理削除された冷蔵庫とユーザーデータが安全に処理されること', async () => {
     authMock.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
 
-    const now = new Date();
-    const past31Days = new Date();
-    past31Days.setDate(now.getDate() - 31);
-    const past29Days = new Date();
-    past29Days.setDate(now.getDate() - 29);
+    const deletedTime = new Date();
 
     const fridgeTarget = await testPrisma.fridge.create({
-      data: { name: '削除対象冷蔵庫', deletedAt: past31Days },
-    });
-    const fridgeKeep = await testPrisma.fridge.create({
-      data: { name: '維持対象冷蔵庫', deletedAt: past29Days },
+      data: { name: '削除対象冷蔵庫', deletedAt: deletedTime },
     });
     const fridgeActive = await testPrisma.fridge.create({
       data: { name: '稼働中冷蔵庫', deletedAt: null },
@@ -91,14 +84,7 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
       data: {
         name: '退会対象ユーザー',
         email: 'target@example.com',
-        deletedAt: past31Days,
-      },
-    });
-    const userKeep = await testPrisma.user.create({
-      data: {
-        name: '退会維持ユーザー',
-        email: 'keep@example.com',
-        deletedAt: past29Days,
+        deletedAt: deletedTime,
       },
     });
     const userActive = await testPrisma.user.create({
@@ -143,7 +129,6 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
     })) as { id: string }[];
     const fridgeIds = remainingFridges.map((f) => f.id);
     expect(fridgeIds).not.toContain(fridgeTarget.id);
-    expect(fridgeIds).toContain(fridgeKeep.id);
     expect(fridgeIds).toContain(fridgeActive.id);
 
     expect(existsSync(dummyFilePath)).toBe(false);
@@ -153,7 +138,6 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
     })) as { id: string }[];
     const userIds = remainingUsers.map((u) => u.id);
     expect(userIds).not.toContain(userTarget.id);
-    expect(userIds).toContain(userKeep.id);
     expect(userIds).toContain(userActive.id);
 
     const placeholderUser = await testPrisma.user.findUnique({
