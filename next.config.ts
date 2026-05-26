@@ -66,6 +66,16 @@ const nextConfig: NextConfig = {
     'jimp',
     'tesseract.js',
   ],
+  outputFileTracingIncludes: {
+    '/admin': [
+      './src/features/receiving/delivery-note/ocr-worker.cjs',
+      './node_modules/.pnpm/tesseract.js@*/node_modules/tesseract.js/src/worker-script/**/*',
+      './node_modules/.pnpm/tesseract.js@*/node_modules/tesseract.js/src/constants/**/*',
+      './node_modules/.pnpm/tesseract.js@*/node_modules/tesseract.js/src/utils/**/*',
+      './node_modules/.pnpm/tesseract.js-core@*/node_modules/tesseract.js-core/**/*',
+      './node_modules/.pnpm/wasm-feature-detect@*/node_modules/wasm-feature-detect/**/*',
+    ],
+  },
   allowedDevOrigins: ['127.0.0.1'],
 
   images: {

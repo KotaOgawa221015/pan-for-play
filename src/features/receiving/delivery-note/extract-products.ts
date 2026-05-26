@@ -25,6 +25,10 @@ const tesseractCachePath = path.join(
   getWritableRuntimeDirectory(),
   'tesseract-cache',
 );
+const tesseractWorkerPath = path.join(
+  process.cwd(),
+  'src/features/receiving/delivery-note/ocr-worker.cjs',
+);
 
 export const extractProductsFromDeliveryNote: ExtractDeliveryNoteProducts =
   async ({ fileName, imageBuffer }) => {
@@ -37,8 +41,14 @@ export const extractProductsFromDeliveryNote: ExtractDeliveryNoteProducts =
     await mkdir(tesseractCachePath, { recursive: true });
 
     const [namesWorker, countsWorker] = await Promise.all([
-      createWorker('jpn', undefined, { cachePath: tesseractCachePath }),
-      createWorker('eng', undefined, { cachePath: tesseractCachePath }),
+      createWorker('jpn', undefined, {
+        cachePath: tesseractCachePath,
+        workerPath: tesseractWorkerPath,
+      }),
+      createWorker('eng', undefined, {
+        cachePath: tesseractCachePath,
+        workerPath: tesseractWorkerPath,
+      }),
     ]);
 
     try {
