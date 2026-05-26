@@ -10,7 +10,6 @@ export async function createPendingReviewBatch(input: {
       fridgeId: input.fridgeId,
       uploadedByUserId: input.userId,
       originalFileName: input.fileName,
-      storagePath: null,
     },
     select: {
       id: true,

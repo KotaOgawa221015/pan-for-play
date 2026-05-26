@@ -4,16 +4,14 @@ import { revalidatePath } from 'next/cache';
 import { auth } from '@/features/account/auth';
 import { requireAdminUser } from '@/features/account/session-user';
 import { listCatalogProducts } from '@/features/product-catalog/products';
-import { deleteStoredDeliveryNoteImage } from './delivery-note/delete-stored-image';
 import { extractProductsFromDeliveryNote } from './delivery-note/extract-products';
 import { readDeliveryNoteUpload } from './delivery-note/read-upload';
-import { storeDeliveryNoteImage } from './delivery-note/store-image';
 import { UnreadableDeliveryNoteImageError } from './delivery-note/unreadable-image-error';
 import { completeReviewBatch } from './review-draft/complete-batch';
 import { createPendingReviewBatch } from './review-draft/create-pending-batch';
 import { failReviewBatch } from './review-draft/fail-batch';
 import { prepareReviewDraft } from './review-draft/prepare';
-import { storeReviewBatchImagePath } from './review-draft/store-image-path';
+import { storeReviewBatchSourceImage } from './review-draft/store-source-image';
 import type { ReviewDraft } from './types';
 
 export type StartReceivingReviewResult =
@@ -54,15 +52,13 @@ async function runReceivingReviewStart(formData: FormData) {
     fridgeId,
     fileName: uploadedDeliveryNote.fileName,
   });
-  let storagePath: string | null = null;
 
   try {
-    storagePath = await storeDeliveryNoteImage({
+    await storeReviewBatchSourceImage({
       batchId: batch.id,
-      fileName: batch.originalFileName,
       imageBuffer: uploadedDeliveryNote.imageBuffer,
+      mimeType: uploadedDeliveryNote.mimeType,
     });
-    await storeReviewBatchImagePath(batch.id, storagePath);
 
     const draft = await prepareReviewDraft(
       {
@@ -96,17 +92,6 @@ async function runReceivingReviewStart(formData: FormData) {
         batchId: batch.id,
         cleanupError,
       });
-    }
-
-    if (storagePath) {
-      try {
-        await deleteStoredDeliveryNoteImage(storagePath);
-      } catch (cleanupError) {
-        console.error(
-          'Failed to clean up delivery note image after read error:',
-          cleanupError,
-        );
-      }
     }
 
     revalidatePath('/admin');

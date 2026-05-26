@@ -21,13 +21,15 @@ export default async function Page({
 }: {
   searchParams: Promise<{ msg?: string; fridgeId?: string }>;
 }) {
-  const user = await requireCurrentUser();
-  const [{ msg, fridgeId: queryFridgeId }] = await Promise.all([searchParams]);
+  const [user, { msg, fridgeId: queryFridgeId }, fridges] = await Promise.all([
+    requireCurrentUser(),
+    searchParams,
+    prisma.fridge.findMany({
+      where: { deletedAt: null },
+      orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
+    }),
+  ]);
 
-  const fridges = await prisma.fridge.findMany({
-    where: { deletedAt: null },
-    orderBy: [{ isDefault: 'desc' }, { name: 'asc' }],
-  });
   const activeFridgeId =
     queryFridgeId ||
     user.favoriteFridgeId ||
@@ -36,12 +38,12 @@ export default async function Page({
 
   const activeFridge = fridges.find((f) => f.id === activeFridgeId);
 
-  const products = activeFridgeId
-    ? await getInventoryProducts(activeFridgeId)
-    : [];
-  const publicationSummary = activeFridgeId
-    ? await getCurrentInventoryPublicationSummary(activeFridgeId)
-    : null;
+  const [products, publicationSummary] = activeFridgeId
+    ? await Promise.all([
+        getInventoryProducts(activeFridgeId),
+        getCurrentInventoryPublicationSummary(activeFridgeId),
+      ])
+    : [[], null];
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 pb-12">
