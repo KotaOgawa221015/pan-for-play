@@ -24,22 +24,23 @@ function formatDateTime(value: string) {
 function ChangeList({
   changes,
   emptyText,
-  defaultLimit,
+  itemsPerPage = 10,
 }: {
   changes: InventoryPublicationChange[];
   emptyText: string;
-  defaultLimit?: number;
+  itemsPerPage?: number;
 }) {
-  const [showAll, setShowAll] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
   if (changes.length === 0) {
     return <p className="text-sm text-zinc-500">{emptyText}</p>;
   }
 
-  const hasLimit = defaultLimit !== undefined && changes.length > defaultLimit;
-
-  const displayedChanges =
-    hasLimit && !showAll ? changes.slice(0, defaultLimit) : changes;
+  // ページング計算
+  const totalPages = Math.max(1, Math.ceil(changes.length / itemsPerPage));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
+  const displayedChanges = changes.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div className="space-y-3">
@@ -69,17 +70,37 @@ function ChangeList({
         ))}
       </ul>
 
-      {hasLimit && (
-        <div className="pt-1">
-          <button
-            type="button"
-            onClick={() => setShowAll(!showAll)}
-            className="text-sm font-medium text-zinc-500 hover:text-zinc-800 transition-colors focus:outline-none dark:text-zinc-400 dark:hover:text-zinc-200"
-          >
-            {showAll
-              ? '一部のみ表示する'
-              : `すべて表示する (${changes.length}件)`}
-          </button>
+      {/* ページネーションコントロール（複数ページある場合のみ表示） */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between gap-3 text-xs text-zinc-500 pt-1">
+          <p>
+            {startIndex + 1}-
+            {Math.min(startIndex + itemsPerPage, changes.length)} /{' '}
+            {changes.length}
+          </p>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+              disabled={safeCurrentPage === 1}
+              className="rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 transition"
+            >
+              前へ
+            </button>
+            <span className="text-zinc-600 dark:text-zinc-400">
+              {safeCurrentPage} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentPage((prev) => Math.min(totalPages, prev + 1))
+              }
+              disabled={safeCurrentPage === totalPages}
+              className="rounded-full border border-zinc-300 dark:border-zinc-700 px-3 py-1 font-semibold text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800 disabled:opacity-50 transition"
+            >
+              次へ
+            </button>
+          </div>
         </div>
       )}
     </div>
@@ -115,7 +136,7 @@ export function InventoryPublicationPanel({ summary }: Props) {
           <ChangeList
             changes={summary.manualChangesAfterPublication}
             emptyText="この納品書反映後の手動変更はありません。"
-            defaultLimit={10}
+            itemsPerPage={10}
           />
         </div>
       </div>
