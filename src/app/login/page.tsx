@@ -5,8 +5,8 @@ import { getAuthEnv } from '@/lib/environment';
 import { LoginPageClient } from './LoginPageClient';
 
 export const metadata: Metadata = {
-  title: 'ログイン | パンコレ',
-  description: 'パンコレにログインします。',
+  title: 'ログイン | Pan for PLAY',
+  description: 'Pan for PLAYにログインします。',
 };
 
 export default async function LoginPage({

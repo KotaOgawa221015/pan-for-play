@@ -29,6 +29,6 @@ test.describe('ログイン・在庫画面ライフサイクル', () => {
     await expect(bypassUserButton).toBeVisible();
     await bypassUserButton.click();
     await expect(page).toHaveURL('/');
-    await expect(page.locator('h1')).toContainText('パンコレ');
+    await expect(page.locator('h1')).toContainText('Pan for PLAY');
   });
 });

@@ -86,7 +86,7 @@ export function LoginPageClient({
           Googleでログイン
         </button>
         <p className="text-[11px] text-zinc-400 dark:text-zinc-500 leading-relaxed px-2">
-          ログインまたは新規登録を行うことで、パンコレの
+          ログインまたは新規登録を行うことで、Pan for PLAYの
           <Link
             href="/terms"
             className="text-emerald-600 dark:text-emerald-400 hover:underline mx-0.5"

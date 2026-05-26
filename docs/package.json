@@ -7,7 +7,7 @@
     "dev": "vitepress dev .",
     "prebuild": "tsx .vitepress/scripts/generate-docs-index.ts",
     "build": "GITHUB_ACTIONS=true vitepress build .",
-    "preview": "pnpm build && vitepress preview . --base /pancolle/",
+    "preview": "pnpm build && vitepress preview . --base /pan-for-play/",
     "test:rendered:preview": "pnpm build && GITHUB_ACTIONS=true playwright test --config .vitepress/tests/playwright.preview.config.ts",
     "test:rendered:dev": "playwright test --config .vitepress/tests/playwright.dev.config.ts",
     "test:rendered": "pnpm test:rendered:preview && pnpm test:rendered:dev"

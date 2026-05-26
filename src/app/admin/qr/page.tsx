@@ -66,10 +66,10 @@ export default function QRPage() {
           <div className="flex flex-col items-center gap-5 py-6 text-center print:py-0">
             <div className="space-y-1.5">
               <h1 className="text-3xl font-semibold tracking-wide text-zinc-900 dark:text-zinc-50">
-                Pancolle
+                Pan for PLAY
               </h1>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                パンの在庫を確認するアプリ
+                Pan for PLAYの在庫を確認するアプリ
               </p>
             </div>
 

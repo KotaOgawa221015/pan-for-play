@@ -156,10 +156,10 @@ export function getTursoRecreateEnv(raw: RawEnv = process.env) {
 }
 
 export function getSystemTestPort(raw: RawEnv = process.env, fallback = 3001) {
-  const value = raw.PANCOLLE_SYSTEM_TEST_PORT;
+  const value = raw.P4P_SYSTEM_TEST_PORT;
 
   if (value === undefined) {
-    console.warn(`PANCOLLE_SYSTEM_TEST_PORT is not set. Using ${fallback}.`);
+    console.warn(`P4P_SYSTEM_TEST_PORT is not set. Using ${fallback}.`);
     return fallback;
   }
 
@@ -167,7 +167,7 @@ export function getSystemTestPort(raw: RawEnv = process.env, fallback = 3001) {
 
   if (!parsed.success) {
     throw new Error(
-      `PANCOLLE_SYSTEM_TEST_PORT must be a positive integer: received "${value}"`,
+      `P4P_SYSTEM_TEST_PORT must be a positive integer: received "${value}"`,
     );
   }
 

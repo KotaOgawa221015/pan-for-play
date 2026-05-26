@@ -7,7 +7,7 @@ default: help
 help:
 	@echo "Usage: just [recipe]"
 	@echo ""
-	@echo "Tasks for pancolle:"
+	@echo "Docker tasks for Pan for Play:"
 	@just --list | tail -n +2 | awk '{printf "  \033[36m%-20s\033[0m %s\n", $1, substr($0, index($0, $2))}'
 
 # Check Turso connection and tables
