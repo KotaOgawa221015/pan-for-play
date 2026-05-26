@@ -5,7 +5,7 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 
 export const metadata: Metadata = {
-  title: 'プライバシーポリシー | パンコレ',
+  title: 'プライバシーポリシー | Pan for PLAY',
 };
 
 export default async function PrivacyPage() {

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { defineConfig } from 'vitepress';
 import { withMermaid } from 'vitepress-plugin-mermaid';
 
-const siteBase = process.env.GITHUB_ACTIONS === 'true' ? '/pancolle/' : '/';
+const siteBase = process.env.GITHUB_ACTIONS === 'true' ? '/pan-for-play/' : '/';
 
 function getPageTitle(filePath: string, fallback: string): string {
   try {
@@ -52,8 +52,8 @@ function autoGenerateSidebar() {
 export default withMermaid(
   defineConfig({
     base: siteBase,
-    title: 'Pancolle Docs',
-    description: 'パンコレの開発ドキュメント',
+    title: 'Pan for PLAY Docs',
+    description: 'Pan for PLAYの開発ドキュメント',
 
     vite: {
       optimizeDeps: {
@@ -77,7 +77,7 @@ export default withMermaid(
       },
       editLink: {
         pattern:
-          'https://github.com/kotaogawa221015/pancolle/edit/main/docs/:path',
+          'https://github.com/kotaogawa221015/pan-for-play/edit/main/docs/:path',
         text: 'このページを編集する',
       },
       nav: [{ text: 'Home', link: '/' }],

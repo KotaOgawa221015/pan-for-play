@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { ProfileForm } from './profile-form';
 
 export const metadata: Metadata = {
-  title: 'マイページ | パンコレ',
+  title: 'マイページ | Pan for PLAY',
 };
 
 export default async function ProfilePage({

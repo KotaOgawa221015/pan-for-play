@@ -1,6 +1,6 @@
 # Docs System Overview
 
-This directory contains the VitePress documentation system for Pancolle.
+This directory contains the VitePress documentation system for Pan for PLAY.
 The system manages documentation pages, generated index pages, and site configuration as separate concerns.
 
 ## Directory Responsibilities
@@ -24,7 +24,7 @@ Their content is rendered with Nunjucks templates and kept consistent by the gen
 `docs/package.json` binds index generation to VitePress lifecycle scripts.
 `predev` and `prebuild` execute the generator before `dev` and `build`, so generated entry pages reflect current source files.
 `docs:dev` serves the local development site at the root path.
-`docs:preview` builds and serves the GitHub Pages site under `/pancolle/`.
+`docs:preview` builds and serves the GitHub Pages site under `/pan-for-play/`.
 
 ## Operational Boundaries
 

@@ -23,5 +23,5 @@ jobs:
           echo "# React Doctor" >> "$GITHUB_STEP_SUMMARY"
           echo >> "$GITHUB_STEP_SUMMARY"
           echo '```text' >> "$GITHUB_STEP_SUMMARY"
-          npx -y react-doctor@latest . --project pancolle --verbose --offline --fail-on none | tee -a "$GITHUB_STEP_SUMMARY"
+          npx -y react-doctor@latest . --project pan-for-play --verbose --offline --fail-on none | tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"

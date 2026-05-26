@@ -1,6 +1,6 @@
 'use client';
 
-import { domAnimation, LazyMotion, m, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ProductCard } from '@/app/_components/ProductCard';
 import type { Product } from '@/types/inventory';
 
@@ -10,6 +10,8 @@ type Props = {
 };
 
 export function ProductList({ fridgeId, products }: Props) {
+  const shouldReduceMotion = useReducedMotion();
+
   const sortedProducts = products.toSorted((a, b) => {
     const aIsSoldOut = a.status === 'SOLD_OUT';
     const bIsSoldOut = b.status === 'SOLD_OUT';
@@ -20,8 +22,6 @@ export function ProductList({ fridgeId, products }: Props) {
     return a.name.localeCompare(b.name, 'ja');
   });
 
-  const shouldReduceMotion = useReducedMotion();
-
   const dynamicSpring = {
     type: 'spring',
     stiffness: 85,
@@ -30,22 +30,20 @@ export function ProductList({ fridgeId, products }: Props) {
   } as const;
 
   return (
-    <LazyMotion features={domAnimation}>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
-        {sortedProducts.map((product) => (
-          <m.div
-            key={product.id}
-            layout={!shouldReduceMotion}
-            transition={shouldReduceMotion ? { duration: 0 } : dynamicSpring}
-            initial={false}
-            style={{
-              zIndex: product.status === 'SOLD_OUT' ? 0 : 10,
-            }}
-          >
-            <ProductCard fridgeId={fridgeId} product={product} />
-          </m.div>
-        ))}
-      </div>
-    </LazyMotion>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+      {sortedProducts.map((product) => (
+        <motion.div
+          key={product.id}
+          layout={!shouldReduceMotion}
+          transition={dynamicSpring}
+          initial={false}
+          style={{
+            zIndex: product.status === 'SOLD_OUT' ? 0 : 10,
+          }}
+        >
+          <ProductCard fridgeId={fridgeId} product={product} />
+        </motion.div>
+      ))}
+    </div>
   );
 }

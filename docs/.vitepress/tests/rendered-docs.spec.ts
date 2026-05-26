@@ -1,6 +1,7 @@
 import { expect, type Page, test } from '@playwright/test';
 
-const docsBasePath = process.env.GITHUB_ACTIONS === 'true' ? '/pancolle' : '';
+const docsBasePath =
+  process.env.GITHUB_ACTIONS === 'true' ? '/pan-for-play' : '';
 
 function docsPath(path: string) {
   return `${docsBasePath}${path}`;
@@ -35,7 +36,7 @@ test('docs top page renders visible content', async ({ page }) => {
   await page.goto(docsPath('/'));
   const content = page.locator('#VPContent');
 
-  await expect(content.getByText('Pancolle Docs')).toBeVisible();
+  await expect(content.getByText('Pan for PLAY Docs')).toBeVisible();
   await expect(
     content.getByRole('link', { name: 'ガイドを読む' }),
   ).toBeVisible();

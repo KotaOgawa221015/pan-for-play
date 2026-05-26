@@ -1,5 +1,5 @@
 {
-  "name": "pancolle",
+  "name": "pan-for-play",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -9,8 +9,9 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "vercel-build": "pnpm exec tsx scripts/turso-migrate.ts && next build",
+    "build": "pnpm run build:ocr-worker && next build",
+    "build:ocr-worker": "tsx scripts/build-ocr-worker.ts",
+    "vercel-build": "pnpm exec tsx scripts/turso-migrate.ts && pnpm run build",
     "start": "next start",
     "postinstall": "prisma generate",
     "setup": "bash -euo pipefail -c '(test -f .env || cp .env.example .env) && pnpm install \"$@\" && pnpm exec playwright install && pnpm exec tsx scripts/db.ts setup' _",
@@ -60,6 +61,7 @@
     "@types/react": "^19.2.15",
     "@types/react-dom": "^19.2.3",
     "@vitest/coverage-v8": "^4.1.7",
+    "esbuild": "0.28.0",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.5",
     "prisma": "^7.8.0",

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import ReactMarkdown from 'react-markdown';
 
 export const metadata: Metadata = {
-  title: '利用規約 | パンコレ',
+  title: '利用規約 | Pan for PLAY',
 };
 
 export default async function TermsPage() {

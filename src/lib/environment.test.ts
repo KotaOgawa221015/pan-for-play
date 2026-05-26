@@ -47,7 +47,7 @@ describe('environment', () => {
   it('accepts an empty optional Turso database group', () => {
     const env = getTursoRecreateEnv({
       DATABASE_URL: 'file:./data/dev.db',
-      TURSO_DATABASE_NAME: 'pancolle-db',
+      TURSO_DATABASE_NAME: 'pan-for-play-db',
       TURSO_AUTH_TOKEN_EXPIRATION: 'never',
       TURSO_DATABASE_GROUP: '',
     });

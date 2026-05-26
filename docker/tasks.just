@@ -1,10 +1,10 @@
-APP_NAME := env("COMPOSE_PROJECT_NAME", "pancolle")
+APP_NAME := env("COMPOSE_PROJECT_NAME", "pan-for-play")
 
 # Start development stack
 up *args:
     @echo "Starting development stack..."
     @COMPOSE_PROJECT_NAME={{ APP_NAME }}-dev \
-        PANCOLLE_BUILD_TARGET=dev \
+        P4P_BUILD_TARGET=dev \
         docker compose -f docker/compose.yaml up {{ args }}
 
 # Stop development stack
@@ -24,7 +24,7 @@ rebuild:
 up-prod *args:
     @echo "Starting production stack..."
     @COMPOSE_PROJECT_NAME={{ APP_NAME }}-prod \
-        PANCOLLE_BUILD_TARGET=prod \
+        P4P_BUILD_TARGET=prod \
         docker compose -f docker/compose.yaml up {{ args }}
 
 # Stop production stack
@@ -43,11 +43,11 @@ rebuild-prod:
 # Build development images
 build-dev:
     @COMPOSE_PROJECT_NAME={{ APP_NAME }}-dev \
-        PANCOLLE_BUILD_TARGET=dev \
+        P4P_BUILD_TARGET=dev \
         docker compose -f docker/compose.yaml build --no-cache
 
 # Build production images
 build-prod:
     @COMPOSE_PROJECT_NAME={{ APP_NAME }}-prod \
-        PANCOLLE_BUILD_TARGET=prod \
+        P4P_BUILD_TARGET=prod \
         docker compose -f docker/compose.yaml build --no-cache

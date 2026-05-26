@@ -131,7 +131,7 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
     expect(userIds).toContain(userActive.id);
 
     const placeholderUser = await testPrisma.user.findUnique({
-      where: { email: 'deleted-user@pancolle.local' },
+      where: { email: 'deleted-user@pan-for-play.local' },
     });
     expect(placeholderUser).not.toBeNull();
 

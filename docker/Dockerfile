@@ -33,7 +33,7 @@ COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
-ENV DATABASE_URL="file:/tmp/pancolle-generate.db"
+ENV DATABASE_URL="file:/tmp/pan-for-play-generate.db"
 
 RUN pnpm install --frozen-lockfile
 
@@ -63,7 +63,7 @@ ENV NODE_ENV=production
 
 COPY . .
 
-ARG BUILD_DATABASE_URL="file:/tmp/pancolle-build.db"
+ARG BUILD_DATABASE_URL="file:/tmp/pan-for-play-build.db"
 ENV DATABASE_URL=${BUILD_DATABASE_URL}
 
 RUN pnpm db:setup && \
