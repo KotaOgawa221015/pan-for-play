@@ -61,6 +61,7 @@ const nextConfig: NextConfig = {
     'heic-convert',
     'heic-decode',
     'jimp',
+    'jpeg-js',
     'libheif-js',
     'pngjs',
     'tesseract.js',
@@ -73,6 +74,9 @@ const nextConfig: NextConfig = {
       './node_modules/libheif-js/**/*',
       './node_modules/pngjs/**/*',
     ],
+  },
+  outputFileTracingExcludes: {
+    '/admin': ['./.tmp/**/*'],
   },
   allowedDevOrigins: ['127.0.0.1'],
 
