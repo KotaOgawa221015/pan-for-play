@@ -76,7 +76,7 @@ export const extractProductsFromDeliveryNote: ExtractDeliveryNoteProducts =
         timeoutId = setTimeout(() => {
           reject(
             new Error(
-              '納品書の読み取りが14秒以内に完了しませんでした。画像を軽くして再度お試しください。',
+              '納品書の読み取りがタイムアウトしました。別の画像をアップロードして再度お試しください。',
             ),
           );
         }, deliveryNoteOcrTimeoutMs);
