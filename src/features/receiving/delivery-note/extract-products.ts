@@ -1,5 +1,6 @@
 import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import { getWritableRuntimeDirectory } from '@/lib/runtime-directory';
 import { buildColumnRectangles } from './build-column-rectangles';
 import { createProcessedCountImageBuffer } from './create-processed-count-image-buffer';
 import {
@@ -18,7 +19,10 @@ export type ExtractDeliveryNoteProducts = (input: {
   imageBuffer: Buffer;
 }) => Promise<ExtractedDeliveryNoteProduct[]>;
 
-const tesseractCachePath = path.join(process.cwd(), '.tmp', 'tesseract-cache');
+const tesseractCachePath = path.join(
+  getWritableRuntimeDirectory(),
+  'tesseract-cache',
+);
 
 export const extractProductsFromDeliveryNote: ExtractDeliveryNoteProducts =
   async ({ fileName, imageBuffer }) => {
