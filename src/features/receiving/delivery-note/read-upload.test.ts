@@ -32,6 +32,7 @@ describe('readDeliveryNoteUpload', () => {
     await expect(readDeliveryNoteUpload(buildFormData(file))).resolves.toEqual({
       fileName,
       imageBuffer: Buffer.from('hello'),
+      mimeType,
     });
   });
 
@@ -40,11 +41,13 @@ describe('readDeliveryNoteUpload', () => {
     convertHeicUploadToJpeg.mockResolvedValue({
       fileName: 'invoice.jpg',
       imageBuffer: Buffer.from('jpeg'),
+      mimeType: 'image/jpeg',
     });
 
     await expect(readDeliveryNoteUpload(buildFormData(file))).resolves.toEqual({
       fileName: 'invoice.jpg',
       imageBuffer: Buffer.from('jpeg'),
+      mimeType: 'image/jpeg',
     });
     expect(convertHeicUploadToJpeg).toHaveBeenCalledWith({
       fileName: 'invoice.heic',

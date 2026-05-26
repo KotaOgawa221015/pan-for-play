@@ -111,6 +111,8 @@ type Props = {
   fridges: { id: string; name: string; isDefault: boolean }[];
 };
 
+const readActionTimeoutMs = 15_000;
+
 export function Dashboard({ recentHistory, fridges }: Props) {
   const router = useRouter();
   const [reapplyBatchId, setReapplyBatchId] = useState<string | null>(null);
@@ -149,7 +151,25 @@ export function Dashboard({ recentHistory, fridges }: Props) {
     dispatch({ type: 'START_READING' });
 
     try {
-      const result = await startReceivingReview(formData);
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(
+            new Error(
+              '読み取りが15秒以内に完了しませんでした。画像を軽くして再度お試しください。',
+            ),
+          );
+        }, readActionTimeoutMs);
+      });
+      const result = await (async () => {
+        try {
+          return await Promise.race([startReceivingReview(formData), timeout]);
+        } finally {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+        }
+      })();
       if (result.ok) {
         dispatch({ type: 'READ_SUCCESS', draft: result.draft });
       } else {

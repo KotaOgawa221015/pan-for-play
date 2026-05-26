@@ -19,6 +19,8 @@ export type ExtractDeliveryNoteProducts = (input: {
   imageBuffer: Buffer;
 }) => Promise<ExtractedDeliveryNoteProduct[]>;
 
+const deliveryNoteOcrTimeoutMs = 14_000;
+
 const tesseractCachePath = path.join(
   getWritableRuntimeDirectory(),
   'tesseract-cache',
@@ -59,18 +61,39 @@ export const extractProductsFromDeliveryNote: ExtractDeliveryNoteProducts =
         rectangles.countDigitsCrop,
       );
 
-      const [namesResult, countsResult] = await Promise.all([
-        namesWorker.recognize(
-          imageBuffer,
-          { rectangle: rectangles.nameColumn },
-          { text: true, blocks: true, tsv: true },
-        ),
-        countsWorker.recognize(
-          processedCountImage,
-          {},
-          { text: true, blocks: true, tsv: true },
-        ),
-      ]);
+      let timeoutId: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<never>((_, reject) => {
+        timeoutId = setTimeout(() => {
+          reject(
+            new Error(
+              '納品書の読み取りが14秒以内に完了しませんでした。画像を軽くして再度お試しください。',
+            ),
+          );
+        }, deliveryNoteOcrTimeoutMs);
+      });
+      const [namesResult, countsResult] = await (async () => {
+        try {
+          return await Promise.race([
+            Promise.all([
+              namesWorker.recognize(
+                imageBuffer,
+                { rectangle: rectangles.nameColumn },
+                { text: true, blocks: true, tsv: true },
+              ),
+              countsWorker.recognize(
+                processedCountImage,
+                {},
+                { text: true, blocks: true, tsv: true },
+              ),
+            ]),
+            timeout,
+          ]);
+        } finally {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+        }
+      })();
 
       const products = extractRecognizedLines(namesResult.data.blocks);
       const counts = extractRecognizedCounts(countsResult.data.blocks);

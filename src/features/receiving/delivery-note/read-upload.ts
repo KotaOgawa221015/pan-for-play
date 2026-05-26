@@ -5,6 +5,7 @@ import {
   isUploadExtension,
   maxUploadBytes,
   parseExtension,
+  resolveUploadMimeType,
   uploadFormatLabel,
 } from './image-format';
 
@@ -54,6 +55,7 @@ const deliveryNoteUploadSchema = z
 export async function readDeliveryNoteUpload(formData: FormData): Promise<{
   fileName: string;
   imageBuffer: Buffer;
+  mimeType: string;
 }> {
   const parsed = deliveryNoteUploadSchema.safeParse({
     file: formData.get('file'),
@@ -66,9 +68,10 @@ export async function readDeliveryNoteUpload(formData: FormData): Promise<{
 
   const fileEntry = parsed.data.file;
   const fileName = fileEntry.name.trim();
+  const extension = parseExtension(fileName);
   const imageBuffer = Buffer.from(await fileEntry.arrayBuffer());
 
-  if (isHeicExtension(parseExtension(fileName))) {
+  if (isHeicExtension(extension)) {
     return convertHeicUploadToJpeg({
       fileName,
       imageBuffer,
@@ -78,5 +81,6 @@ export async function readDeliveryNoteUpload(formData: FormData): Promise<{
   return {
     fileName,
     imageBuffer,
+    mimeType: resolveUploadMimeType(extension),
   };
 }

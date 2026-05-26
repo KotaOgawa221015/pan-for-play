@@ -15,16 +15,16 @@ export async function GET(
   await requireAdminUser();
 
   const { batchId } = await params;
-  const imageBuffer = await readStoredDeliveryNoteImage(batchId);
+  const storedImage = await readStoredDeliveryNoteImage(batchId);
 
-  if (!imageBuffer) {
+  if (!storedImage) {
     return new Response(null, { status: 404 });
   }
 
-  return new Response(new Uint8Array(imageBuffer), {
+  return new Response(new Uint8Array(storedImage.imageBuffer), {
     headers: {
       'Cache-Control': 'private, no-store',
-      'Content-Type': 'image/png',
+      'Content-Type': storedImage.mimeType,
     },
   });
 }

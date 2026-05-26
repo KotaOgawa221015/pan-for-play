@@ -15,6 +15,7 @@ describe('convertHeicUploadToJpeg', () => {
     });
 
     expect(converted.fileName).toBe('test.jpg');
+    expect(converted.mimeType).toBe('image/jpeg');
     expect(converted.imageBuffer.subarray(0, 3)).toEqual(
       Buffer.from([0xff, 0xd8, 0xff]),
     );

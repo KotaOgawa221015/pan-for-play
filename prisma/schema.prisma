@@ -115,7 +115,8 @@ model UploadBatch {
   fridgeId         String
   uploadedByUserId String
   originalFileName String
-  storagePath      String?
+  sourceImageBytes Bytes?
+  sourceImageMimeType String?
   processedAt      DateTime?
   deletedAt        DateTime?
   createdAt        DateTime                  @default(now())

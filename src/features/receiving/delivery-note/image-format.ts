@@ -37,6 +37,20 @@ export function isHeicExtension(extension: string): boolean {
   return extension === '.heic';
 }
 
+export function resolveUploadMimeType(extension: string): string {
+  switch (extension) {
+    case '.png':
+      return 'image/png';
+    case '.jpg':
+    case '.jpeg':
+      return 'image/jpeg';
+    case '.heic':
+      return 'image/heic';
+    default:
+      throw new Error(`Unsupported upload extension: ${extension}`);
+  }
+}
+
 export function toJpegName(fileName: string): string {
   const extension = parseExtension(fileName);
   if (!extension) {

@@ -1,5 +1,4 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -95,18 +94,11 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
       },
     });
 
-    const uploadsDir = path.join(testDir, 'uploads');
-    mkdirSync(uploadsDir, { recursive: true });
-    const dummyFilePath = path.join(uploadsDir, 'dummy_delivery_note.png');
-    writeFileSync(dummyFilePath, 'dummy data');
-    expect(existsSync(dummyFilePath)).toBe(true);
-
     await testPrisma.uploadBatch.create({
       data: {
         fridgeId: fridgeTarget.id,
         uploadedByUserId: userActive.id,
         originalFileName: 'receipt.png',
-        storagePath: dummyFilePath,
       },
     });
 
@@ -130,8 +122,6 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
     const fridgeIds = remainingFridges.map((f) => f.id);
     expect(fridgeIds).not.toContain(fridgeTarget.id);
     expect(fridgeIds).toContain(fridgeActive.id);
-
-    expect(existsSync(dummyFilePath)).toBe(false);
 
     const remainingUsers = (await testPrisma.user.findMany({
       select: { id: true },

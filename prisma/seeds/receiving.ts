@@ -49,7 +49,6 @@ export async function seedReceivingHistory(
         fridgeId: defaultFridge.id,
         uploadedByUserId: adminUser.id,
         originalFileName: history.originalFileName,
-        storagePath: null,
         processedAt,
       },
     });
