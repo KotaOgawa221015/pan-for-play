@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { deleteExpiredFridges } from './fridges';
 import { deleteExpiredStatusChanges } from './status-changes';
+import { deleteExpiredUploadBatches } from './upload-batches';
 import { deleteExpiredUsers } from './users';
 
 const RETENTION_DAYS = 30;
@@ -11,6 +12,7 @@ export type CleanupResult = {
   deletedStatusChanges: number;
   deletedFridges: number;
   deletedUsers: number;
+  deletedUploadBatches: number;
 };
 
 function resolveCutoff(inputNow: Date) {
@@ -38,10 +40,17 @@ export async function runRetentionCleanup(): Promise<CleanupResult> {
       batchLimit: BATCH_LIMIT,
     });
 
+    const deletedUploadBatches = await deleteExpiredUploadBatches({
+      tx,
+      cutoff,
+      batchLimit: BATCH_LIMIT,
+    });
+
     return {
       deletedStatusChanges,
       deletedFridges,
       deletedUsers,
+      deletedUploadBatches,
     };
   });
 
