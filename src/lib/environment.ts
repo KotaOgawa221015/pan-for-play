@@ -63,6 +63,10 @@ const tursoRecreateEnvSchema = z.object({
   TURSO_DATABASE_GROUP: optionalString(),
 });
 
+const cronEnvSchema = z.object({
+  CRON_SECRET: requiredString('CRON_SECRET'),
+});
+
 const systemTestPortSchema = z.coerce.number().int().positive();
 
 export function requireDatabaseUrl(raw: RawEnv = process.env) {
@@ -153,6 +157,10 @@ export function getTursoRecreateEnv(raw: RawEnv = process.env) {
     tursoAuthTokenExpiration: parsed.TURSO_AUTH_TOKEN_EXPIRATION,
     tursoDatabaseGroup: parsed.TURSO_DATABASE_GROUP,
   };
+}
+
+export function getCronSecret(raw: RawEnv = process.env) {
+  return parseEnv(cronEnvSchema, raw).CRON_SECRET;
 }
 
 export function getSystemTestPort(raw: RawEnv = process.env, fallback = 3001) {

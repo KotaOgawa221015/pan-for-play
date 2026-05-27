@@ -1,11 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { inventoryPublicationFindFirst, inventoryStatusChangeFindMany, auth } =
-  vi.hoisted(() => ({
-    inventoryPublicationFindFirst: vi.fn(),
-    inventoryStatusChangeFindMany: vi.fn(),
-    auth: vi.fn(),
-  }));
+const { currentInventoryFindMany, auth } = vi.hoisted(() => ({
+  currentInventoryFindMany: vi.fn(),
+  auth: vi.fn(),
+}));
 
 vi.mock('@/features/account/auth', () => ({
   auth,
@@ -13,11 +11,8 @@ vi.mock('@/features/account/auth', () => ({
 
 vi.mock('@/lib/prisma', () => ({
   prisma: {
-    inventoryPublication: {
-      findFirst: inventoryPublicationFindFirst,
-    },
-    inventoryStatusChange: {
-      findMany: inventoryStatusChangeFindMany,
+    currentInventory: {
+      findMany: currentInventoryFindMany,
     },
   },
 }));
@@ -34,39 +29,29 @@ import { getInventoryProducts } from '@/features/inventory/product-inventory';
 
 describe('inventory server actions', () => {
   beforeEach(() => {
-    inventoryPublicationFindFirst.mockReset();
-    inventoryStatusChangeFindMany.mockReset();
+    currentInventoryFindMany.mockReset();
     auth.mockReset();
 
     auth.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
   });
 
-  it('loads products from the latest inventory publication', async () => {
-    inventoryPublicationFindFirst.mockResolvedValue({
-      publishedAt: new Date('2026-05-12T12:00:00.000Z'),
-      uploadBatch: {
-        lines: [
-          {
-            count: 8,
-            matchedProduct: { id: 'bread', name: '食パン', category: 'BREAD' },
-          },
-          {
-            count: 4,
-            matchedProduct: { id: 'soup', name: 'スープ', category: 'SOUP' },
-          },
-        ],
-      },
-    });
-    inventoryStatusChangeFindMany.mockResolvedValue([
+  it('loads products from current inventory', async () => {
+    currentInventoryFindMany.mockResolvedValue([
       {
-        productId: 'soup',
-        changedAt: new Date('2026-05-12T12:10:00.000Z'),
-        changedByUser: { name: 'admin' },
+        count: 8,
+        status: 'PLENTIFUL',
+        lastChangedAt: new Date('2026-05-12T12:00:00.000Z'),
+        lastChangedByUser: { name: 'admin' },
+        lastPublishedAt: new Date('2026-05-12T12:00:00.000Z'),
+        product: { id: 'bread', name: '食パン', category: 'BREAD' },
       },
       {
-        productId: 'bread',
-        changedAt: new Date('2026-05-12T12:00:00.000Z'),
-        changedByUser: { name: 'admin' },
+        count: 4,
+        status: 'FEW_LEFT',
+        lastChangedAt: new Date('2026-05-12T12:10:00.000Z'),
+        lastChangedByUser: { name: 'admin' },
+        lastPublishedAt: new Date('2026-05-12T12:00:00.000Z'),
+        product: { id: 'soup', name: 'スープ', category: 'SOUP' },
       },
     ]);
 
@@ -93,54 +78,37 @@ describe('inventory server actions', () => {
       },
     ]);
 
-    expect(inventoryPublicationFindFirst).toHaveBeenCalledWith({
+    expect(currentInventoryFindMany).toHaveBeenCalledWith({
       where: {
         fridgeId: 'fridge-1',
+        isVisible: true,
       },
-      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-      select: {
-        publishedAt: true,
-        uploadBatch: {
+      include: {
+        product: {
           select: {
-            deletedAt: true,
-            lines: {
-              orderBy: {
-                lineNumber: 'asc',
-              },
-              include: {
-                matchedProduct: {
-                  select: {
-                    id: true,
-                    name: true,
-                    category: true,
-                  },
-                },
-              },
-            },
+            id: true,
+            name: true,
+            category: true,
+          },
+        },
+        lastChangedByUser: {
+          select: {
+            name: true,
           },
         },
       },
     });
   });
 
-  it('prefers the latest manual status change over the publication-derived status', async () => {
-    inventoryPublicationFindFirst.mockResolvedValue({
-      publishedAt: new Date('2026-05-12T12:00:00.000Z'),
-      uploadBatch: {
-        lines: [
-          {
-            count: 8,
-            matchedProduct: { id: 'bread', name: '食パン', category: 'BREAD' },
-          },
-        ],
-      },
-    });
-    inventoryStatusChangeFindMany.mockResolvedValue([
+  it('returns status and editor from current inventory row', async () => {
+    currentInventoryFindMany.mockResolvedValue([
       {
-        productId: 'bread',
-        changedAt: new Date('2026-05-12T12:30:00.000Z'),
-        nextStatus: 'SOLD_OUT',
-        changedByUser: { name: 'member' },
+        count: 8,
+        status: 'SOLD_OUT',
+        lastChangedAt: new Date('2026-05-12T12:30:00.000Z'),
+        lastChangedByUser: { name: 'member' },
+        lastPublishedAt: new Date('2026-05-12T12:00:00.000Z'),
+        product: { id: 'bread', name: '食パン', category: 'BREAD' },
       },
     ]);
 
@@ -158,41 +126,8 @@ describe('inventory server actions', () => {
     ]);
   });
 
-  it('hides zero-count lines and returns empty when no publication exists', async () => {
-    inventoryPublicationFindFirst.mockResolvedValueOnce({
-      publishedAt: new Date('2026-05-12T12:00:00.000Z'),
-      uploadBatch: {
-        lines: [
-          {
-            count: 0,
-            matchedProduct: { id: 'bread', name: '食パン', category: 'BREAD' },
-          },
-        ],
-      },
-    });
-    inventoryStatusChangeFindMany.mockResolvedValueOnce([]);
-
+  it('returns empty when current inventory has no visible rows', async () => {
+    currentInventoryFindMany.mockResolvedValueOnce([]);
     await expect(getInventoryProducts('fridge-1')).resolves.toEqual([]);
-
-    inventoryPublicationFindFirst.mockResolvedValueOnce(null);
-    await expect(getInventoryProducts('fridge-1')).resolves.toEqual([]);
-  });
-
-  it('returns empty when the latest publication references a deleted delivery note', async () => {
-    inventoryPublicationFindFirst.mockResolvedValue({
-      publishedAt: new Date('2026-05-12T12:00:00.000Z'),
-      uploadBatch: {
-        deletedAt: new Date('2026-05-12T12:10:00.000Z'),
-        lines: [
-          {
-            count: 8,
-            matchedProduct: { id: 'bread', name: '食パン', category: 'BREAD' },
-          },
-        ],
-      },
-    });
-
-    await expect(getInventoryProducts('fridge-1')).resolves.toEqual([]);
-    expect(inventoryStatusChangeFindMany).not.toHaveBeenCalled();
   });
 });

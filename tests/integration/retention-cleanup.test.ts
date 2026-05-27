@@ -3,7 +3,7 @@ import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
-const { testPrisma, authMock, databaseUrl, testDir } = vi.hoisted(() => {
+const { testPrisma, databaseUrl, testDir } = vi.hoisted(() => {
   const _path = require('node:path');
   const _fs = require('node:fs');
 
@@ -24,7 +24,6 @@ const { testPrisma, authMock, databaseUrl, testDir } = vi.hoisted(() => {
 
   return {
     testPrisma: prismaInstance,
-    authMock: vi.fn(),
     databaseUrl,
     testDir,
   };
@@ -34,16 +33,9 @@ vi.mock('@/lib/prisma', () => ({
   prisma: testPrisma,
 }));
 
-vi.mock('@/features/account/auth', () => ({
-  auth: authMock,
-}));
+import { runRetentionCleanup } from '@/features/retention/cleanup';
 
-import {
-  cleanupFridgesAction,
-  cleanupUsersAction,
-} from '@/features/admin/actions';
-
-describe('データクリーンアップ Server Actions の統合テスト', () => {
+describe('保持期限クリーンアップの統合テスト', () => {
   beforeAll(() => {
     const rootDir = path.resolve(__dirname, '..', '..');
     const prismaBinary =
@@ -67,10 +59,11 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
     }
   });
 
-  it('管理者画面からクリーンアップを実行した際、論理削除された冷蔵庫とユーザーデータが安全に処理されること', async () => {
-    authMock.mockResolvedValue({ user: { id: 'admin-1', role: 'ADMIN' } });
-
-    const deletedTime = new Date();
+  it('30日超の削除済みデータと古い履歴を削除し、参照整合性を維持すること', async () => {
+    const deletedTime = new Date('2020-01-01T00:00:00.000Z');
+    const recentDeletedTime = new Date();
+    const oldStatusChangedAt = new Date('2020-01-01T00:00:00.000Z');
+    const recentStatusChangedAt = new Date();
 
     const fridgeTarget = await testPrisma.fridge.create({
       data: { name: '削除対象冷蔵庫', deletedAt: deletedTime },
@@ -93,6 +86,13 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
         deletedAt: null,
       },
     });
+    const recentDeletedUser = await testPrisma.user.create({
+      data: {
+        name: '削除直後ユーザー',
+        email: 'recent-deleted@example.com',
+        deletedAt: recentDeletedTime,
+      },
+    });
 
     await testPrisma.uploadBatch.create({
       data: {
@@ -110,11 +110,49 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
       },
     });
 
-    const fridgeActionResult = await cleanupFridgesAction();
-    expect(fridgeActionResult.success).toBe(true);
+    await testPrisma.currentInventory.create({
+      data: {
+        fridgeId: fridgeActive.id,
+        productId: (
+          await testPrisma.product.create({
+            data: { name: '統合テスト商品', category: 'BREAD' },
+          })
+        ).id,
+        count: 1,
+        status: 'FEW_LEFT',
+        isVisible: true,
+        lastPublishedAt: new Date(),
+        lastChangedAt: new Date(),
+        lastChangedByUserId: userTarget.id,
+      },
+    });
 
-    const userActionResult = await cleanupUsersAction();
-    expect(userActionResult.success).toBe(true);
+    const oldStatusChange = await testPrisma.inventoryStatusChange.create({
+      data: {
+        fridgeId: fridgeActive.id,
+        productId: (await testPrisma.product.findFirstOrThrow()).id,
+        changedByUserId: userActive.id,
+        previousStatus: 'PLENTIFUL',
+        nextStatus: 'FEW_LEFT',
+        changedAt: oldStatusChangedAt,
+      },
+    });
+    const recentStatusChange = await testPrisma.inventoryStatusChange.create({
+      data: {
+        fridgeId: fridgeActive.id,
+        productId: (await testPrisma.product.findFirstOrThrow()).id,
+        changedByUserId: userActive.id,
+        previousStatus: 'FEW_LEFT',
+        nextStatus: 'SOLD_OUT',
+        changedAt: recentStatusChangedAt,
+      },
+    });
+
+    const result = await runRetentionCleanup();
+
+    expect(result.deletedFridges).toBeGreaterThanOrEqual(1);
+    expect(result.deletedUsers).toBeGreaterThanOrEqual(1);
+    expect(result.deletedStatusChanges).toBeGreaterThanOrEqual(1);
 
     const remainingFridges = (await testPrisma.fridge.findMany({
       select: { id: true },
@@ -129,6 +167,7 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
     const userIds = remainingUsers.map((u) => u.id);
     expect(userIds).not.toContain(userTarget.id);
     expect(userIds).toContain(userActive.id);
+    expect(userIds).toContain(recentDeletedUser.id);
 
     const placeholderUser = await testPrisma.user.findUnique({
       where: { email: 'deleted-user@pan-for-play.local' },
@@ -139,5 +178,23 @@ describe('データクリーンアップ Server Actions の統合テスト', () 
       where: { id: batchByUser.id },
     });
     expect(updatedBatch?.uploadedByUserId).toBe(placeholderUser?.id);
+
+    const updatedInventory = await testPrisma.currentInventory.findFirst({
+      where: {
+        fridgeId: fridgeActive.id,
+      },
+    });
+    expect(updatedInventory?.lastChangedByUserId).toBe(placeholderUser?.id);
+
+    await expect(
+      testPrisma.inventoryStatusChange.findUnique({
+        where: { id: oldStatusChange.id },
+      }),
+    ).resolves.toBeNull();
+    await expect(
+      testPrisma.inventoryStatusChange.findUnique({
+        where: { id: recentStatusChange.id },
+      }),
+    ).resolves.not.toBeNull();
   });
 });

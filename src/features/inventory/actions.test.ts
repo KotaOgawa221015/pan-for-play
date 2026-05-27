@@ -2,16 +2,16 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const {
   transaction,
-  inventoryPublicationFindFirst,
-  inventoryStatusChangeFindFirst,
+  currentInventoryFindUnique,
+  currentInventoryUpdate,
   inventoryStatusChangeCreate,
   revalidatePath,
   requireCurrentUser,
   auth,
 } = vi.hoisted(() => ({
   transaction: vi.fn(),
-  inventoryPublicationFindFirst: vi.fn(),
-  inventoryStatusChangeFindFirst: vi.fn(),
+  currentInventoryFindUnique: vi.fn(),
+  currentInventoryUpdate: vi.fn(),
   inventoryStatusChangeCreate: vi.fn(),
   revalidatePath: vi.fn(),
   requireCurrentUser: vi.fn(),
@@ -45,8 +45,8 @@ import { updateProductStatus } from './actions';
 describe('inventory actions', () => {
   beforeEach(() => {
     transaction.mockReset();
-    inventoryPublicationFindFirst.mockReset();
-    inventoryStatusChangeFindFirst.mockReset();
+    currentInventoryFindUnique.mockReset();
+    currentInventoryUpdate.mockReset();
     inventoryStatusChangeCreate.mockReset();
     revalidatePath.mockReset();
     requireCurrentUser.mockReset();
@@ -56,11 +56,11 @@ describe('inventory actions', () => {
 
     transaction.mockImplementation(async (callback: (tx: unknown) => unknown) =>
       callback({
-        inventoryPublication: {
-          findFirst: inventoryPublicationFindFirst,
+        currentInventory: {
+          findUnique: currentInventoryFindUnique,
+          update: currentInventoryUpdate,
         },
         inventoryStatusChange: {
-          findFirst: inventoryStatusChangeFindFirst,
           create: inventoryStatusChangeCreate,
         },
       }),
@@ -69,15 +69,27 @@ describe('inventory actions', () => {
 
   it('creates a manual status change for a product on the current board', async () => {
     requireCurrentUser.mockResolvedValue({ id: 'user-1', role: 'MEMBER' });
-    inventoryPublicationFindFirst.mockResolvedValue({
-      uploadBatch: {
-        lines: [{ id: 'line-1', count: 8 }],
-      },
+    currentInventoryFindUnique.mockResolvedValue({
+      status: 'PLENTIFUL',
+      isVisible: true,
     });
-    inventoryStatusChangeFindFirst.mockResolvedValue(null);
+    currentInventoryUpdate.mockResolvedValue({});
     inventoryStatusChangeCreate.mockResolvedValue({});
 
     await updateProductStatus('fridge-1', 'product-1', 'SOLD_OUT');
+    expect(currentInventoryUpdate).toHaveBeenCalledWith({
+      where: {
+        fridgeId_productId: {
+          fridgeId: 'fridge-1',
+          productId: 'product-1',
+        },
+      },
+      data: {
+        status: 'SOLD_OUT',
+        lastChangedAt: expect.any(Date),
+        lastChangedByUserId: 'user-1',
+      },
+    });
     expect(inventoryStatusChangeCreate).toHaveBeenCalledWith({
       data: {
         fridgeId: 'fridge-1',
@@ -94,16 +106,13 @@ describe('inventory actions', () => {
 
   it('skips persistence when the requested status is already current', async () => {
     requireCurrentUser.mockResolvedValue({ id: 'user-1', role: 'MEMBER' });
-    inventoryPublicationFindFirst.mockResolvedValue({
-      uploadBatch: {
-        lines: [{ id: 'line-1', count: 8 }],
-      },
-    });
-    inventoryStatusChangeFindFirst.mockResolvedValue({
-      nextStatus: 'FEW_LEFT',
+    currentInventoryFindUnique.mockResolvedValue({
+      status: 'FEW_LEFT',
+      isVisible: true,
     });
 
     await updateProductStatus('fridge-1', 'product-1', 'FEW_LEFT');
+    expect(currentInventoryUpdate).not.toHaveBeenCalled();
     expect(inventoryStatusChangeCreate).not.toHaveBeenCalled();
     expect(revalidatePath).toHaveBeenCalledWith('/');
   });
