@@ -5,6 +5,7 @@ type Props = {
   fileName: string | null;
   lines: Array<{ id: string; name: string; count: number }>;
   fridges: { id: string; name: string }[];
+  appliedFridgeNames?: string[];
   selectedFridgeId: string;
   isSubmitting: boolean;
   onClose: () => void;
@@ -17,6 +18,7 @@ export function ReapplyModal({
   fileName,
   lines,
   fridges,
+  appliedFridgeNames = [],
   selectedFridgeId,
   isSubmitting,
   onClose,
@@ -57,16 +59,19 @@ export function ReapplyModal({
             value={selectedFridgeId}
             disabled={isSubmitting}
             onChange={(event) => onSelectFridge(event.target.value)}
-            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+            className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 disabled:opacity-50"
           >
             <option value="" disabled>
               冷蔵庫を選択してください
             </option>
-            {fridges.map((fridge) => (
-              <option key={fridge.id} value={fridge.id}>
-                {fridge.name}
-              </option>
-            ))}
+            {fridges.map((fridge) => {
+              const isApplied = appliedFridgeNames.includes(fridge.name);
+              return (
+                <option key={fridge.id} value={fridge.id} disabled={isApplied}>
+                  {fridge.name} {isApplied ? '(適用済み)' : ''}
+                </option>
+              );
+            })}
           </select>
         </label>
 
