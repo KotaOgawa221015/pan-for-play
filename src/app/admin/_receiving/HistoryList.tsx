@@ -108,7 +108,7 @@ export function HistoryList({
                         disabled={isBusy}
                         className="whitespace-nowrap rounded-full border border-emerald-300 px-4 py-2 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
                       >
-                        再適用
+                        {isBusy ? '処理中...' : '再適用'}
                       </button>
                     ) : null}
 
@@ -118,7 +118,7 @@ export function HistoryList({
                       disabled={isBusy}
                       className="whitespace-nowrap rounded-full border border-zinc-300 px-4 py-2 text-xs font-semibold text-zinc-600 hover:bg-zinc-100 disabled:opacity-50"
                     >
-                      削除
+                      {isBusy ? '削除中...' : '削除'}
                     </button>
                   </div>
                 </div>
