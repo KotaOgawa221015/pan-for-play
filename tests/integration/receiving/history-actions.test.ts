@@ -11,6 +11,7 @@ const {
   currentInventoryFindMany,
   currentInventoryUpsert,
   currentInventoryUpdateMany,
+  currentInventoryDeleteMany,
   inventoryStatusChangeCreate,
   revalidatePath,
   requireAdminUser,
@@ -26,6 +27,7 @@ const {
   currentInventoryFindMany: vi.fn(),
   currentInventoryUpsert: vi.fn(),
   currentInventoryUpdateMany: vi.fn(),
+  currentInventoryDeleteMany: vi.fn(),
   inventoryStatusChangeCreate: vi.fn(),
   revalidatePath: vi.fn(),
   requireAdminUser: vi.fn(),
@@ -51,6 +53,7 @@ vi.mock('@/lib/prisma', () => ({
       findMany: currentInventoryFindMany,
       upsert: currentInventoryUpsert,
       updateMany: currentInventoryUpdateMany,
+      deleteMany: currentInventoryDeleteMany,
     },
     inventoryStatusChange: {
       create: inventoryStatusChangeCreate,
@@ -89,6 +92,7 @@ describe('receiving history actions', () => {
     currentInventoryFindMany.mockReset();
     currentInventoryUpsert.mockReset();
     currentInventoryUpdateMany.mockReset();
+    currentInventoryDeleteMany.mockReset();
     inventoryStatusChangeCreate.mockReset();
     revalidatePath.mockReset();
     requireAdminUser.mockReset();
@@ -114,6 +118,7 @@ describe('receiving history actions', () => {
           findMany: currentInventoryFindMany,
           upsert: currentInventoryUpsert,
           updateMany: currentInventoryUpdateMany,
+          deleteMany: currentInventoryDeleteMany,
         },
         inventoryStatusChange: {
           create: inventoryStatusChangeCreate,
@@ -161,6 +166,7 @@ describe('receiving history actions', () => {
     uploadBatchFindUnique.mockResolvedValueOnce({
       id: 'batch-1',
       deletedAt: null,
+      fridgeId: 'fridge-1',
     });
     uploadBatchUpdate.mockResolvedValue({});
 
@@ -183,6 +189,9 @@ describe('receiving history actions', () => {
       data: {
         deletedAt: expect.any(Date),
       },
+    });
+    expect(currentInventoryDeleteMany).toHaveBeenCalledWith({
+      where: { fridgeId: 'fridge-1' },
     });
   });
 });

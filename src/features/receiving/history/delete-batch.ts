@@ -18,6 +18,7 @@ export async function deleteReceivingBatch(batchId: string) {
       select: {
         id: true,
         deletedAt: true,
+        fridgeId: true,
       },
     });
 
@@ -30,6 +31,10 @@ export async function deleteReceivingBatch(batchId: string) {
       data: {
         deletedAt: now,
       },
+    });
+
+    await tx.currentInventory.deleteMany({
+      where: { fridgeId: batch.fridgeId },
     });
   });
 
