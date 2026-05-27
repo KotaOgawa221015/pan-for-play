@@ -16,16 +16,19 @@ erDiagram
     USER ||--o{ UPLOAD_BATCH : uploads
     USER ||--o{ INVENTORY_PUBLICATION : publishes
     USER ||--o{ INVENTORY_STATUS_CHANGE : changes
+    USER ||--o{ CURRENT_INVENTORY : last_changes
     USER ||--o{ ACCOUNT : links
     USER ||--o{ SESSION : owns
 
     FRIDGE ||--o{ UPLOAD_BATCH : receives
     FRIDGE ||--o{ INVENTORY_PUBLICATION : hosts
     FRIDGE ||--o{ INVENTORY_STATUS_CHANGE : tracking
+    FRIDGE ||--o{ CURRENT_INVENTORY : board_rows
     FRIDGE ||--o{ USER : favorited_by
 
     PRODUCT ||--o{ UPLOAD_BATCH_LINE : matched_by
     PRODUCT ||--o{ INVENTORY_STATUS_CHANGE : changes
+    PRODUCT ||--o{ CURRENT_INVENTORY : board_rows
 
     UPLOAD_BATCH ||--|{ UPLOAD_BATCH_LINE : contains
     UPLOAD_BATCH ||--o{ INVENTORY_PUBLICATION : published_as
@@ -132,6 +135,19 @@ erDiagram
         string nextStatus
         datetime changedAt
         datetime createdAt
+    }
+
+    CURRENT_INVENTORY {
+        string fridgeId PK, FK
+        string productId PK, FK
+        int count
+        string status
+        boolean isVisible
+        datetime lastPublishedAt
+        datetime lastChangedAt
+        string lastChangedByUserId FK
+        datetime createdAt
+        datetime updatedAt
     }
 ```
 
