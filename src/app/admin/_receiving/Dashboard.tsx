@@ -161,7 +161,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
         timeoutId = setTimeout(() => {
           reject(
             new Error(
-              '読み取りがタイムアウトしました。別の画像をアップロードして再度お試しください。',
+              '読み取りがタイムアウトしました。別の納品書をアップロードして再度お試しください。',
             ),
           );
         }, readActionTimeoutMs);

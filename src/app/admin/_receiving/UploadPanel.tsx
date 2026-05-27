@@ -120,7 +120,7 @@ export function UploadPanel({
     <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm">
       <div className="mb-6 space-y-2">
         <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-          画像アップロード
+          納品書アップロード
         </h2>
         <p className="text-xs text-zinc-500">
           納品書画像を選択すると、読取結果をレビュー用モーダルで確認できます。
@@ -160,7 +160,7 @@ export function UploadPanel({
                 HEIC画像はアップロード後にJPGへ変換して読み取ります。
               </span>
               <span className="inline-flex rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
-                別の画像を選択
+                別の納品書を選択
               </span>
             </div>
           ) : previewUrl ? (
@@ -177,7 +177,7 @@ export function UploadPanel({
               </div>
               <span className="block text-xs text-zinc-500">{fileName}</span>
               <span className="inline-flex rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
-                別の画像を選択
+                別の納品書を選択
               </span>
             </div>
           ) : (
