@@ -67,6 +67,7 @@ export default async function UploadPage({
           <Dashboard recentHistory={recentHistory} fridges={fridges} />
           <UserManagementPanel users={users} currentAdminId={currentAdmin.id} />
           <FridgeManagementPanel fridges={fridges} />
+          <div className="h-[60px]" aria-hidden="true" />
         </div>
       </div>
     </>
