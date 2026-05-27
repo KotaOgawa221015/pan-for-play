@@ -48,6 +48,11 @@ async function applyReceivingReviewInternal(
       throw new Error('反映対象の納品書行が存在しません。');
     }
 
+    await tx.uploadBatch.update({
+      where: { id: parsedInput.batchId },
+      data: { originalFileName: parsedInput.originalFileName },
+    });
+
     const batchLineIds = new Set(batch.lines.map((line) => line.id));
     const missingLine = reviewedProducts.find(
       (product) => !batchLineIds.has(product.lineId),

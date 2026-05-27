@@ -67,15 +67,20 @@ export async function readDeliveryNoteUpload(formData: FormData): Promise<{
   }
 
   const fileEntry = parsed.data.file;
-  const fileName = fileEntry.name.trim();
-  const extension = parseExtension(fileName);
+  const rawName = fileEntry.name.trim();
+  const extension = parseExtension(rawName);
+  const fileName = rawName.slice(0, rawName.length - extension.length).trim();
   const imageBuffer = Buffer.from(await fileEntry.arrayBuffer());
 
   if (isHeicExtension(extension)) {
-    return convertHeicUploadToJpeg({
-      fileName,
+    const converted = await convertHeicUploadToJpeg({
+      fileName: rawName,
       imageBuffer,
     });
+    return {
+      ...converted,
+      fileName,
+    };
   }
 
   return {

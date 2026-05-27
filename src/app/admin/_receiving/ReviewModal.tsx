@@ -154,6 +154,9 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
   const [products, setProducts] = useState<ReviewLine[]>(
     () => draft?.products ?? [],
   );
+  const [deliveryNoteName, setDeliveryNoteName] = useState(
+    () => draft?.originalFileName ?? '',
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const catalogByName = useMemo(
@@ -168,6 +171,10 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
   );
 
   const validationMessage = useMemo(() => {
+    if (!deliveryNoteName.trim()) {
+      return '納品書名を入力してください。';
+    }
+
     const seen = new Set<string>();
 
     for (const product of products) {
@@ -193,7 +200,7 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
     }
 
     return null;
-  }, [products]);
+  }, [products, deliveryNoteName]);
 
   if (!draft) {
     return null;
@@ -238,6 +245,7 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
     try {
       await onApply({
         batchId: draft.batchId,
+        originalFileName: deliveryNoteName.trim(),
         products: products.map((product) => ({
           lineId: product.lineId,
           name: normalizeName(product.name),
@@ -266,9 +274,14 @@ export function ReviewModal({ draft, isApplying, onApply, onClose }: Props) {
             <p className="text-xs uppercase tracking-[0.25em] text-zinc-400">
               Delivery Note Review
             </p>
-            <h2 className="mt-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-              {draft.originalFileName}
-            </h2>
+            <input
+              id="delivery-note-name"
+              type="text"
+              value={deliveryNoteName}
+              disabled={isApplying}
+              onChange={(e) => setDeliveryNoteName(e.target.value)}
+              className="mt-1 w-full rounded-lg border border-zinc-300 dark:border-zinc-700 bg-transparent px-2 py-1 text-lg font-semibold text-zinc-900 dark:text-zinc-100 focus:border-zinc-500 dark:focus:border-zinc-400 focus:outline-none"
+            />
           </div>
           <button
             type="button"

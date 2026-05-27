@@ -60,6 +60,10 @@ export const ReviewInputSchema = z.object({
   batchId: z
     .string()
     .min(1, { message: 'レビュー対象を取得できませんでした。' }),
+  originalFileName: z
+    .string()
+    .transform((v) => v.trim())
+    .refine((v) => v.length > 0, { message: '納品書名を入力してください。' }),
   products: z.array(ReviewProductSchema),
 });
 

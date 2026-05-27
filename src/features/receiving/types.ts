@@ -19,6 +19,7 @@ export type ReviewDraft = {
 
 export type ReviewInput = {
   batchId: string;
+  originalFileName: string;
   products: Array<{
     lineId: string;
     name: string;

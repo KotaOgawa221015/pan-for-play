@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const {
   transaction,
   uploadBatchFindFirst,
+  uploadBatchUpdate,
   uploadBatchLineUpdate,
   inventoryPublicationFindFirst,
   inventoryPublicationCreate,
@@ -20,6 +21,7 @@ const {
 } = vi.hoisted(() => ({
   transaction: vi.fn(),
   uploadBatchFindFirst: vi.fn(),
+  uploadBatchUpdate: vi.fn(),
   uploadBatchLineUpdate: vi.fn(),
   inventoryPublicationFindFirst: vi.fn(),
   inventoryPublicationCreate: vi.fn(),
@@ -43,6 +45,7 @@ vi.mock('@/lib/prisma', () => ({
     $transaction: transaction,
     uploadBatch: {
       findFirst: uploadBatchFindFirst,
+      update: uploadBatchUpdate,
     },
     uploadBatchLine: {
       update: uploadBatchLineUpdate,
@@ -101,6 +104,7 @@ describe('receiving apply review', () => {
   beforeEach(() => {
     transaction.mockReset();
     uploadBatchFindFirst.mockReset();
+    uploadBatchUpdate.mockReset();
     uploadBatchLineUpdate.mockReset();
     inventoryPublicationFindFirst.mockReset();
     inventoryPublicationCreate.mockReset();
@@ -122,6 +126,7 @@ describe('receiving apply review', () => {
       callback({
         uploadBatch: {
           findFirst: uploadBatchFindFirst,
+          update: uploadBatchUpdate,
         },
         uploadBatchLine: {
           update: uploadBatchLineUpdate,
@@ -187,6 +192,7 @@ describe('receiving apply review', () => {
 
     await applyReceivingReview({
       batchId: 'batch-1',
+      originalFileName: '2026-05-27納品書',
       products: [
         {
           lineId: 'line-1',
@@ -298,6 +304,7 @@ describe('receiving apply review', () => {
 
     await applyReceivingReview({
       batchId: 'batch-1',
+      originalFileName: '2026-05-27納品書',
       products: [
         {
           lineId: 'line-1',
@@ -355,6 +362,7 @@ describe('receiving apply review', () => {
 
     await applyReceivingReview({
       batchId: 'batch-1',
+      originalFileName: '2026-05-27納品書',
       products: [
         {
           lineId: 'line-1',
@@ -388,6 +396,7 @@ describe('receiving apply review', () => {
     await expect(
       applyReceivingReview({
         batchId: 'batch-1',
+        originalFileName: '2026-05-27納品書',
         products: [
           {
             lineId: 'line-1',
