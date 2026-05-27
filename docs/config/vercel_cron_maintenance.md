@@ -2,8 +2,6 @@
 
 本ドキュメントは、保持期限ベースのデータメンテナンスにおける「実行定義」「認証経路」「設定管理」「検証運用」の4要素をMECE（漏れなく・ダブりなく）に整理した仕様書である。
 
----
-
 ## 1. 実行定義（What & When）
 
 ### 実行スケジュール
@@ -16,9 +14,6 @@
 * 30日を経過した `InventoryStatusChange` の論理削除データのクリーニング
 * 30日を経過した `deletedAt` を持つ `Fridge` の物理削除
 * 30日を経過した `deletedAt` を持つ `User` の物理削除
-
----
-
 
 ## 2. 認証・実行経路（How & Who）
 
@@ -63,8 +58,6 @@ export async function GET(request: Request) {
 
 ```
 
----
-
 ## 3. 設定・管理（Setup & Security）
 
 ### 鍵の生成
@@ -73,7 +66,6 @@ export async function GET(request: Request) {
 * **推奨コマンド:**
 ```bash
 openssl rand -base64 32
-
 ```
 
 
@@ -84,8 +76,6 @@ openssl rand -base64 32
 * **登録場所:** Vercel Project設定（`Settings > Environment Variables`）
 * **キー名:** `CRON_SECRET`
 * **セキュリティ制約:** 漏洩防止のため、`.env.example` やソースコード上への記述・Gitコミットは厳禁とする。
-
----
 
 ## 4. 検証・手動運用（Test & Operation）
 
@@ -100,23 +90,17 @@ openssl rand -base64 32
 ```bash
 curl -H "Authorization: Bearer 【Vercelに登録したCRON_SECRETの値】" \
   https://【本番ドメイン】/api/cron/maintenance
-
 ```
-
-
 
 ### ローカル開発環境での動作テスト
 
 1. ローカル用の環境変数ファイル（`.env.local`）に、検証用の任意のシークレットを定義する。
-```env
+```bash
 CRON_SECRET=local_development_secret_token
-
 ```
-
 
 2. ローカルサーバー（`localhost:3000`）を起動し、ヘッダー付きリクエストを送信して挙動を検証する。
 ```bash
 curl -H "Authorization: Bearer local_development_secret_token" \
   http://localhost:3000/api/cron/maintenance
-
 ```
