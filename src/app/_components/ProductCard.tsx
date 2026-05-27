@@ -75,23 +75,23 @@ export function ProductCard({ fridgeId, product }: Props) {
 
   return (
     <div
-      className={`flex flex-col h-full p-4 rounded-2xl border shadow-sm transition-all duration-300 ${
+      className={`flex flex-col h-full p-3 sm:p-4 rounded-2xl border shadow-sm transition-all duration-300 ${
         optimisticStatus === 'SOLD_OUT'
           ? 'bg-zinc-100 border-zinc-200 opacity-60 grayscale dark:bg-zinc-900/50 dark:border-zinc-800'
           : 'bg-white border-zinc-200 dark:bg-zinc-900 dark:border-zinc-800'
       }`}
     >
-      <div className="flex items-center justify-center gap-2.5 h-10 mb-1.5 overflow-hidden px-1">
+      <div className="flex items-start justify-center gap-2.5 h-auto mb-2 px-1">
         <Image
           src={iconSrc}
           alt=""
           width={36}
           height={36}
-          className="shrink-0 object-contain size-9"
+          className="shrink-0 object-contain size-9 mt-0.5"
           priority
           unoptimized
         />
-        <h3 className="font-semibold text-base text-zinc-900 dark:text-zinc-100 truncate text-center">
+        <h3 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 whitespace-normal wrap-break-word text-left flex-1">
           {product.name}
         </h3>
       </div>
@@ -120,7 +120,7 @@ export function ProductCard({ fridgeId, product }: Props) {
         )}
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-auto pt-4 flex gap-2">
         {PRODUCT_STATUSES.map((status) => {
           const isActive = optimisticStatus === status;
           const styles = STATUS_STYLES[status];

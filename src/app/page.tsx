@@ -121,7 +121,7 @@ export default async function Page({
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto p-4 space-y-10">
+      <main className="max-w-6xl mx-auto px-6 py-6 space-y-10">
         <section>
           {!activeFridge ? (
             <p className="text-sm text-zinc-400 text-center py-10">
