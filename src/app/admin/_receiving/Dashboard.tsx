@@ -18,6 +18,7 @@ import { UploadPanel } from './UploadPanel';
 
 type State = {
   draft: ReviewDraft | null;
+  draftFridgeId: string | null;
   isModalOpen: boolean;
   notice: string | null;
   errorMessage: string | null;
@@ -29,7 +30,7 @@ type State = {
 
 type Action =
   | { type: 'START_READING' }
-  | { type: 'READ_SUCCESS'; draft: ReviewDraft }
+  | { type: 'READ_SUCCESS'; draft: ReviewDraft; fridgeId: string }
   | { type: 'READ_ERROR'; error: string }
   | { type: 'START_APPLYING' }
   | { type: 'APPLY_SUCCESS' }
@@ -50,6 +51,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         isReading: false,
         draft: action.draft,
+        draftFridgeId: action.fridgeId,
         isModalOpen: true,
         uploadKey: state.uploadKey + 1,
       };
@@ -67,6 +69,7 @@ function reducer(state: State, action: Action): State {
         ...state,
         isApplying: false,
         draft: null,
+        draftFridgeId: null,
         isModalOpen: false,
         notice: null,
         uploadKey: state.uploadKey + 1,
@@ -98,6 +101,7 @@ function reducer(state: State, action: Action): State {
       return {
         ...state,
         draft: null,
+        draftFridgeId: null,
         isModalOpen: false,
         uploadKey: state.uploadKey + 1,
       };
@@ -120,6 +124,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
   const [isReapplying, setIsReapplying] = useState(false);
   const [state, dispatch] = useReducer(reducer, {
     draft: null,
+    draftFridgeId: null,
     isModalOpen: false,
     notice: null,
     errorMessage: null,
@@ -143,12 +148,12 @@ export function Dashboard({ recentHistory, fridges }: Props) {
   const refreshPage = () => {
     refresh();
   };
-  const defaultFridgeId = fridges.find((fridge) => fridge.isDefault)?.id ?? '';
   const selectedReapplyEntry =
     recentHistory.find((entry) => entry.id === reapplyBatchId) ?? null;
 
   const handleRead = async (formData: FormData) => {
     dispatch({ type: 'START_READING' });
+    const fridgeId = formData.get('fridgeId') as string;
 
     try {
       let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -171,7 +176,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
         }
       })();
       if (result.ok) {
-        dispatch({ type: 'READ_SUCCESS', draft: result.draft });
+        dispatch({ type: 'READ_SUCCESS', draft: result.draft, fridgeId });
       } else {
         dispatch({ type: 'READ_ERROR', error: result.error });
       }
@@ -193,8 +198,13 @@ export function Dashboard({ recentHistory, fridges }: Props) {
 
     try {
       await applyReceivingReview(input);
+      const fridgeName =
+        fridges.find((f) => f.id === state.draftFridgeId)?.name || '';
       dispatch({ type: 'APPLY_SUCCESS' });
-      replace('/admin?msg=apply_success', { scroll: false });
+      replace(
+        `/admin?msg=apply_success&fridgeName=${encodeURIComponent(fridgeName)}`,
+        { scroll: false },
+      );
     } catch (error) {
       dispatch({
         type: 'APPLY_ERROR',
@@ -242,7 +252,22 @@ export function Dashboard({ recentHistory, fridges }: Props) {
 
   const openReapplyModal = (batchId: string) => {
     setReapplyBatchId(batchId);
-    setReapplyFridgeId(defaultFridgeId);
+
+    const targetEntry = recentHistory.find((entry) => entry.id === batchId);
+    const appliedNames = targetEntry?.appliedFridgeNames ?? [];
+
+    // 適用済みの冷蔵庫を除外
+    const availableFridges = fridges.filter(
+      (f) => !appliedNames.includes(f.name),
+    );
+
+    // 選択可能な冷蔵庫の中から初期値を選択（デフォルトの冷蔵庫があれば優先）
+    const initialFridgeId =
+      availableFridges.find((f) => f.isDefault)?.id ??
+      availableFridges[0]?.id ??
+      '';
+
+    setReapplyFridgeId(initialFridgeId);
   };
 
   const closeReapplyModal = () => {
@@ -259,6 +284,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
 
     const targetBatchId = reapplyBatchId;
     const targetFridgeId = reapplyFridgeId;
+    const fridgeName = fridges.find((f) => f.id === targetFridgeId)?.name || '';
     dispatch({ type: 'START_BATCH_ACTION', batchId: targetBatchId });
     setIsReapplying(true);
 
@@ -270,7 +296,10 @@ export function Dashboard({ recentHistory, fridges }: Props) {
         });
         dispatch({ type: 'BATCH_ACTION_FINISH' });
         setReapplyBatchId(null);
-        replace('/admin?msg=reapply_success', { scroll: false });
+        replace(
+          `/admin?msg=reapply_success&fridgeName=${encodeURIComponent(fridgeName)}`,
+          { scroll: false },
+        );
       } catch (error) {
         dispatch({
           type: 'BATCH_ACTION_ERROR',
@@ -331,6 +360,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
         fileName={selectedReapplyEntry?.originalFileName ?? null}
         lines={selectedReapplyEntry?.lines ?? []}
         fridges={fridges}
+        appliedFridgeNames={selectedReapplyEntry?.appliedFridgeNames ?? []}
         selectedFridgeId={reapplyFridgeId}
         isSubmitting={isReapplying}
         onSelectFridge={setReapplyFridgeId}

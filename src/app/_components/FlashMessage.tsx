@@ -1,7 +1,7 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useEffect, useReducer } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useReducer } from 'react';
 
 type MessagePhase = 'idle' | 'visible' | 'exiting';
 
@@ -24,8 +24,11 @@ function flashMessageReducer(state: State, action: Action): State {
   }
 }
 
-export function FlashMessage({ msg }: { msg?: string }) {
+function FlashMessageContent({ msg }: { msg?: string }) {
   const { replace } = useRouter();
+  const searchParams = useSearchParams();
+  const fridgeName = searchParams.get('fridgeName');
+
   const validMessages = [
     'login_success',
     'signup_success',
@@ -82,8 +85,12 @@ export function FlashMessage({ msg }: { msg?: string }) {
     signup_success: 'アカウントを作成しました',
     logout_success: 'ログアウトしました',
     session_invalid: 'セッションが無効です。再ログインしてください。',
-    apply_success: '納品書が適用されました',
-    reapply_success: '納品書を再適用しました',
+    apply_success: fridgeName
+      ? `納品書が${fridgeName}に適用されました`
+      : '納品書が適用されました',
+    reapply_success: fridgeName
+      ? `納品書を${fridgeName}に再適用しました`
+      : '納品書を再適用しました',
     reapply_failed: '納品書の再適用に失敗しました',
     delete_success: '納品書を削除しました',
     delete_failed: '納品書の削除に失敗しました',
@@ -103,5 +110,13 @@ export function FlashMessage({ msg }: { msg?: string }) {
     >
       {messageMap[msg]}
     </div>
+  );
+}
+
+export function FlashMessage({ msg }: { msg?: string }) {
+  return (
+    <Suspense fallback={null}>
+      <FlashMessageContent msg={msg} />
+    </Suspense>
   );
 }
