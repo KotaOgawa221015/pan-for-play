@@ -37,9 +37,7 @@ test('docs top page renders visible content', async ({ page }) => {
   const content = page.locator('#VPContent');
 
   await expect(content.getByText('Pan for PLAY Docs')).toBeVisible();
-  await expect(
-    content.getByRole('link', { name: 'ガイドを読む' }),
-  ).toBeVisible();
+  await expect(content.getByRole('link', { name: '設計' })).toBeVisible();
   await page.waitForLoadState('networkidle');
 
   const bodyText = await page.locator('body').innerText();
@@ -53,9 +51,7 @@ test('generated category index renders visible content', async ({ page }) => {
   await page.goto(docsPath('/architecture/'));
   const content = page.locator('#VPContent');
 
-  await expect(
-    content.getByRole('heading', { name: 'ガイド一覧' }),
-  ).toBeVisible();
+  await expect(content.getByRole('heading', { name: '設計' })).toBeVisible();
   await expect(
     content.getByRole('link', { name: 'アーキテクチャ' }),
   ).toBeVisible();
