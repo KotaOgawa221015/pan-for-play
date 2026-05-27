@@ -161,7 +161,7 @@ export function Dashboard({ recentHistory, fridges }: Props) {
         timeoutId = setTimeout(() => {
           reject(
             new Error(
-              '読み取りがタイムアウトしました。別の画像をアップロードして再度お試しください。',
+              '読み取りがタイムアウトしました。別の納品書をアップロードして再度お試しください。',
             ),
           );
         }, readActionTimeoutMs);
@@ -256,12 +256,10 @@ export function Dashboard({ recentHistory, fridges }: Props) {
     const targetEntry = recentHistory.find((entry) => entry.id === batchId);
     const appliedNames = targetEntry?.appliedFridgeNames ?? [];
 
-    // 適用済みの冷蔵庫を除外
     const availableFridges = fridges.filter(
       (f) => !appliedNames.includes(f.name),
     );
 
-    // 選択可能な冷蔵庫の中から初期値を選択（デフォルトの冷蔵庫があれば優先）
     const initialFridgeId =
       availableFridges.find((f) => f.isDefault)?.id ??
       availableFridges[0]?.id ??

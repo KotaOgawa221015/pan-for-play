@@ -142,7 +142,7 @@ export function UserManagementPanel({ users, currentAdminId }: Props) {
                           disabled={isPending}
                           className="rounded-full border border-rose-300 dark:border-rose-700 px-3 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/20 disabled:opacity-50 transition"
                         >
-                          権限を剥奪
+                          管理者権限を剥奪
                         </button>
                       )}
                     </>
