@@ -26,12 +26,6 @@ type InventoryPublicationWriter = {
         uploadBatch: {
           select: {
             deletedAt: true;
-            lines: {
-              select: {
-                count: true;
-                matchedProductId: true;
-              };
-            };
           };
         };
       };
@@ -39,10 +33,6 @@ type InventoryPublicationWriter = {
       uploadBatchId: string;
       uploadBatch: {
         deletedAt: Date | null;
-        lines: Array<{
-          count: number;
-          matchedProductId: string | null;
-        }>;
       };
     } | null>;
     create(args: {
@@ -54,29 +44,66 @@ type InventoryPublicationWriter = {
       };
     }): Promise<{ id: string }>;
   };
-  inventoryStatusChange: {
+  currentInventory: {
     findMany(args: {
       where: {
-        fridgeId?: string;
-        productId: {
-          in: string[];
-        };
+        fridgeId: string;
       };
-      orderBy: Array<
-        | { changedAt: 'asc' | 'desc' }
-        | { createdAt: 'asc' | 'desc' }
-        | { id: 'asc' | 'desc' }
-      >;
       select: {
         productId: true;
-        nextStatus: true;
+        status: true;
+        isVisible: true;
+        lastChangedAt: true;
+        lastChangedByUserId: true;
       };
     }): Promise<
       Array<{
         productId: string;
-        nextStatus: ReturnType<typeof getProductStatusFromCount>;
+        status: ReturnType<typeof getProductStatusFromCount>;
+        isVisible: boolean;
+        lastChangedAt: Date | null;
+        lastChangedByUserId: string | null;
       }>
     >;
+    upsert(args: {
+      where: {
+        fridgeId_productId: {
+          fridgeId: string;
+          productId: string;
+        };
+      };
+      update: {
+        count: number;
+        status: ReturnType<typeof getProductStatusFromCount>;
+        isVisible: boolean;
+        lastPublishedAt: Date;
+        lastChangedAt: Date | null;
+        lastChangedByUserId: string | null;
+      };
+      create: {
+        fridgeId: string;
+        productId: string;
+        count: number;
+        status: ReturnType<typeof getProductStatusFromCount>;
+        isVisible: boolean;
+        lastPublishedAt: Date;
+        lastChangedAt: Date | null;
+        lastChangedByUserId: string | null;
+      };
+    }): Promise<unknown>;
+    updateMany(args: {
+      where: {
+        fridgeId: string;
+        productId?: {
+          notIn: string[];
+        };
+      };
+      data: {
+        isVisible: boolean;
+      };
+    }): Promise<unknown>;
+  };
+  inventoryStatusChange: {
     create(args: {
       data: {
         fridgeId: string;
@@ -91,65 +118,13 @@ type InventoryPublicationWriter = {
   };
 };
 
-function getLineStatuses(lines: InventoryLine[]) {
-  return new Map(
-    lines.map((line) => [
-      line.productId,
-      getProductStatusFromCount(line.count),
-    ]),
-  );
-}
-
-function buildStatusChanges(input: {
-  currentStatuses: Map<string, ReturnType<typeof getProductStatusFromCount>>;
-  nextLines: InventoryLine[];
-  changedByUserId: string;
-  changedAt: Date;
-}) {
-  const nextStatuses = getLineStatuses(input.nextLines);
-
-  return [...nextStatuses.keys()].flatMap((productId) => {
-    const previousStatus = input.currentStatuses.get(productId) ?? null;
-    const nextStatus = nextStatuses.get(productId);
-
-    if (!nextStatus || previousStatus === nextStatus) {
-      return [];
-    }
-
-    return [
-      {
-        productId,
-        changedByUserId: input.changedByUserId,
-        previousStatus,
-        nextStatus,
-        changedAt: input.changedAt,
-      },
-    ];
-  });
-}
-
-function getPublishedLines(
-  publication: {
-    uploadBatch: {
-      deletedAt: Date | null;
-      lines: Array<{
-        count: number;
-        matchedProductId: string | null;
-      }>;
-    };
-  } | null,
-) {
-  if (publication?.uploadBatch.deletedAt) {
-    return [];
+function getNextLinesByProductId(lines: InventoryLine[]) {
+  const nextLinesByProductId = new Map<string, InventoryLine>();
+  for (const line of lines) {
+    nextLinesByProductId.set(line.productId, line);
   }
 
-  return (
-    publication?.uploadBatch.lines.flatMap((line) =>
-      line.matchedProductId
-        ? [{ productId: line.matchedProductId, count: line.count }]
-        : [],
-    ) ?? []
-  );
+  return nextLinesByProductId;
 }
 
 export async function publishInventorySnapshot(
@@ -172,12 +147,6 @@ export async function publishInventorySnapshot(
       uploadBatch: {
         select: {
           deletedAt: true,
-          lines: {
-            select: {
-              count: true,
-              matchedProductId: true,
-            },
-          },
         },
       },
     },
@@ -200,46 +169,100 @@ export async function publishInventorySnapshot(
     },
   });
 
-  const previousPublishedStatuses = getLineStatuses(
-    getPublishedLines(currentPublication),
+  const nextLinesByProductId = getNextLinesByProductId(input.lines);
+  const nextProductIds = [...nextLinesByProductId.keys()];
+  const currentInventories = await tx.currentInventory.findMany({
+    where: {
+      fridgeId: input.fridgeId,
+    },
+    select: {
+      productId: true,
+      status: true,
+      isVisible: true,
+      lastChangedAt: true,
+      lastChangedByUserId: true,
+    },
+  });
+  const currentInventoryByProductId = new Map(
+    currentInventories.map((inventory) => [inventory.productId, inventory]),
   );
-  const productIds = [...new Set(input.lines.map((line) => line.productId))];
-  const latestStatusChanges = productIds.length
-    ? await tx.inventoryStatusChange.findMany({
-        where: {
+
+  const statusChanges: Array<{
+    productId: string;
+    previousStatus: ReturnType<typeof getProductStatusFromCount> | null;
+    nextStatus: ReturnType<typeof getProductStatusFromCount>;
+  }> = [];
+
+  for (const [productId, nextLine] of nextLinesByProductId.entries()) {
+    const nextStatus = getProductStatusFromCount(nextLine.count);
+    const currentInventory = currentInventoryByProductId.get(productId);
+    const previousStatus = currentInventory?.isVisible
+      ? currentInventory.status
+      : null;
+    const hasStatusChanged = previousStatus !== nextStatus;
+
+    await tx.currentInventory.upsert({
+      where: {
+        fridgeId_productId: {
           fridgeId: input.fridgeId,
-          productId: {
-            in: productIds,
-          },
+          productId,
         },
-        orderBy: [{ changedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-        select: {
-          productId: true,
-          nextStatus: true,
-        },
-      })
-    : [];
+      },
+      update: {
+        count: nextLine.count,
+        status: nextStatus,
+        isVisible: nextLine.count > 0,
+        lastPublishedAt: input.publishedAt,
+        lastChangedAt: hasStatusChanged
+          ? input.publishedAt
+          : (currentInventory?.lastChangedAt ?? null),
+        lastChangedByUserId: hasStatusChanged
+          ? input.publishedByUserId
+          : (currentInventory?.lastChangedByUserId ?? null),
+      },
+      create: {
+        fridgeId: input.fridgeId,
+        productId,
+        count: nextLine.count,
+        status: nextStatus,
+        isVisible: nextLine.count > 0,
+        lastPublishedAt: input.publishedAt,
+        lastChangedAt: hasStatusChanged ? input.publishedAt : null,
+        lastChangedByUserId: hasStatusChanged ? input.publishedByUserId : null,
+      },
+    });
 
-  const currentStatuses = new Map(previousPublishedStatuses);
-  const changedProductIds = new Set<string>();
-  for (const change of latestStatusChanges) {
-    if (
-      !previousPublishedStatuses.has(change.productId) ||
-      changedProductIds.has(change.productId)
-    ) {
-      continue;
+    if (hasStatusChanged) {
+      statusChanges.push({
+        productId,
+        previousStatus,
+        nextStatus,
+      });
     }
-
-    currentStatuses.set(change.productId, change.nextStatus);
-    changedProductIds.add(change.productId);
   }
 
-  const statusChanges = buildStatusChanges({
-    currentStatuses,
-    nextLines: input.lines,
-    changedByUserId: input.publishedByUserId,
-    changedAt: input.publishedAt,
-  });
+  if (nextProductIds.length > 0) {
+    await tx.currentInventory.updateMany({
+      where: {
+        fridgeId: input.fridgeId,
+        productId: {
+          notIn: nextProductIds,
+        },
+      },
+      data: {
+        isVisible: false,
+      },
+    });
+  } else {
+    await tx.currentInventory.updateMany({
+      where: {
+        fridgeId: input.fridgeId,
+      },
+      data: {
+        isVisible: false,
+      },
+    });
+  }
 
   await Promise.all(
     statusChanges.map((change) =>
@@ -248,10 +271,10 @@ export async function publishInventorySnapshot(
           fridgeId: input.fridgeId,
           publicationId: publication.id,
           productId: change.productId,
-          changedByUserId: change.changedByUserId,
+          changedByUserId: input.publishedByUserId,
           previousStatus: change.previousStatus,
           nextStatus: change.nextStatus,
-          changedAt: change.changedAt,
+          changedAt: input.publishedAt,
         },
       }),
     ),

@@ -146,7 +146,7 @@ erDiagram
 
 `Product` は商品マスタである。トップページに表示する名前とカテゴリの権威データを持つ。
 
-現在在庫そのものは `Product` に保持しない。各冷蔵庫のトップページに出す商品集合と数量は最新の納品書反映イベントから決まり、表示状態は対象の冷蔵庫および商品ごとの最新 `InventoryStatusChange` があればそれを優先する。
+現在在庫そのものは `Product` に保持しない。現在状態は `CurrentInventory` が保持し、`Product` は名称とカテゴリの権威データを提供する。
 
 ## UploadBatch
 
@@ -170,8 +170,8 @@ erDiagram
 
 `InventoryPublication` は、ある `UploadBatch` を対象の冷蔵庫のトップページ在庫へ反映した出来事を表す。
 
-対象の冷蔵庫トップページの商品集合と数量は、最新の `InventoryPublication` が参照する `UploadBatch` の行から導出する。
-クエリを最適化し、JOINなしで特定の冷蔵庫の最新公開を高速に引くために、直接 `fridgeId` を保持（非正規化）する。
+`InventoryPublication` は履歴と監査の境界であり、トップページの現在表示を直接導出する責務は持たない。
+クエリを最適化し、特定の冷蔵庫の最新公開を高速に引くために、直接 `fridgeId` を保持（非正規化）する。
 
 公開履歴は追記型である。過去バッチを再公開する場合も、既存レコードを書き換えず、新しい `InventoryPublication` を追加する。
 
@@ -187,13 +187,22 @@ erDiagram
 
 トップページの商品カードから手動で状態を変更した場合も、このテーブルに記録する。その場合、`publicationId` は `NULL` になる。
 
+## CurrentInventory
+
+`CurrentInventory` は、冷蔵庫と商品の組み合わせごとの現在状態を1行で保持する。
+
+このテーブルは `count`、`status`、`isVisible`、`lastPublishedAt`、最終状態変更者情報を持つ。
+
+トップページ在庫は `CurrentInventory` から `fridgeId` と `isVisible = true` で直接取得する。
+
+納品書反映時は対象商品を upsert し、反映対象外の商品は `isVisible = false` に更新する。
+
 ## 現在在庫の導出
 
-1. 特定の冷蔵庫（`fridgeId`）に対する最新の `InventoryPublication` を1件取得する。
-2. その `uploadBatchId` に属する `UploadBatchLine` を読む。
-3. `matchedProductId` がある行をトップページ表示対象にする。
-4. `count` から納品書由来の在庫ステータスを導出する。`FEW_LEFT` は残数 1〜5 を意味する。
-5. 冷蔵庫および商品ごとの最新 `InventoryStatusChange` が存在する場合は、その `nextStatus` を表示状態として優先する。
+1. 特定の冷蔵庫（`fridgeId`）に対する `CurrentInventory` を取得する。
+2. `isVisible = true` の行をトップページ表示対象にする。
+3. 表示状態は `CurrentInventory.status` を使用する。
+4. 商品名とカテゴリは `Product` を参照する。
 
 ## 変更者追跡
 
@@ -201,7 +210,7 @@ erDiagram
 
 最新反映後に手動変更された商品があれば、誰がいつどの商品をどの状態へ変更したかを別枠で表示する。
 
-商品カードには、その冷蔵庫と商品に対する最新の `InventoryStatusChange` から、最終状態変更者と最終状態変更時刻を表示する。
+商品カードには `CurrentInventory` が保持する最終状態変更者と最終状態変更時刻を表示する。
 
 状態が変わっていない商品に対して、最新公開者を一律に最終変更者として表示しない。
 
@@ -209,10 +218,12 @@ erDiagram
 
 すべてのデータアクセスが「特定の冷蔵庫（タブ）」の絞り込みを起点とするため、パフォーマンス劣化を防ぐための複合インデックスを以下の通り設計する。
 
-1. **`InventoryPublication`**: `[fridgeId, publishedAt DESC]` 
-   * 特定の冷蔵庫における最新の公開イベントを瞬時に特定するため。
-2. **`InventoryStatusChange`**: `[fridgeId, productId, changedAt DESC]`
-   * 特定の冷蔵庫における、ある商品の最新の手動・公開ステータス変更を高速に上書き適用するため。
+1. `CurrentInventory`: `[fridgeId, isVisible]`
+   * 特定の冷蔵庫の表示対象を単純な条件で読み取るため。
+2. `InventoryPublication`: `[fridgeId, publishedAt DESC]`
+   * 公開サマリと履歴参照で最新公開を特定するため。
+3. `InventoryStatusChange`: `[fridgeId, productId, changedAt DESC]`
+   * 状態変更履歴の最新追跡と監査ログ参照を高速化するため。
 
 ## 設計上の判断
 

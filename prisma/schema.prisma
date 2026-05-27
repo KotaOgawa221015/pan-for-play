@@ -41,6 +41,7 @@ model Fridge {
   uploadBatches          UploadBatch[]
   inventoryPublications  InventoryPublication[]
   inventoryStatusChanges InventoryStatusChange[]
+  currentInventories     CurrentInventory[]
 }
 
 model Product {
@@ -52,6 +53,7 @@ model Product {
   updatedAt              DateTime                @updatedAt
   uploadBatchLines       UploadBatchLine[]
   inventoryStatusChanges InventoryStatusChange[]
+  currentInventories     CurrentInventory[]
 }
 
 model User {
@@ -68,6 +70,7 @@ model User {
   uploadBatches          UploadBatch[]
   inventoryPublications  InventoryPublication[]
   inventoryStatusChanges InventoryStatusChange[]
+  currentInventories     CurrentInventory[]
   accounts               Account[]
   sessions               Session[]
   favoriteFridge         Fridge?                 @relation(fields: [favoriteFridgeId], references: [id])
@@ -184,4 +187,25 @@ model InventoryStatusChange {
   @@index([fridgeId, productId, changedAt(sort: Desc)])
   @@index([publicationId, changedAt])
   @@index([changedByUserId])
+}
+
+model CurrentInventory {
+  fridgeId            String
+  productId           String
+  count               Int
+  status              InventoryStatus
+  isVisible           Boolean         @default(true)
+  lastPublishedAt     DateTime
+  lastChangedAt       DateTime?
+  lastChangedByUserId String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  fridge            Fridge  @relation(fields: [fridgeId], references: [id])
+  product           Product @relation(fields: [productId], references: [id])
+  lastChangedByUser User?   @relation(fields: [lastChangedByUserId], references: [id])
+
+  @@id([fridgeId, productId])
+  @@index([fridgeId, isVisible])
+  @@index([lastChangedByUserId])
 }

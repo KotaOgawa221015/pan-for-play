@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getAuthEnv, getTursoRecreateEnv } from './environment';
+import { getAuthEnv, getCronSecret, getTursoRecreateEnv } from './environment';
 
 describe('environment', () => {
   it('disables Google sign-in in development when Google credentials are absent', () => {
@@ -53,5 +53,13 @@ describe('environment', () => {
     });
 
     expect(env.tursoDatabaseGroup).toBeUndefined();
+  });
+
+  it('requires cron secret', () => {
+    expect(() =>
+      getCronSecret({
+        CRON_SECRET: '',
+      }),
+    ).toThrow('CRON_SECRET is required.');
   });
 });

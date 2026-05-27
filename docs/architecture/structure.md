@@ -39,15 +39,15 @@ src/
 
 ## 在庫の真実源
 
-トップページ在庫の商品集合と数量は最新の `InventoryPublication` が参照する `UploadBatch` から導出する。
+トップページ在庫の商品集合と数量は `CurrentInventory` から取得する。
 
-表示対象は最新公開された納品書の `lines` である。`count = 0` の行はトップページに表示しない。
+表示対象は `CurrentInventory` の `isVisible = true` の行である。`count = 0` の行は `isVisible = false` として保持される。
 
-初期在庫ステータスは `features/inventory/counts.ts` の数量閾値で導出する。トップページでの個別状態変更が存在する場合は、各商品の最新 `InventoryStatusChange` が表示ステータスを上書きする。
+納品書反映時の在庫ステータスは `features/inventory/counts.ts` の数量閾値で導出され、`CurrentInventory.status` に反映される。
 
-手動の個別ステータス更新は現行モデルに含まれる。トップページのカード操作は `InventoryStatusChange` を1件追加する。
+手動の個別ステータス更新は `CurrentInventory` と `InventoryStatusChange` を同一トランザクションで更新する。
 
-受け入れ適用と再公開は、新しい `InventoryPublication` を追加して現在在庫の参照先を置き換える。
+受け入れ適用と再公開は、新しい `InventoryPublication` を追加しながら `CurrentInventory` を更新する。
 
 商品別の変更者追跡は `InventoryStatusChange` が所有する。数量は根拠データであり、変更者ログはユーザ可視の在庫ステータスが変化した商品だけを記録する。
 
@@ -65,8 +65,9 @@ src/
 
 1. 対象バッチは `PROCESSED` のまま保持する。
 2. 対象バッチを参照する新しい `InventoryPublication` を作成する。
-3. 直前公開との差分から `InventoryStatusChange` を作成する。
-4. トップページ在庫は最新 `InventoryPublication` のバッチ行から導出される。
+3. `CurrentInventory` を upsert し、対象外商品を `isVisible = false` に更新する。
+4. 状態差分がある商品のみ `InventoryStatusChange` を作成する。
+5. トップページ在庫は `CurrentInventory` から直接取得される。
 
 ## Fixture の責務
 

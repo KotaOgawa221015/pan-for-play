@@ -38,7 +38,7 @@ tests/
 
 `src/features/inventory/counts.test.ts` は数量から在庫ステータスへの導出契約を検証する。
 
-`tests/integration/inventory-actions.test.ts` は最新 `InventoryPublication` からトップ在庫を導出する振る舞いを検証する。
+`tests/integration/inventory-actions.test.ts` は `CurrentInventory` からトップ在庫を取得する契約を検証する。
 
 `tests/integration/inventory-publication-summary.test.ts` はトップページ下部に表示する公開サマリ取得契約を検証する。
 
@@ -49,6 +49,8 @@ tests/
 `tests/integration/receiving/history-actions.test.ts` は再公開と削除制約を検証する。
 
 `tests/integration/seed-script.test.ts` はカタログ商品 fixture と公開履歴 fixture に基づくシード整合性を検証する。
+
+`tests/integration/retention-cleanup.test.ts` は保持期限ベースの定期クリーンアップ契約を検証する。
 
 ## 運用原則
 

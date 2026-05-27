@@ -66,6 +66,22 @@ export async function seedPublications(
   let previousPublicationLines: PublicationLine[] = [];
 
   for (const publication of publications) {
+    const previousCurrentInventoryRows = await prisma.currentInventory.findMany(
+      {
+        where: {
+          fridgeId: defaultFridge.id,
+        },
+        select: {
+          productId: true,
+          lastChangedAt: true,
+          lastChangedByUserId: true,
+        },
+      },
+    );
+    const previousCurrentInventoryByProductId = new Map(
+      previousCurrentInventoryRows.map((row) => [row.productId, row]),
+    );
+
     const createdPublication = await prisma.inventoryPublication.create({
       data: {
         fridgeId: defaultFridge.id,
@@ -80,6 +96,12 @@ export async function seedPublications(
       previousPublicationLines,
       publication.publicationLines,
     );
+    const statusChangeProductIdSet = new Set(
+      statusChanges.map((change) => change.productId),
+    );
+    const publicationProductIds = [
+      ...new Set(publication.publicationLines.map((line) => line.productId)),
+    ];
 
     for (const change of statusChanges) {
       await prisma.inventoryStatusChange.create({
@@ -92,6 +114,67 @@ export async function seedPublications(
           nextStatus: change.nextStatus,
           changedAt: publication.publishedAt,
           createdAt: publication.publishedAt,
+        },
+      });
+    }
+
+    for (const line of publication.publicationLines) {
+      const previousCurrentInventory = previousCurrentInventoryByProductId.get(
+        line.productId,
+      );
+      const hasStatusChange = statusChangeProductIdSet.has(line.productId);
+
+      await prisma.currentInventory.upsert({
+        where: {
+          fridgeId_productId: {
+            fridgeId: defaultFridge.id,
+            productId: line.productId,
+          },
+        },
+        update: {
+          count: line.count,
+          status: statusFromCount(line.count),
+          isVisible: line.count > 0,
+          lastPublishedAt: publication.publishedAt,
+          lastChangedAt: hasStatusChange
+            ? publication.publishedAt
+            : (previousCurrentInventory?.lastChangedAt ?? null),
+          lastChangedByUserId: hasStatusChange
+            ? adminUser.id
+            : (previousCurrentInventory?.lastChangedByUserId ?? null),
+        },
+        create: {
+          fridgeId: defaultFridge.id,
+          productId: line.productId,
+          count: line.count,
+          status: statusFromCount(line.count),
+          isVisible: line.count > 0,
+          lastPublishedAt: publication.publishedAt,
+          lastChangedAt: hasStatusChange ? publication.publishedAt : null,
+          lastChangedByUserId: hasStatusChange ? adminUser.id : null,
+        },
+      });
+    }
+
+    if (publicationProductIds.length > 0) {
+      await prisma.currentInventory.updateMany({
+        where: {
+          fridgeId: defaultFridge.id,
+          productId: {
+            notIn: publicationProductIds,
+          },
+        },
+        data: {
+          isVisible: false,
+        },
+      });
+    } else {
+      await prisma.currentInventory.updateMany({
+        where: {
+          fridgeId: defaultFridge.id,
+        },
+        data: {
+          isVisible: false,
         },
       });
     }

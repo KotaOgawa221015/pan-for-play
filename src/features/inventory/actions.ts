@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache';
 
 import { authenticatedAction } from '@/features/account/session-user';
-import { getProductStatusFromCount } from '@/features/inventory/counts';
 import { prisma } from '@/lib/prisma';
 import type { ProductStatus } from '@/types/inventory';
 
@@ -16,54 +15,40 @@ async function updateProductStatusInternal(
   const changedAt = new Date();
 
   await prisma.$transaction(async (tx) => {
-    const currentPublication = await tx.inventoryPublication.findFirst({
+    const currentInventory = await tx.currentInventory.findUnique({
       where: {
-        fridgeId,
-      },
-      orderBy: [{ publishedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
-      select: {
-        uploadBatch: {
-          select: {
-            deletedAt: true,
-            lines: {
-              where: {
-                matchedProductId: productId,
-              },
-              select: {
-                id: true,
-                count: true,
-              },
-            },
-          },
+        fridgeId_productId: {
+          fridgeId,
+          productId,
         },
       },
-    });
-
-    const latestStatusChange = await tx.inventoryStatusChange.findFirst({
-      where: {
-        fridgeId,
-        productId,
-      },
-      orderBy: [{ changedAt: 'desc' }, { createdAt: 'desc' }, { id: 'desc' }],
       select: {
-        nextStatus: true,
+        status: true,
+        isVisible: true,
       },
     });
 
-    if (currentPublication?.uploadBatch.deletedAt) {
+    if (!currentInventory?.isVisible) {
       throw new Error('現在の在庫ボードに存在しない商品は更新できません。');
     }
 
-    const publicationLine = currentPublication?.uploadBatch.lines[0];
-    if (!publicationLine) {
-      throw new Error('現在の在庫ボードに存在しない商品は更新できません。');
-    }
-
-    const currentStatus =
-      latestStatusChange?.nextStatus ??
-      getProductStatusFromCount(publicationLine.count);
+    const currentStatus = currentInventory.status;
 
     if (currentStatus === nextStatus) return;
+
+    await tx.currentInventory.update({
+      where: {
+        fridgeId_productId: {
+          fridgeId,
+          productId,
+        },
+      },
+      data: {
+        status: nextStatus,
+        lastChangedAt: changedAt,
+        lastChangedByUserId: user.id,
+      },
+    });
 
     await tx.inventoryStatusChange.create({
       data: {

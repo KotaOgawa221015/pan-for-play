@@ -2,6 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 
 export async function cleanDatabase(prisma: PrismaClient) {
   await prisma.$transaction([
+    prisma.currentInventory.deleteMany(),
     prisma.inventoryStatusChange.deleteMany(),
     prisma.inventoryPublication.deleteMany(),
     prisma.uploadBatchLine.deleteMany(),

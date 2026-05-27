@@ -6,7 +6,9 @@ const {
   uploadBatchLineUpdate,
   inventoryPublicationFindFirst,
   inventoryPublicationCreate,
-  inventoryStatusChangeFindMany,
+  currentInventoryFindMany,
+  currentInventoryUpsert,
+  currentInventoryUpdateMany,
   inventoryStatusChangeCreate,
   productCreate,
   productUpdate,
@@ -21,7 +23,9 @@ const {
   uploadBatchLineUpdate: vi.fn(),
   inventoryPublicationFindFirst: vi.fn(),
   inventoryPublicationCreate: vi.fn(),
-  inventoryStatusChangeFindMany: vi.fn(),
+  currentInventoryFindMany: vi.fn(),
+  currentInventoryUpsert: vi.fn(),
+  currentInventoryUpdateMany: vi.fn(),
   inventoryStatusChangeCreate: vi.fn(),
   productCreate: vi.fn(),
   productUpdate: vi.fn(),
@@ -47,8 +51,12 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: inventoryPublicationFindFirst,
       create: inventoryPublicationCreate,
     },
+    currentInventory: {
+      findMany: currentInventoryFindMany,
+      upsert: currentInventoryUpsert,
+      updateMany: currentInventoryUpdateMany,
+    },
     inventoryStatusChange: {
-      findMany: inventoryStatusChangeFindMany,
       create: inventoryStatusChangeCreate,
     },
     product: {
@@ -96,7 +104,9 @@ describe('receiving apply review', () => {
     uploadBatchLineUpdate.mockReset();
     inventoryPublicationFindFirst.mockReset();
     inventoryPublicationCreate.mockReset();
-    inventoryStatusChangeFindMany.mockReset();
+    currentInventoryFindMany.mockReset();
+    currentInventoryUpsert.mockReset();
+    currentInventoryUpdateMany.mockReset();
     inventoryStatusChangeCreate.mockReset();
     productCreate.mockReset();
     productUpdate.mockReset();
@@ -120,8 +130,12 @@ describe('receiving apply review', () => {
           findFirst: inventoryPublicationFindFirst,
           create: inventoryPublicationCreate,
         },
+        currentInventory: {
+          findMany: currentInventoryFindMany,
+          upsert: currentInventoryUpsert,
+          updateMany: currentInventoryUpdateMany,
+        },
         inventoryStatusChange: {
-          findMany: inventoryStatusChangeFindMany,
           create: inventoryStatusChangeCreate,
         },
         product: {
@@ -146,19 +160,23 @@ describe('receiving apply review', () => {
       ],
     });
     inventoryPublicationFindFirst.mockResolvedValue({
+      uploadBatchId: 'older-batch',
       uploadBatch: {
-        lines: [
-          {
-            matchedProductId: 'existing-1',
-            count: 8,
-          },
-        ],
+        deletedAt: null,
       },
     });
     inventoryPublicationCreate.mockResolvedValue({
       id: 'publication-1',
     });
-    inventoryStatusChangeFindMany.mockResolvedValue([]);
+    currentInventoryFindMany.mockResolvedValue([
+      {
+        productId: 'existing-1',
+        status: 'PLENTIFUL',
+        isVisible: true,
+        lastChangedAt: new Date('2026-05-10T09:00:00.000Z'),
+        lastChangedByUserId: 'user-1',
+      },
+    ]);
     productCreate.mockResolvedValue({
       id: 'created-1',
       name: '新作パン',
@@ -258,19 +276,23 @@ describe('receiving apply review', () => {
       lines: [{ id: 'line-1', lineNumber: 1 }],
     });
     inventoryPublicationFindFirst.mockResolvedValue({
+      uploadBatchId: 'older-batch',
       uploadBatch: {
-        lines: [
-          {
-            matchedProductId: 'missing-from-next-invoice',
-            count: 3,
-          },
-        ],
+        deletedAt: null,
       },
     });
     inventoryPublicationCreate.mockResolvedValue({
       id: 'publication-1',
     });
-    inventoryStatusChangeFindMany.mockResolvedValue([]);
+    currentInventoryFindMany.mockResolvedValue([
+      {
+        productId: 'missing-from-next-invoice',
+        status: 'FEW_LEFT',
+        isVisible: true,
+        lastChangedAt: new Date('2026-05-10T09:00:00.000Z'),
+        lastChangedByUserId: 'user-1',
+      },
+    ]);
     uploadBatchLineUpdate.mockResolvedValue({});
     inventoryStatusChangeCreate.mockResolvedValue({});
 
@@ -307,29 +329,25 @@ describe('receiving apply review', () => {
     ]);
     uploadBatchFindFirst.mockResolvedValue({
       id: 'batch-1',
+      fridgeId: 'fridge-1',
       lines: [{ id: 'line-1', lineNumber: 1 }],
     });
     inventoryPublicationFindFirst.mockResolvedValue({
+      uploadBatchId: 'older-batch',
       uploadBatch: {
-        lines: [
-          {
-            matchedProductId: 'existing-1',
-            count: 8,
-          },
-        ],
+        deletedAt: null,
       },
     });
     inventoryPublicationCreate.mockResolvedValue({
       id: 'publication-1',
     });
-    inventoryStatusChangeFindMany.mockResolvedValue([
+    currentInventoryFindMany.mockResolvedValue([
       {
         productId: 'existing-1',
-        nextStatus: 'SOLD_OUT',
-      },
-      {
-        productId: 'existing-1',
-        nextStatus: 'FEW_LEFT',
+        status: 'SOLD_OUT',
+        isVisible: true,
+        lastChangedAt: new Date('2026-05-10T09:00:00.000Z'),
+        lastChangedByUserId: 'user-1',
       },
     ]);
     uploadBatchLineUpdate.mockResolvedValue({});
@@ -350,6 +368,7 @@ describe('receiving apply review', () => {
     expect(inventoryStatusChangeCreate).toHaveBeenCalledTimes(1);
     expect(inventoryStatusChangeCreate).toHaveBeenCalledWith({
       data: {
+        fridgeId: 'fridge-1',
         publicationId: 'publication-1',
         productId: 'existing-1',
         changedByUserId: 'user-1',

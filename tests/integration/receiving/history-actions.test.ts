@@ -8,7 +8,9 @@ const {
   fridgeFindFirst,
   inventoryPublicationFindFirst,
   inventoryPublicationCreate,
-  inventoryStatusChangeFindMany,
+  currentInventoryFindMany,
+  currentInventoryUpsert,
+  currentInventoryUpdateMany,
   inventoryStatusChangeCreate,
   revalidatePath,
   requireAdminUser,
@@ -21,7 +23,9 @@ const {
   fridgeFindFirst: vi.fn(),
   inventoryPublicationFindFirst: vi.fn(),
   inventoryPublicationCreate: vi.fn(),
-  inventoryStatusChangeFindMany: vi.fn(),
+  currentInventoryFindMany: vi.fn(),
+  currentInventoryUpsert: vi.fn(),
+  currentInventoryUpdateMany: vi.fn(),
   inventoryStatusChangeCreate: vi.fn(),
   revalidatePath: vi.fn(),
   requireAdminUser: vi.fn(),
@@ -43,8 +47,12 @@ vi.mock('@/lib/prisma', () => ({
       findFirst: inventoryPublicationFindFirst,
       create: inventoryPublicationCreate,
     },
+    currentInventory: {
+      findMany: currentInventoryFindMany,
+      upsert: currentInventoryUpsert,
+      updateMany: currentInventoryUpdateMany,
+    },
     inventoryStatusChange: {
-      findMany: inventoryStatusChangeFindMany,
       create: inventoryStatusChangeCreate,
     },
   },
@@ -78,7 +86,9 @@ describe('receiving history actions', () => {
     fridgeFindFirst.mockReset();
     inventoryPublicationFindFirst.mockReset();
     inventoryPublicationCreate.mockReset();
-    inventoryStatusChangeFindMany.mockReset();
+    currentInventoryFindMany.mockReset();
+    currentInventoryUpsert.mockReset();
+    currentInventoryUpdateMany.mockReset();
     inventoryStatusChangeCreate.mockReset();
     revalidatePath.mockReset();
     requireAdminUser.mockReset();
@@ -100,8 +110,12 @@ describe('receiving history actions', () => {
           findFirst: inventoryPublicationFindFirst,
           create: inventoryPublicationCreate,
         },
+        currentInventory: {
+          findMany: currentInventoryFindMany,
+          upsert: currentInventoryUpsert,
+          updateMany: currentInventoryUpdateMany,
+        },
         inventoryStatusChange: {
-          findMany: inventoryStatusChangeFindMany,
           create: inventoryStatusChangeCreate,
         },
       }),
@@ -117,19 +131,22 @@ describe('receiving history actions', () => {
       .mockResolvedValueOnce({
         uploadBatchId: 'batch-2',
         uploadBatch: {
-          lines: [
-            {
-              matchedProductId: 'product-2',
-              count: 9,
-            },
-          ],
+          deletedAt: null,
         },
       })
       .mockResolvedValueOnce(null);
     inventoryPublicationCreate.mockResolvedValue({
       id: 'publication-2',
     });
-    inventoryStatusChangeFindMany.mockResolvedValue([]);
+    currentInventoryFindMany.mockResolvedValue([
+      {
+        productId: 'product-2',
+        status: 'PLENTIFUL',
+        isVisible: true,
+        lastChangedAt: new Date('2026-05-10T09:00:00.000Z'),
+        lastChangedByUserId: 'user-1',
+      },
+    ]);
     inventoryStatusChangeCreate.mockResolvedValue({});
     uploadBatchFindFirst.mockResolvedValueOnce({
       id: 'batch-1',
