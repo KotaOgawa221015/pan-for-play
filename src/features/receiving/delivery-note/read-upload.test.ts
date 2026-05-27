@@ -23,14 +23,14 @@ describe('readDeliveryNoteUpload', () => {
   });
 
   it.each([
-    ['invoice.png', 'image/png'],
-    ['invoice.jpg', 'image/jpeg'],
-    ['invoice.JPEG', 'image/jpeg'],
-  ])('accepts %s', async (fileName, mimeType) => {
+    ['invoice.png', 'image/png', 'invoice'],
+    ['invoice.jpg', 'image/jpeg', 'invoice'],
+    ['invoice.JPEG', 'image/jpeg', 'invoice'],
+  ])('accepts %s', async (fileName, mimeType, expectedFileName) => {
     const file = new File(['hello'], fileName, { type: mimeType });
 
     await expect(readDeliveryNoteUpload(buildFormData(file))).resolves.toEqual({
-      fileName,
+      fileName: expectedFileName,
       imageBuffer: Buffer.from('hello'),
       mimeType,
     });
@@ -45,7 +45,7 @@ describe('readDeliveryNoteUpload', () => {
     });
 
     await expect(readDeliveryNoteUpload(buildFormData(file))).resolves.toEqual({
-      fileName: 'invoice.jpg',
+      fileName: 'invoice',
       imageBuffer: Buffer.from('jpeg'),
       mimeType: 'image/jpeg',
     });
