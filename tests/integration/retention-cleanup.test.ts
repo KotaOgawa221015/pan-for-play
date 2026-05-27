@@ -102,6 +102,25 @@ describe('保持期限クリーンアップの統合テスト', () => {
       },
     });
 
+    const uploadBatchTarget = await testPrisma.uploadBatch.create({
+      data: {
+        fridgeId: fridgeActive.id,
+        uploadedByUserId: userActive.id,
+        originalFileName: 'old-deleted-receipt.png',
+        deletedAt: deletedTime,
+      },
+    });
+
+    const uploadBatchLine = await testPrisma.uploadBatchLine.create({
+      data: {
+        uploadBatchId: uploadBatchTarget.id,
+        lineNumber: 1,
+        rawText: 'milk 1',
+        count: 1,
+        matchStatus: 'UNMATCHED',
+      },
+    });
+
     const batchByUser = await testPrisma.uploadBatch.create({
       data: {
         fridgeId: fridgeActive.id,
@@ -153,6 +172,7 @@ describe('保持期限クリーンアップの統合テスト', () => {
     expect(result.deletedFridges).toBeGreaterThanOrEqual(1);
     expect(result.deletedUsers).toBeGreaterThanOrEqual(1);
     expect(result.deletedStatusChanges).toBeGreaterThanOrEqual(1);
+    expect(result.deletedUploadBatches).toBeGreaterThanOrEqual(1);
 
     const remainingFridges = (await testPrisma.fridge.findMany({
       select: { id: true },
@@ -178,6 +198,17 @@ describe('保持期限クリーンアップの統合テスト', () => {
       where: { id: batchByUser.id },
     });
     expect(updatedBatch?.uploadedByUserId).toBe(placeholderUser?.id);
+
+    await expect(
+      testPrisma.uploadBatch.findUnique({
+        where: { id: uploadBatchTarget.id },
+      }),
+    ).resolves.toBeNull();
+    await expect(
+      testPrisma.uploadBatchLine.findUnique({
+        where: { id: uploadBatchLine.id },
+      }),
+    ).resolves.toBeNull();
 
     const updatedInventory = await testPrisma.currentInventory.findFirst({
       where: {

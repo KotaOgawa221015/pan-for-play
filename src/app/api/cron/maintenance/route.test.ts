@@ -41,6 +41,7 @@ describe('cron maintenance route', () => {
       deletedStatusChanges: 3,
       deletedFridges: 1,
       deletedUsers: 2,
+      deletedUploadBatches: 4,
     });
 
     const response = await GET(
@@ -58,6 +59,7 @@ describe('cron maintenance route', () => {
       deletedStatusChanges: 3,
       deletedFridges: 1,
       deletedUsers: 2,
+      deletedUploadBatches: 4,
     });
     expect(runRetentionCleanup).toHaveBeenCalledTimes(1);
   });
