@@ -91,7 +91,7 @@ export function ProductCard({ fridgeId, product }: Props) {
           priority
           unoptimized
         />
-        <h3 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 whitespace-normal break-words sm:truncate text-left flex-1">
+        <h3 className="font-semibold text-sm sm:text-base text-zinc-900 dark:text-zinc-100 whitespace-normal wrap-break-word text-left flex-1">
           {product.name}
         </h3>
       </div>
