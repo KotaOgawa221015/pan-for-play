@@ -19,24 +19,31 @@ const docsTopPageTemplatePath = path.join(
 const categories = [
   {
     dir: 'architecture',
-    title: 'ガイド一覧',
-    topPageActionText: 'ガイドを読む',
+    title: '設計',
+    topPageActionText: '設計',
     description:
       'アーキテクチャ、データモデル、テスト構造に関するドキュメントの一覧です。',
   },
   {
     dir: 'config',
-    title: '設定解説一覧',
-    topPageActionText: '設定解説を見る',
+    title: '各種設定',
+    topPageActionText: '各種設定',
     description:
       'プロジェクトの各種設定（Biomeやpnpm等）の解説ドキュメントの一覧です。',
   },
   {
     dir: 'legal',
-    title: '法的表記一覧',
-    topPageActionText: '法的表記を確認',
+    title: '法的表記',
+    topPageActionText: '法的表記',
     description:
       '利用規約やプライバシーポリシーに関するドキュメントの一覧です。',
+  },
+  {
+    dir: 'procedure',
+    title: '操作手順',
+    topPageActionText: '操作手順',
+    description:
+      'システムやデータベースの操作手順に関するドキュメントの一覧です。',
   },
 ];
 
