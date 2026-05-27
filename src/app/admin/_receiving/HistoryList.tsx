@@ -42,7 +42,7 @@ export function HistoryList({
     <section className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 shadow-sm">
       <div className="mb-6 space-y-2">
         <h2 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-          直近の読み取り履歴
+          直近の納品書読み取り履歴
         </h2>
         <p className="text-xs text-zinc-500">
           読み取り済み納品書の確認と、必要に応じた再適用をここで扱います。

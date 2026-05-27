@@ -36,7 +36,6 @@ function ChangeList({
     return <p className="text-sm text-zinc-500">{emptyText}</p>;
   }
 
-  // ページング計算
   const totalPages = Math.max(1, Math.ceil(changes.length / itemsPerPage));
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const startIndex = (safeCurrentPage - 1) * itemsPerPage;
@@ -70,7 +69,6 @@ function ChangeList({
         ))}
       </ul>
 
-      {/* ページネーションコントロール（複数ページある場合のみ表示） */}
       {totalPages > 1 && (
         <div className="flex items-center justify-between gap-3 text-xs text-zinc-500 pt-1">
           <p>
