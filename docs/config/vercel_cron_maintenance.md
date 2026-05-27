@@ -8,7 +8,7 @@
 
 ### 実行スケジュール
 
-* **構成定義:** `vercel.json` 内の `crons` 設定
+* **構成定義:** [vercel.json](vercel.json#L1) 内の `crons` 設定
 * **スケジュール:** `0 3 * * *`（UTC基準 毎日03:00 / JST 12:00）
 
 ### クリーンアップ対象（一回あたりの削除上限・日数は内部定数で固定）
@@ -19,14 +19,17 @@
 
 ---
 
+
 ## 2. 認証・実行経路（How & Who）
 
 ### 通信経路
 
-* **Vercel Cronシステム** ➔ `GET /api/cron/maintenance` を呼び出し
-* **リクエストヘッダー:** `Authorization: Bearer <CRON_SECRET>` がVercelにより自動付与
+- **Vercel Cronシステム** ➔ `GET /api/cron/maintenance` を呼び出し
+- **リクエストヘッダー:** `Authorization: Bearer <CRON_SECRET>` がVercelにより自動付与
 
-### 検証ロジック（`src/app/api/cron/maintenance/route.ts`）
+### 検証ロジック（実装: [src/app/api/cron/maintenance/route.ts](src/app/api/cron/maintenance/route.ts)）
+
+参照: [src/lib/environment.ts](src/lib/environment.ts#L1) (`getCronSecret`)、[src/features/retention/cleanup.ts](src/features/retention/cleanup.ts#L1) (`runRetentionCleanup`)
 
 ```typescript
 import { runRetentionCleanup } from '@/features/retention/cleanup';
@@ -43,11 +46,19 @@ function isAuthorized(request: Request) {
 
 export async function GET(request: Request) {
   if (!isAuthorized(request)) {
-    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+    return Response.json(
+      { ok: false, error: 'Unauthorized' },
+      {
+        status: 401,
+      },
+    );
   }
 
   const result = await runRetentionCleanup();
-  return Response.json({ ok: true, ...result });
+  return Response.json({
+    ok: true,
+    ...result,
+  });
 }
 
 ```
@@ -85,7 +96,7 @@ openssl rand -base64 32
 
 ### 本番環境での手動実行（緊急時・デバッグ用）
 
-* 通常のアクセス（ヘッダーなし）は `401 Unauthorized` で拒否されるため、`curl` を用いて認証ヘッバーを明示的に付与する。
+* 通常のアクセス（ヘッダーなし）は `401 Unauthorized` で拒否されるため、`curl` を用いて認証ヘッダーを明示的に付与する。
 ```bash
 curl -H "Authorization: Bearer 【Vercelに登録したCRON_SECRETの値】" \
   https://【本番ドメイン】/api/cron/maintenance
