@@ -1,45 +1,111 @@
-# Vercel Cron メンテナンス設定
+# Vercel Cron メンテナンス保護・運用仕様書
 
-この文書は、保持期限ベースのデータメンテナンスを Vercel Cron で実行する現行構成を記述する。
+本ドキュメントは、保持期限ベースのデータメンテナンスにおける「実行定義」「認証経路」「設定管理」「検証運用」の4要素をMECE（漏れなく・ダブりなく）に整理した仕様書である。
 
-## 構成
+---
 
-定期実行のスケジュールは `vercel.json` の `crons` で管理される。
+## 1. 実行定義（What & When）
 
-実行本体は `src/app/api/cron/maintenance/route.ts` の `GET` ハンドラである。
+### 実行スケジュール
 
-保持期限ロジックは `src/features/retention/cleanup.ts` が所有する。
+* **構成定義:** `vercel.json` 内の `crons` 設定
+* **スケジュール:** `0 3 * * *`（UTC基準 毎日03:00 / JST 12:00）
 
-## 実行経路
+### クリーンアップ対象（一回あたりの削除上限・日数は内部定数で固定）
 
-Vercel Cron は指定時刻に `GET /api/cron/maintenance` を呼び出す。
+* 30日を経過した `InventoryStatusChange` の論理削除データのクリーニング
+* 30日を経過した `deletedAt` を持つ `Fridge` の物理削除
+* 30日を経過した `deletedAt` を持つ `User` の物理削除
 
-`route.ts` は `Authorization: Bearer <CRON_SECRET>` を検証し、認証成功時のみメンテナンス処理を実行する。
+---
 
-メンテナンス処理は以下を対象とする。
+## 2. 認証・実行経路（How & Who）
 
-- 30日を超えた `InventoryStatusChange` の削除
-- 30日を超えた `deletedAt` を持つ `Fridge` の物理削除
-- 30日を超えた `deletedAt` を持つ `User` の物理削除
+### 通信経路
 
-## 設定値
+* **Vercel Cronシステム** ➔ `GET /api/cron/maintenance` を呼び出し
+* **リクエストヘッダー:** `Authorization: Bearer <CRON_SECRET>` がVercelにより自動付与
 
-`CRON_SECRET` は Vercel Project の Environment Variables に設定される。
+### 検証ロジック（`src/app/api/cron/maintenance/route.ts`）
 
-## スケジュール
+```typescript
+import { runRetentionCleanup } from '@/features/retention/cleanup';
+import { getCronSecret } from '@/lib/environment';
 
-`vercel.json` の現行スケジュールは `0 3 * * *` である。
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
-この値は UTC 基準で毎日 03:00 の実行を表す。
+function isAuthorized(request: Request) {
+  const authorization = request.headers.get('authorization');
+  const cronSecret = getCronSecret();
+  return authorization === `Bearer ${cronSecret}`;
+}
 
-## 運用方針
+export async function GET(request: Request) {
+  if (!isAuthorized(request)) {
+    return Response.json({ ok: false, error: 'Unauthorized' }, { status: 401 });
+  }
 
-データクリーンアップの実行経路は Cron に統一される。
+  const result = await runRetentionCleanup();
+  return Response.json({ ok: true, ...result });
+}
 
-管理画面の手動クリーンアップ UI とサーバーアクションは運用導線から除外される。
+```
 
-手動実行が必要な場合は、`Authorization: Bearer <CRON_SECRET>` を付与して `GET /api/cron/maintenance` を呼び出す。
+---
 
-`CRON_SECRET` は `.env.example` には含めない。
+## 3. 設定・管理（Setup & Security）
 
-保持日数と1回あたりの削除上限は実装内の定数で管理され、実行時には変更しない。
+### 鍵の生成
+
+* Vercelによる自動発行は行われないため、開発者が手動で生成する。
+* **推奨コマンド:**
+```bash
+openssl rand -base64 32
+
+```
+
+
+*(16文字以上の推測困難な文字列であれば、パスワードジェネレータの利用も可)*
+
+### 環境変数の配置
+
+* **登録場所:** Vercel Project設定（`Settings > Environment Variables`）
+* **キー名:** `CRON_SECRET`
+* **セキュリティ制約:** 漏洩防止のため、`.env.example` やソースコード上への記述・Gitコミットは厳禁とする。
+
+---
+
+## 4. 検証・手動運用（Test & Operation）
+
+### 運用の原則
+
+* メンテナンスの実行経路はVercel Cronに一元化する。
+* 管理画面UIおよびサーバーアクション経由の手動実行導線は除外する。
+
+### 本番環境での手動実行（緊急時・デバッグ用）
+
+* 通常のアクセス（ヘッダーなし）は `401 Unauthorized` で拒否されるため、`curl` を用いて認証ヘッバーを明示的に付与する。
+```bash
+curl -H "Authorization: Bearer 【Vercelに登録したCRON_SECRETの値】" \
+  https://【本番ドメイン】/api/cron/maintenance
+
+```
+
+
+
+### ローカル開発環境での動作テスト
+
+1. ローカル用の環境変数ファイル（`.env.local`）に、検証用の任意のシークレットを定義する。
+```env
+CRON_SECRET=local_development_secret_token
+
+```
+
+
+2. ローカルサーバー（`localhost:3000`）を起動し、ヘッダー付きリクエストを送信して挙動を検証する。
+```bash
+curl -H "Authorization: Bearer local_development_secret_token" \
+  http://localhost:3000/api/cron/maintenance
+
+```
