@@ -26,8 +26,6 @@ Vercel Cron は指定時刻に `GET /api/cron/maintenance` を呼び出す。
 
 `CRON_SECRET` は Vercel Project の Environment Variables に設定される。
 
-同じキーは `.env.example` に定義され、ローカル設定の必須項目として共有される。
-
 ## スケジュール
 
 `vercel.json` の現行スケジュールは `0 3 * * *` である。
@@ -41,5 +39,7 @@ Vercel Cron は指定時刻に `GET /api/cron/maintenance` を呼び出す。
 管理画面の手動クリーンアップ UI とサーバーアクションは運用導線から除外される。
 
 手動実行が必要な場合は、`Authorization: Bearer <CRON_SECRET>` を付与して `GET /api/cron/maintenance` を呼び出す。
+
+`CRON_SECRET` は `.env.example` には含めない。
 
 保持日数と1回あたりの削除上限は実装内の定数で管理され、実行時には変更しない。
