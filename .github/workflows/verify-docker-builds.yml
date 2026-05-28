@@ -25,6 +25,13 @@ on:
       - '.github/workflows/verify-docker-builds.yml'
   workflow_dispatch:
 
+concurrency:
+  group: verify-docker-builds-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   build-check:
     name: Build Check
@@ -37,15 +44,19 @@ jobs:
             database_url: file:./data/dev.db
           - target: prod
             database_url: file:./data/prod.db
+    env:
+      TARGET: ${{ matrix.target }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Environment
         uses: ./.github/actions/setup
 
       - name: Docker Build Check (${{ matrix.target }})
-        run: docker build --file docker/Dockerfile --target "${{ matrix.target }}" -t "pan-for-play-ci:${{ matrix.target }}" .
+        run: docker build --file docker/Dockerfile --target "$TARGET" -t "pan-for-play-ci:$TARGET" .
 
       - name: Docker Run Check (${{ matrix.target }})
         env:
@@ -54,7 +65,7 @@ jobs:
           AUTH_GOOGLE_ID: ci-google-id
           AUTH_GOOGLE_SECRET: ci-google-secret
         run: |
-          docker run -d --name "pan-for-play-ci-${{ matrix.target }}" -p 127.0.0.1:3000:3000 -e DATABASE_URL -e AUTH_SECRET -e AUTH_GOOGLE_ID -e AUTH_GOOGLE_SECRET "pan-for-play-ci:${{ matrix.target }}"
+          docker run -d --name "pan-for-play-ci-$TARGET" -p 127.0.0.1:3000:3000 -e DATABASE_URL -e AUTH_SECRET -e AUTH_GOOGLE_ID -e AUTH_GOOGLE_SECRET "pan-for-play-ci:$TARGET"
           curl --retry 30 --retry-delay 2 --retry-connrefused --retry-all-errors --fail http://127.0.0.1:3000/login
 
       - name: Docker Failure Logs (${{ matrix.target }})
@@ -62,5 +73,5 @@ jobs:
         run: |
           sleep 2
           docker ps -a
-          docker inspect --format='status={{.State.Status}} exit={{.State.ExitCode}} error={{.State.Error}}' "pan-for-play-ci-${{ matrix.target }}" || true
-          docker logs "pan-for-play-ci-${{ matrix.target }}" || true
+          docker inspect --format='status={{.State.Status}} exit={{.State.ExitCode}} error={{.State.Error}}' "pan-for-play-ci-$TARGET" || true
+          docker logs "pan-for-play-ci-$TARGET" || true
