@@ -18,9 +18,10 @@ function getPageTitle(filePath: string, fallback: string): string {
 function autoGenerateSidebar() {
   const docsDir = path.resolve(__dirname, '..');
   const categories = [
-    { dir: 'architecture', text: 'ガイド' },
-    { dir: 'config', text: '設定解説' },
+    { dir: 'architecture', text: '設計' },
+    { dir: 'config', text: '各種設定' },
     { dir: 'legal', text: '法的表記' },
+    { dir: 'procedure', text: '操作手順' },
   ];
 
   return categories.map(({ dir, text }) => {
