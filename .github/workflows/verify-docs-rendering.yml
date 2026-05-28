@@ -10,8 +10,16 @@ on:
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
 
+concurrency:
+  group: verify-docs-rendering-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   verify-docs-rendering:
+    name: Verify Docs Rendering
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -23,7 +31,9 @@ jobs:
             script: test:rendered:dev
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
 
       - name: Setup Development Environment
         uses: ./.github/actions/setup
@@ -36,4 +46,6 @@ jobs:
 
       - name: Verify Rendered Docs (${{ matrix.suite.name }})
         working-directory: docs
-        run: pnpm ${{ matrix.suite.script }}
+        env:
+          DOCS_SCRIPT: ${{ matrix.suite.script }}
+        run: pnpm "$DOCS_SCRIPT"

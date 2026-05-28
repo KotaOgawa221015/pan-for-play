@@ -13,15 +13,19 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v6  
-      with:  
+    - uses: pnpm/action-setup@d15e628ca66d93ee5f352c71671a7bc6a97af5c9 # v6.0.8
+      with:
         cache: true
 
-    - name: Setup Node.js  
-      uses: actions/setup-node@v5  
-      with:  
+    - name: Setup Node.js
+      uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      with:
         node-version-file: ${{ inputs.node-version-file }}
 
     - name: Install dependencies
-      run: pnpm run setup ${{ inputs.args }}
+      env:
+        SETUP_ARGS: ${{ inputs.args }}
+      run: |
+        read -r -a setup_args <<< "$SETUP_ARGS"
+        pnpm run setup "${setup_args[@]}"
       shell: bash

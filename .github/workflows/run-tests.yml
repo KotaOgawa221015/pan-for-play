@@ -7,6 +7,9 @@ name: Run Tests
 on:
   workflow_call:
 
+permissions:
+  contents: read
+
 jobs:
   run-tests:
     name: Run ${{ matrix.test-type }} Tests
@@ -18,10 +21,14 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5.0.1
+        with:
+          persist-credentials: false
 
       - name: Setup Development Environment
         uses: ./.github/actions/setup
 
       - name: Run ${{ matrix.test-type }} Tests
-        run: pnpm run test:${{ matrix.test-type }}
+        env:
+          TEST_TYPE: ${{ matrix.test-type }}
+        run: pnpm run "test:${TEST_TYPE}"
