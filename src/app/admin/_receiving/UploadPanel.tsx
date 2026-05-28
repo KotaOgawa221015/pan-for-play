@@ -244,23 +244,41 @@ export function UploadPanel({
           >
             対象の冷蔵庫
           </label>
-          <select
-            id="fridgeId"
-            name="fridgeId"
-            required
-            defaultValue={fridges.find((f) => f.isDefault)?.id || ''}
-            disabled={isBusy}
-            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm"
-          >
-            <option value="" disabled>
-              冷蔵庫を選択してください
-            </option>
-            {fridges.map((f) => (
-              <option key={f.id} value={f.id}>
-                {f.name}
+          <div className="relative w-full">
+            <select
+              id="fridgeId"
+              name="fridgeId"
+              required
+              defaultValue={fridges.find((f) => f.isDefault)?.id || ''}
+              disabled={isBusy}
+              className="w-full appearance-none rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 pl-4 pr-10 py-3 text-sm focus:outline-none"
+            >
+              <option value="" disabled>
+                冷蔵庫を選択してください
               </option>
-            ))}
-          </select>
+              {fridges.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-zinc-400 dark:text-zinc-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <title>展開</title>
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+          </div>
         </div>
 
         {selectedFile ? (
