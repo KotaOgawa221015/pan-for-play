@@ -142,20 +142,38 @@ export function FridgeManagementPanel({ fridges }: Props) {
             >
               編集・削除したい冷蔵庫を選択
             </label>
-            <select
-              id="fridge-select"
-              value={selectedId}
-              onChange={(e) => handleSelectChange(e.target.value)}
-              disabled={isPending}
-              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm disabled:bg-gray-100"
-            >
-              <option value="">-- 冷蔵庫を選択してください --</option>
-              {fridges.map((fridge) => (
-                <option key={fridge.id} value={fridge.id}>
-                  {fridge.name} {fridge.isDefault ? '（デフォルト）' : ''}
-                </option>
-              ))}
-            </select>
+            <div className="relative w-full">
+              <select
+                id="fridge-select"
+                value={selectedId}
+                onChange={(e) => handleSelectChange(e.target.value)}
+                disabled={isPending}
+                className="block w-full appearance-none rounded-md border border-gray-300 bg-white pl-3 pr-10 py-2 text-gray-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 sm:text-sm disabled:bg-gray-100"
+              >
+                <option value="">-- 冷蔵庫を選択してください --</option>
+                {fridges.map((fridge) => (
+                  <option key={fridge.id} value={fridge.id}>
+                    {fridge.name} {fridge.isDefault ? '（デフォルト）' : ''}
+                  </option>
+                ))}
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-500">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <title>展開</title>
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           {selectedFridge && (
