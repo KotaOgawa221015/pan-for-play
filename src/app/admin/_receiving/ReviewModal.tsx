@@ -121,29 +121,47 @@ function ReviewLineItem({
 
         <label className="space-y-2">
           <span className="text-xs font-semibold text-zinc-500">カテゴリ</span>
-          <select
-            value={product.category}
-            disabled={isApplying}
-            onChange={(event) =>
-              onProductChange(product.lineId, (current) => {
-                const nextCategory = event.target.value;
-                if (!isProductCategory(nextCategory)) {
-                  return current;
-                }
-                return {
-                  ...current,
-                  category: nextCategory,
-                };
-              })
-            }
-            className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm text-zinc-900 dark:text-zinc-100"
-          >
-            {PRODUCT_CATEGORIES.map((category) => (
-              <option key={category} value={category}>
-                {PRODUCT_CATEGORY_LABELS[category]}
-              </option>
-            ))}
-          </select>
+          <div className="relative w-full">
+            <select
+              value={product.category}
+              disabled={isApplying}
+              onChange={(event) =>
+                onProductChange(product.lineId, (current) => {
+                  const nextCategory = event.target.value;
+                  if (!isProductCategory(nextCategory)) {
+                    return current;
+                  }
+                  return {
+                    ...current,
+                    category: nextCategory,
+                  };
+                })
+              }
+              className="w-full appearance-none rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 pl-4 pr-10 py-3 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none"
+            >
+              {PRODUCT_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {PRODUCT_CATEGORY_LABELS[category]}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-zinc-400 dark:text-zinc-500">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <title>展開</title>
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </div>
+          </div>
         </label>
       </div>
     </section>
